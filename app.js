@@ -35,12 +35,13 @@ app.get('/', routes.index);
 app.get('/partials/:name', routes.partials);
 
 // JSON API
+app.post('/api/login', api.login);
 
 app.get('/api/users', api.findAllUsers);
-app.get('/api/user/:id', api.findUserById);
-app.post('/api/user', api.addUser);
-app.put('/api/user/:id', api.updateUser);
-app.delete('/api/user/:id', api.deleteUser);
+app.get('/api/users/:id', api.findUserById);
+app.post('/api/users', api.addUser);
+app.put('/api/users/:id', api.updateUser);
+app.delete('/api/users/:id', api.deleteUser);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);

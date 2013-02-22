@@ -1,0 +1,23 @@
+h1 Welcome to Care Kids!
+
+ul(ng-repeat="user in users")
+  li 
+    User name: {{user.name}} | email: {{user.email}} | password: {{user.password}}
+
+h3 Login
+form(ng-submit='login()')
+  input(type='text', placeholder='Your email', ng-model='user.email')
+  br
+  input(type='password', placeholder='Your password', ng-model='user.password')
+  br
+  input(type='submit', value="Login", class="btn btn-primary")
+
+
+
+h3 Register
+form(ng-submit='addUser()')
+  input(type='text', placeholder='Your email', ng-model='newUser.email')
+  br
+  input(type='password', placeholder='Your password', ng-model='newUser.password')
+  br
+  input(type='submit', value="Register", class="btn btn-primary")

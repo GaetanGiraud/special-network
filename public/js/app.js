@@ -2,10 +2,10 @@
 
 
 // Declare app level module which depends on filters, and services
-angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives']).
+angular.module('CareKids', ['CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui']).
   config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
-    $routeProvider.when('/view1', {templateUrl: 'partials/partial1', controller: MyCtrl1});
-    $routeProvider.when('/view2', {templateUrl: 'partials/partial2', controller: MyCtrl2});
-    $routeProvider.otherwise({redirectTo: '/'});
+    $routeProvider.when('/login', {templateUrl: 'partials/login', controller: LoginCtrl});
+    $routeProvider.when('/users/:userId', {templateUrl: 'partials/user', controller: UserCtrl});
+    $routeProvider.otherwise({redirectTo: '/login'});
     $locationProvider.html5Mode(true);
   }]);
