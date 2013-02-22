@@ -2,7 +2,25 @@
 
 /* http://docs.angularjs.org/guide/dev_guide.e2e-testing */
 
-describe('PhoneCat App', function() {
+describe('CareKids App', function() {
+	it('should redirect all requests to the homepage', function(){
+		browser().navigateTo('/');
+		expect(browser().location().url()).toBe('/');
+		
+	});
+	
+  it('should send back users the homepage', function(){
+		browser().navigateTo('/');
+		expect(browser().location().url()).toBe('/');
+		
+	});
+	
+	
+	
+};
+
+
+/*describe('PhoneCat App', function() {
 
   it('should redirect index.html to index.html#/phones', function() {
     browser().navigateTo('../../app/index.html');
@@ -76,4 +94,4 @@ describe('PhoneCat App', function() {
       expect(element('img.phone').attr('src')).toBe('img/phones/nexus-s.0.jpg');
     });
   });
-});
+});*/

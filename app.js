@@ -36,18 +36,17 @@ app.get('/partials/:name', routes.partials);
 
 // JSON API
 
-app.get('/api/users', api.findAll);
-
-app.get('/api/user/:id', api.findById);
-app.post('/api/user', api.add);
-app.put('/api/user/:id', api.update);
-app.delete('/api/user/:id', api.delete);
+app.get('/api/users', api.findAllUsers);
+app.get('/api/user/:id', api.findUserById);
+app.post('/api/user', api.addUser);
+app.put('/api/user/:id', api.updateUser);
+app.delete('/api/user/:id', api.deleteUser);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);
 
 // Start server
 
-app.listen(3000, function(){
+app.listen(8000, function(){
   console.log("Express server listening on port %d in %s mode", this.address().port, app.settings.env);
 });

@@ -3,9 +3,9 @@
 /* Controllers */
 
 function AppCtrl($scope, $http) {
-  $http({method: 'GET', url: '/api/name'}).
+  $http({method: 'GET', url: '/api/users'}).
   success(function(data, status, headers, config) {
-    $scope.name = data.name;
+    $scope.users = data;
   }).
   error(function(data, status, headers, config) {
     $scope.name = 'Error!'

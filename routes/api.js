@@ -4,58 +4,45 @@
  */
 
 
-// Modular Rest API
+// User Model API
 
-exports.findById = function (req, res) {
-  res.json({
+var db = require('../database').connection
+  , User = require('../models/User')(db);
+
+
+exports.findUserById = function (req, res) {
+  /*var id = req.params.id;
+  if (id > 0 && id <= data.users.length) { 
+		res.json({
+			user: data.users[id]
+			});
+	} else {
+    res.json(false);		
+  }*/
+
+};
+
+exports.findUserByEmail = function (req, res) {
+  /*res.json({
   	name: 'Gaetan',
   	email: 'ggiraud@gmail.com',
   	location: 'delft'
-  });
+  });*/
 };
 
-exports.findByEmail = function (req, res) {
-  res.json({
-  	name: 'Gaetan',
-  	email: 'ggiraud@gmail.com',
-  	location: 'delft'
-  });
+exports.findAllUsers = function (req, res) {
+  /*res.json(data.users);*/
 };
 
-exports.findAll = function (req, res) {
-  res.json(
-  	{ 
-			name: 'Gaetan',
-		  email: 'ggiraud@gmail.com',
-	  	location: 'delft'
-	  	},
-	  { 
-			name: 'Paula',
-		  email: 'pbeekman@gmail.com',
-	  	location: 'delft'
-	  	}
-  );
-};
-
-exports.add = function (req, res) {
+exports.addUser = function (req, res) {
   console.log('user created'.green);
-  res.json({
-  	name: 'Created Gaetan',
-  	email: 'Created ggiraud@gmail.com',
-  	location: 'Created delft'
-  });
+  user = new User({name: 'Gaetan Giraud', email: 'gaetangiraud@gmail.com'});
 };
 
-exports.update = function (req, res) {
+exports.updateUser = function (req, res) {
   console.log('user updated'.green);
-  res.json({
-  	name: 'Updated Gaetan',
-  	email: 'Updated ggiraud@gmail.com',
-  	location: 'Updated delft'
-  });
 };
 
-exports.delete = function (req, res) {
+exports.deleteUser = function (req, res) {
   console.log('user deleted'.green);
-  res.send(req.body);
-};
+}; 
