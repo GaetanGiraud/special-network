@@ -5,7 +5,8 @@
 
 var express = require('express'),
   routes = require('./routes'),
-  api = require('./routes/api');
+  api = require('./routes/api'),
+  colors = require('colors');
 
 var app = module.exports = express();
 
@@ -35,7 +36,12 @@ app.get('/partials/:name', routes.partials);
 
 // JSON API
 
-app.get('/api/name', api.name);
+app.get('/api/users', api.findAll);
+
+app.get('/api/user/:id', api.findById);
+app.post('/api/user', api.add);
+app.put('/api/user/:id', api.update);
+app.delete('/api/user/:id', api.delete);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);
