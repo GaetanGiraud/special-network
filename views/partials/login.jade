@@ -4,20 +4,20 @@ ul(ng-repeat="user in users")
   li 
     User name: {{user.name}} | email: {{user.email}} | password: {{user.password}}
 
-h3 Login
-form(ng-submit='login()')
+h3
+  form(action='/api/login', method='post')
+    input(type='text', placeholder='Your email', ng-model='user.email', name='email')
+    br
+    input(type='password', placeholder='Your password', ng-model='user.password', name='password')
+    br
+    input(type='submit', value='login')    
+ 
+h3
   input(type='text', placeholder='Your email', ng-model='user.email')
   br
   input(type='password', placeholder='Your password', ng-model='user.password')
   br
-  input(type='submit', value="Login", class="btn btn-primary")
-
-
-
-h3 Register
-form(ng-submit='addUser()')
-  input(type='text', placeholder='Your email', ng-model='newUser.email')
-  br
-  input(type='password', placeholder='Your password', ng-model='newUser.password')
-  br
-  input(type='submit', value="Register", class="btn btn-primary")
+  button(type='button', ng-click="login()", class="btn btn-primary", ng-show="isregistered") Login
+  button(type='button', ng-click="addUser()", class="btn btn-primary", ng-show="!isregistered") Register
+  button(type='button', ng-click="isregistered = false", ng-show="isregistered", class = "btn btn-link") Do you want to register? 
+  button(type='button', ng-click="isregistered = true",  ng-show="!isregistered", class = "btn btn-link") Already registered? Login using your email and password! 
