@@ -6,7 +6,7 @@
 
 // User Model API
 
-var db = require('../database').connection
+var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , utils = require('./utils')
   , bcrypt = require('bcrypt');
@@ -17,22 +17,16 @@ var db = require('../database').connection
 */
 
 // login function, promise as input to handle asynchronous rendering
-exports.login = function (login, password, promise) {
+exports.login = function (email, password, done) {
   // var email = req.body.email, password = req.body.password;
-   var user = User.findOne({'email': login }, function(err, user) {
-   if (err || user == undefined) { 
-     console.log('Unknown user tried to log in'.red);
-     return promise.fulfill(['Login Failed']);
-   } else {
-     //bcrypt.compare(password, user.hash, function(err, response) {
-     //  if (err) { 
-     //   console.log('Wrong password entered'.red);
-     //   return promise.fulfill(['Login Failed']);
-     //  } else {
-        return promise.fulfill(user);
-     //  }
-   //  });
-   }     
+  User.findOne({'email': email }, function(err, user) {
+    if (err) { 
+      console.log('Unknown user tried to log in'.red);
+      return done(err);
+    } 
+    if (!user) { return done(null, false); }
+    if (!bcrypt.compareSync(password, user.hash)) { return done(null, false); }
+    return done(null, user);
   });
 }
 
@@ -41,9 +35,16 @@ exports.findUserById = function (id, callback) {
   User.findOne({'_id': id}, callback);   
 };
 
-exports.add = function (newUserAttrs) {
-  console.log(('creating user: ' + req.body.stringify));
+
   
+/*
+* Restfull API
+*
+*/
+
+exports.add = function (req, res) {
+  console.log(('creating user: ' + req.body.stringify));
+  var newUserAttrs = req.body;
   var password = newUserAttrs.password;
   
   delete newUserAttrs.password; // Don't store password
@@ -54,24 +55,20 @@ exports.add = function (newUserAttrs) {
   
   newUser.save(function(err) {  // saving the user in the database
     if (!err) {
+      delete newUser.hash; // don't send hash
       console.log(('User ' + newUser.email + ' created').green);
-      return newUser;
+      return res.json(newUser);
     } else {
       console.log(err.red);
-      return ['An error has occurred'];
+      return res.send({'error': err});
     }
   });
 };
-  
-/*
-* Restfull API
-*
-*/
-
 
 exports.findById = function (req, res) {
   user = User.findById(req.params.id, function (err, user) {
     if (!err) {
+      delete user.hash; // don't send hash
       return res.json(user);
     } else {
       console.log(err.red);
@@ -83,6 +80,7 @@ exports.findById = function (req, res) {
 exports.findByEmail = function (req, res) {
   user = User.findOne({'email': res.body.email}, function(err, user) {
     if (!err) {
+      delete user.hash; // don't send hash
       return res.json(user);
     } else {
       console.log(err.red);
@@ -95,6 +93,7 @@ exports.findAll = function (req, res) {
   /*res.json(data.users);*/
   users = User.find(function (err, users) {
     if (!err) { 
+      users.forEach(function(user){ delete user.hash }); // don't send hash
       return res.json(users);
     } else {
       console.log(err.red);

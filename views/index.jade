@@ -4,8 +4,10 @@ block body
   div(class='container',ng-controller='AppCtrl')
     h2 Hello
     ul.menu
+      li 
+        a(ng-href='/logout') logout    
       li
-        a(href='login') login
+        a(ng-href='/login') login
 
     div(ng-view)
 
