@@ -1,4 +1,7 @@
-p Thank you for joining {{user.email}} 
+p 
+  | Thank you for joining 
+  | {{current_user.email}} 
+  | and here some more!
 p
   | Showing of 'interpolate' filter:
   | {{ 'Current version is v%VERSION%.' | interpolate }}

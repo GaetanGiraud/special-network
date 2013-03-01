@@ -11,32 +11,18 @@ var db = require('../config/database').connection
   , utils = require('./utils')
   , bcrypt = require('bcrypt');
 
-/*
-*  Easyauth support
-*
-*/
-
-// login function, promise as input to handle asynchronous rendering
-exports.login = function (email, password, done) {
-  // var email = req.body.email, password = req.body.password;
+// Authenticate user
+exports.authenticate = function (email, password, fn) {
+  console.log('authenticating %s:%s', email, password);
   User.findOne({'email': email }, function(err, user) {
-    if (err) { 
-      console.log('Unknown user tried to log in'.red);
-      return done(err);
-    } 
-    if (!user) { return done(null, false); }
-    if (!bcrypt.compareSync(password, user.hash)) { return done(null, false); }
-    return done(null, user);
+    if (err) throw err;
+    if (!user) { return fn(new Error('cannot find user')); }
+    if (!bcrypt.compareSync(password, user.hash)) { return fn(null, new Error('invalid password')); }
+    return fn(null, user);;
   });
 }
 
-
-exports.findUserById = function (id, callback) {
-  User.findOne({'_id': id}, callback);   
-};
-
-
-  
+ 
 /*
 * Restfull API
 *
@@ -53,14 +39,14 @@ exports.add = function (req, res) {
   
   var newUser = new User(newUserAttrs);
   
-  newUser.save(function(err) {  // saving the user in the database
+  newUser.save(function(err, user) {  // saving the user in the database
     if (!err) {
-      delete newUser.hash; // don't send hash
+      delete user.hash; // don't send hash
       console.log(('User ' + newUser.email + ' created').green);
-      return res.json(newUser);
+      return res.json(user);
     } else {
       console.log(err.red);
-      return res.send({'error': err});
+      return res.send(400, err);
     }
   });
 };
@@ -72,7 +58,7 @@ exports.findById = function (req, res) {
       return res.json(user);
     } else {
       console.log(err.red);
-      return res.send({'error':'An error has occurred'});
+      return res.send(400, err);
     }
   });
 };
@@ -84,7 +70,7 @@ exports.findByEmail = function (req, res) {
       return res.json(user);
     } else {
       console.log(err.red);
-      return res.send({'error':'An error has occurred'});
+      return res.send(400, err);
     }
   });
 };
@@ -97,16 +83,38 @@ exports.findAll = function (req, res) {
       return res.json(users);
     } else {
       console.log(err.red);
-      return res.send({'error':'An error has occurred'});
+      return res.send(400, err);
     }
   });  
     
 };
 
 exports.update = function (req, res) {
-  console.log('user updated'.green);
+  var id = req.params.id;
+  delete req.params.id; // ensure that id is not updated.
+  User.Model.findByIdAndUpdate(id, req.params, function(err, user) {
+    if (!err) { 
+      delete user.hash // don't send hash
+      console.log('user updated'.green);
+      return res.json(user);
+    } else {
+      console.log(err.red);
+      return res.send(400, err);
+    }
+  
+  });
 };
 
 exports.delete = function (req, res) {
-  console.log('user deleted'.green);
+    User.findByIdAndRemove(req.params.id, function(err, user) {
+    if (!err) { 
+      delete user.hash // don't send hash
+      console.log('user deleted'.green);
+      return res.json(user);
+    } else {
+      console.log(err.red);
+      return res.send(400, err);
+    }
+  
+  });
 }; 

@@ -2,55 +2,73 @@
 
 /* Controllers */
 
-function AppCtrl($scope, $rootScope, User) {
+function AppCtrl($scope, $rootScope, User, AuthService) {
+  $scope.msg = '';
   
-  
-  
+  $scope.isLoggedIn = AuthService.isLoggedIn(function(result){
+    $scope.isLoggedIn = result;
+  });
+  $scope.current_user = AuthService.currentUser(function(user){
+     $scope.current_user = user;
+    });
+ // AuthService.isLoggedIn( function(result) {
+  //   $rootScope.isLoggedIn = result;
+ // });
+ //console.log($rootScope.isLoggedIn);
 }
+AppCtrl.$inject = ['$scope', '$rootScope', 'User', 'AuthService'];
 
-function LoginCtrl($scope, $http, User, $location) {
+function LoginCtrl($scope, User, $rootScope, $location, AuthService) {
  //$scope.isregistered = true;
- $scope.users = User.query();
-
+  $scope.isRegistered = true;
+  
+  AuthService.isLoggedIn(function(result){
+    if (result){
+      $scope.$parent.msg = {content: 'You are already logged in!', type: 'alert-info'};
+      //$scope.$parent.errors = 'You are already logged in!';
+    //  $rootScope.errors = 'You are already logged in!';
+      };
+  });
 
   $scope.register = function() {
-    console.log('Trying to create user: '+ $scope.newUser.email);
-    User.save($scope.newUser, 
-      function(data){
-        console.log('User added: ' + data.email);
+    var user = User.save($scope.newUser, 
+      function() {
+        console.log(user);
+        $scope.isRegistered = true;
+        $scope.$parent.msg = {
+          content: "Welcome <strong>" + user.name + "</strong>. Sign in using the crentials you provide at registration.", 
+          type: 'alert-sucess'
+        }; 
+        $scope.user = user;
+        //$location.path('/');
       },
-      function(){
-        console.log('Error');
+    function(){
+      $scope.$parent.msg = {content: 'An error occurred while registerig', type: 'alert-error' }; 
+     });
+  }
+  
+  
+  $scope.login = function() {
+    AuthService.login($scope.user, function(loggedin) {
+      if (loggedin) {
+        console.log('logged in');
+        $location.path('/');
+      } else {
+       $scope.$parent.msg = {content: 'Error logging in, please try again', type: 'alert-error'};
       }
-    );
-  }
-  
-  
- $scope.login = function() {
-    $http.post('/api/login', $scope.user)
-      .success(function(data, status) {
-        $scope.status
-        redirect.path('/');
-      })
-      .error(function(){
-
-      });
+    });
   }
 
 }
-LoginCtrl.$inject = ['$scope', '$http', 'User', '$location'];
+LoginCtrl.$inject = ['$scope', 'User', '$rootScope', '$location', 'AuthService'];
 
 
-function UserCtrl($scope, User, $routeParams) {
- // $scope.user =  User.get({userId: $routeParams.userId});
-  
-  
+function UserCtrl($scope, User, AuthService) {
+
 }
-UserCtrl.$inject = ['$scope', '$http'];
+UserCtrl.$inject = ['$scope', 'User', 'AuthService'];
 
-function LogoutCtrl($scope, $http) {
-  
-  $http.get('/logout');
-  
+function LogoutCtrl($scope, AuthService) {
+  AuthService.logout();
 }
-LogoutCtrl.$inject = ['$scope','$http'];
+LogoutCtrl.$inject = ['$scope', 'AuthService'];

@@ -2,12 +2,19 @@ extends layout
 
 block body
   div(class='container',ng-controller='AppCtrl')
-    h2 Hello
-    ul.menu
-      li 
-        a(ng-href='/logout') logout    
-      li
-        a(ng-href='/login') login
+    header(ng-show = "isLoggedIn")
+      h2 Hello
+      ul.menu
+        li 
+          a(ng-href='/logout') logout    
+        li
+          a(ng-href='/login') login
+
+
+    div(class = 'alert {{msg.type}}', ng-show = "msg")
+      button(type="button", ng-click = "msg = ''" )
+      p
+        |{{msg.content}}
 
     div(ng-view)
 
