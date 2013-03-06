@@ -11,9 +11,7 @@ angular.module('CareKids.services', ['ngResource']).
                       {update: {method: "PUT"}}
                       );
   }).
-  factory('AuthService', ['$http', function($http) {
-    var current_user;
-  //  var isLoggedIn;
+  factory('AuthService', ['$http', '$rootScope', function($http, $rootScope) {
   
     return {
       // calls the server to check the credentials, store the result into the currentUser variable
@@ -21,117 +19,88 @@ angular.module('CareKids.services', ['ngResource']).
       login: function(credentials, callback) {
         $http({method: 'POST', url: '/sessions/new', data: credentials}).
           success(function(data, status, headers, config) {
-            current_user = data;
+            $rootScope.currentUser = data;
+            $rootScope.authenticated = true;
             return callback(true);
           }).
           error(function(data, status, headers, config) {
-            current_user = '';
             return callback(false);
           });
       },
       // asks the server to destroy the session
       logout: function() {  
-        $http.get('/logout'); 
-        current_user = ''; 
+        $http.delete('/sessions/destroy', {}); 
+         $rootScope.authenticated = false;
+         $rootScope.currentUser = null; 
       },
-      isLoggedIn: function(callback) { 
-        //if (currentUser == '' || typeof currentUser == 'undefined') {
-        $http.get('/sessions/ping') 
-            .success(function(data) { 
-              console.log('received response from server');
-              if (data == 'true') { 
-                console.log('ok');
-                return callback(true); 
-                } else {
-                  return callback(false);
-                } 
-            });  
-        //} else { 
-        return false;
-          //; }
-      },
-      currentUser: function(callback) {
-        if (current_user == '' || typeof current_user == 'undefined') {
-          $http.get('/sessions') 
-            .success(function(data) { 
-              current_user = data.user;
-              return callback(current_user); 
-           })
-           .error(function(error) {
-             currentUser = '';
-             return callback(current_user);
-           });
-        } else {
-          
-          return callback(current_user); 
-        }     
-     }
+      // asks the server to resend the session information. If session expired, 
+      // servers sends error 401, triggering the http 401 interceptor.
+      ping: function() { 
+        $http.get('/sessions/ping')
+        .success(function(data) {
+          $rootScope.authenticated = true;
+          $rootScope.currentUser = data; 
+        });
+      }
     };
   }]).value('version', '0.1');
   
-
-/* Implement 401 interceptors for resource requests. 
-angular.module('http-auth-interceptor', [])
-  .provider('authService', function() {
-    /**
-     * Holds all the requests which failed due to 401 response,
-     * so they can be re-requested in future, once login is completed.
-     *
+ 
+  
+  /**
+ * @license Angular Auth
+ * (c) 2012 Witold Szczerba
+ * License: MIT
+ */
+angular.module('angular-auth', [])
+ 
+  /**
+   * Holds all the requests which failed due to 401 response,
+   * so they can be re-requested in the future, once login is completed.
+   */
+  .factory('requests401', ['$injector', function($injector) {
     var buffer = [];
-    
-    /**
-     * Required by HTTP interceptor.
-     * Function is attached to provider to be invisible for regular users of this service.
-     *
-    this.pushToBuffer = function(config, deferred) {
-      buffer.push({
-        config: config, 
-        deferred: deferred
+    var $http; //initialized later because of circular dependency problem
+    function retry(config, deferred) {
+      $http = $http || $injector.get('$http');
+      $http(config).then(function(response) {
+        deferred.resolve(response);
       });
     }
-    
-    this.$get = ['$rootScope','$injector', function($rootScope, $injector) {
-      var $http; //initialized later because of circular dependency problem
-      function retry(config, deferred) {
-        $http = $http || $injector.get('$http');
-        $http(config).then(function(response) {
-          deferred.resolve(response);
+  
+    return {
+      add: function(config, deferred) {
+        buffer.push({
+          config: config, 
+          deferred: deferred
         });
-      }
-      function retryAll() {
+      },
+      retryAll: function() {
         for (var i = 0; i < buffer.length; ++i) {
           retry(buffer[i].config, buffer[i].deferred);
         }
         buffer = [];
       }
-
-      return {
-        loginConfirmed: function() {
-          $rootScope.$broadcast('event:auth-loginConfirmed');
-          retryAll();
-        }
-      }
-    }]
-  })
-
+    }
+  }])
+ 
   /**
    * $http interceptor.
    * On 401 response - it stores the request and broadcasts 'event:angular-auth-loginRequired'.
-   *
-  .config(['$httpProvider', 'authServiceProvider', function($httpProvider, authServiceProvider) {
-    
-    var interceptor = ['$rootScope', '$q', function($rootScope, $q) {
+   */
+  .config(function($httpProvider) {
+    var interceptor = function($rootScope, $q, requests401) {
       function success(response) {
-        console.log('response intercepted');
         return response;
       }
  
       function error(response) {
-        if (response.status === 401) {
-          console.log('response intercepted');
+        var status = response.status;
+ 
+        if (status == 401) {
           var deferred = $q.defer();
-          authServiceProvider.pushToBuffer(response.config, deferred);
-          $rootScope.$broadcast('event:auth-loginRequired');
+          requests401.add(response.config, deferred);
+          $rootScope.$broadcast('event:angular-auth-loginRequired');
           return deferred.promise;
         }
         // otherwise
@@ -139,10 +108,10 @@ angular.module('http-auth-interceptor', [])
       }
  
       return function(promise) {
-        console.log('response intercepted');
         return promise.then(success, error);
       }
  
-    }];
+    };
     $httpProvider.responseInterceptors.push(interceptor);
-  }]);*/
+  });
+

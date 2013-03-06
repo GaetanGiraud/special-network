@@ -1,27 +1,25 @@
-h1 Welcome to Care Kids!
 
-//form(action='/login', method='post')
-div(ng-show = "isRegistered")
-  legend Login    
-  input(type='text', placeholder='Your email', ng-model='user.email', name='email')
-  br
-  input(type='password', placeholder='Your password', ng-model='user.password', name='password')
-  br
-  button(type='button', ng-click='login()', class='btn btn-primary') Login
-  a(ng-click = 'isRegistered = false') Not registered yet?
-  //input(type='submit', value='login', class='btn btn-primary')
-    
-    
-//form(action='/api/users', method='post')
-div(ng-show = '!isRegistered')
-  legend Register
-  input(type='text', placeholder='Enter your name', ng-model='newUser.name', name='name')
-  br
-  input(type='text', placeholder='Enter your email', ng-model='newUser.email', name='email')
-  br
-  input(type='password', placeholder='Enter a password', ng-model='newUser.password', name='password')
-  br
-  button(type='button', ng-click='register()', class='btn btn-primary') Register
-  a(ng-click = 'isRegistered = true') Already have an account?
-  //input(type='submit', value='Register', class='btn btn-primary')  
+
+
+div(class='row')
+  div(class='span3 offset4')
+    div(ng-show = "!isNotRegistered")
+      legend Login    
+      input(type='text', placeholder='Your email', ng-model='user.email', name='email', class = 'span3')
+      br
+      input(type='password', placeholder='Your password', ng-model='user.password', name='password', class = 'span3')
+      br
+      button(type='button', ng-click='login()', class='btn btn-primary btn-block') Login
+      a(ng-click = 'isNotRegistered = true') Not registered yet?
+      
+    div(ng-show = "isNotRegistered")
+      legend Register
+      input(type='text', placeholder='Enter your name', ng-model='newUser.name', name='name', class = 'span3' )
+      br
+      input(type='text', placeholder='Enter an email address', ng-model='newUser.email', name='email', class = 'span3')
+      br
+      input(type='password', placeholder='Enter a password', ng-model='newUser.password', name='password', class = 'span3')
+      br
+      button(type='button', ng-click='register()', class='btn btn-primary btn-block') Register
+      a(ng-click = 'isNotRegistered = false') Already have an account?
 

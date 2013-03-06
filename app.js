@@ -42,14 +42,22 @@ app.configure('production', function(){
  */
  
 restrict = function (req, res, next) {
-  if (req.session.user) {
-    console.log(req.session.green);
-    next();
+  var exeptions = ['login', 'logout']; // define exceptions to the restriction
+  var name = req.params.name;
+  
+  if (exeptions.indexOf(name) != -1) { // check for exception to the restriction
+    //console.log(req.session.green);
+    next(); 
   } else {
-    req.session.error = 'Access denied!';
-    console.log('Unauthorized access'.red);
-    res.redirect('\login');
-    //res.send(401, 'User need to log in');
+    if (req.session.user) {
+      console.log((req.session.user.email + ' authorized to view this page').green);
+      next();
+    } else {
+       req.session.error = 'Access denied!';
+       console.log('Unauthorized access'.red);
+       //res.redirect('\login');
+       res.send(401);          
+    }
   }
 }
 
@@ -59,8 +67,10 @@ restrict = function (req, res, next) {
  */
 
 // Angular Templates routes
-app.get('/', restrict, routes.index);
-app.get('/partials/:name', routes.partials);
+app.get('/', routes.index);
+//app.get('/partials/login', routes.login);
+//app.get('/partials/logout', routes.logout);
+app.get('/partials/:name', restrict, routes.partials);
 
 
 // Session management Routes
@@ -68,8 +78,8 @@ app.get('/partials/:name', routes.partials);
 app.get('/sessions', routes.sessions.current);
 app.get('/sessions/ping', routes.sessions.ping);
 app.post('/sessions/new', routes.sessions.new);
-app.get('/sessions/destroy', routes.sessions.destroy);
-app.get('/logout', routes.sessions.destroy); // alternative route for destroying sessions
+app.delete('/sessions/destroy', routes.sessions.destroy);
+//app.post('/logout', routes.sessions.destroy); // alternative route for destroying sessions
 /*
  *  JSON API
 */ 

@@ -2,7 +2,7 @@ extends layout
 
 block body
   div(class='container',ng-controller='AppCtrl')
-    header(ng-show = "isLoggedIn")
+    header(ng-show = "authenticated")
       h2 Hello
       ul.menu
         li 
@@ -25,6 +25,7 @@ block body
   script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js')
   script(src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js')
   script(src='js/lib/angular/angular.js')
+  script(src='js/lib/angular-b/ui-bootstrap-0.2.0.min.js')
   script(src='js/lib/angular-ui/angular-ui.min.js')
   script(src='js/app.js')
   script(src='js/services.js')

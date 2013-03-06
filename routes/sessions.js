@@ -21,7 +21,6 @@ exports.new = function(req, res){
           + ' click to <a href="/logout">logout</a>. '
           + ' You may now access <a href="/restricted">/restricted</a>.';
         delete user.hash; // don't send hash
-        console.log(user);
         res.json(user);
       });
     } else {
@@ -48,9 +47,9 @@ exports.current = function(req, res){
 
 exports.ping = function(req, res){
   if (req.session.user) {
-    res.send(true); 
+    res.json(req.session.user); 
   } else {
-    res.send(false);  
+    res.send(401);  
   }
 };
 
