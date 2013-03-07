@@ -29,3 +29,6 @@
   padding: 0;
 }
 
+div.modal-footer {
+  text-align: left;
+}

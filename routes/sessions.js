@@ -12,22 +12,20 @@ exports.new = function(req, res){
   users.authenticate(req.body.email, req.body.password, function(err, user){
     if (user) {
       // Regenerate session when signing in to prevent fixation 
-      console.log('User logged in'.green);
       req.session.regenerate(function(){
         // Store the user's primary key in the session store to be retrieved,
         // or in this case the entire user object
-        req.session.user = user;
+        req.session.user = user._id;
+        console.log(('User ' + user.name + 'logged in').green);
         req.session.success = 'Authenticated as ' + user.name
           + ' click to <a href="/logout">logout</a>. '
           + ' You may now access <a href="/restricted">/restricted</a>.';
-        delete user.hash; // don't send hash
-        res.json(user);
+        res.json({'email': user.email, 'name': user.name, '_id': user._id});
       });
     } else {
-      console.log('Wrong credentials'.red);
+      console.log('Unauthanticated access'.red);
       req.session.error = 'Authentication failed, please check your '
-        + ' username and password.'
-        + ' (use "tj" and "foobar")';
+        + ' username and password.';
       res.send(401, 'Wrong Credentials');
     }
   });
@@ -35,24 +33,19 @@ exports.new = function(req, res){
 // Destroy session
 exports.destroy = function(req, res){
   req.session.destroy();
-  console.log('User logged out'.green);
+  console.log(('User logged out').green);
   res.send(200);
 };
 
 // Current session information
 
-exports.current = function(req, res){
-  res.json(req.session);
-};
-
 exports.ping = function(req, res){
   if (req.session.user) {
-    res.json(req.session.user); 
+    var user = users.findById(req.session.user, function(err, user) {
+      if (err) { return res.send(400); }// User does not exist.
+      return ({"email": user.email, "name": user.name, "_id": user._id}); // User logged in.
+    });
   } else {
-    res.send(401);  
+    res.send(401);  // User not logged in. Client logic (Showing login page) handled by Angularjs.
   }
 };
-
-//exports.isLoggedIn = function(req, res){
-//  req.session.destroy();
-//};

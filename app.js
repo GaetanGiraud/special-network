@@ -38,24 +38,22 @@ app.configure('production', function(){
 });
 
 /*
- * Restricting access 
+ * Function for Restricting access to logged in users
  */
  
 restrict = function (req, res, next) {
-  var exeptions = ['login', 'logout']; // define exceptions to the restriction
+  var exeptions = ['login', 'logout', 'home']; // define exceptions to the restriction
   var name = req.params.name;
   
   if (exeptions.indexOf(name) != -1) { // check for exception to the restriction
-    //console.log(req.session.green);
     next(); 
   } else {
     if (req.session.user) {
-      console.log((req.session.user.email + ' authorized to view this page').green);
+      console.log(('User with id ' + req.session.user+ ' authorized to view this page').green);
       next();
     } else {
        req.session.error = 'Access denied!';
-       console.log('Unauthorized access'.red);
-       //res.redirect('\login');
+       console.log(('Unauthorized access from ip adress: ' + req.ip).red);
        res.send(401);          
     }
   }
@@ -68,8 +66,6 @@ restrict = function (req, res, next) {
 
 // Angular Templates routes
 app.get('/', routes.index);
-//app.get('/partials/login', routes.login);
-//app.get('/partials/logout', routes.logout);
 app.get('/partials/:name', restrict, routes.partials);
 
 
@@ -79,25 +75,26 @@ app.get('/sessions', routes.sessions.current);
 app.get('/sessions/ping', routes.sessions.ping);
 app.post('/sessions/new', routes.sessions.new);
 app.delete('/sessions/destroy', routes.sessions.destroy);
-//app.post('/logout', routes.sessions.destroy); // alternative route for destroying sessions
+
+// Current User
+app.get('/api/currentuser', api.users.currentUser);
+
+// User registration
+app.post('/api/users', api.users.add);
+
+
 /*
- *  JSON API
+ *  JSON API - From there on only opened for logged in users
 */ 
 
 // user API
-app.get('/api/users', api.users.findAll);
-app.get('/api/users/:id', api.users.findById);
-app.post('/api/users', api.users.add);
-app.put('/api/users/:id', api.users.update);
-app.delete('/api/users/:id', api.users.delete);
+app.get('/api/users', restrict, api.users.findAll);
+app.get('/api/users/:id',restrict, api.users.findById);
+app.put('/api/users/:id', restrict, api.users.update);
+app.delete('/api/users/:id', restrict, api.users.delete);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);
-
-//restricting view to logged in user
-
-
-
 
 // Start server
 

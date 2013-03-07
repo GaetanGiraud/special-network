@@ -22,6 +22,22 @@ exports.authenticate = function (email, password, fn) {
   });
 }
 
+// Send currentUser information
+
+exports.currentUser = function (req, res) {
+  if (req.session.user) {
+    User.findById(req.session.user, function (err, user) {
+      if (!err) {
+        return res.json({"email": user.email, "name": user.name, "_id": user._id}); // User logged in.
+      } else {
+        console.log(err.red);
+        return res.send(400, err);
+      }
+    });
+  } else {
+    res.send(401);  // User not logged in. Client logic (Showing login page) handled by Angularjs.
+  }
+};
  
 /*
 * Restfull API
@@ -52,10 +68,15 @@ exports.add = function (req, res) {
 };
 
 exports.findById = function (req, res) {
-  user = User.findById(req.params.id, function (err, user) {
+   
+  User.findById(req.params.id, function (err, user) {
     if (!err) {
-      delete user.hash; // don't send hash
-      return res.json(user);
+      return res.json({
+        "_id": user._id,
+        "name": user.name,
+        "email": user.email,
+        "children" : user.children
+        });
     } else {
       console.log(err.red);
       return res.send(400, err);
@@ -91,14 +112,15 @@ exports.findAll = function (req, res) {
 
 exports.update = function (req, res) {
   var id = req.params.id;
-  delete req.params.id; // ensure that id is not updated.
-  User.Model.findByIdAndUpdate(id, req.params, function(err, user) {
+  //delete req.params.id; // ensure that id is not updated.
+  User.findByIdAndUpdate(id, req.body, function(err, user) {
     if (!err) { 
-      delete user.hash // don't send hash
       console.log('user updated'.green);
-      return res.json(user);
+      return res.json({"_id": user._id,
+                       "name": user.name,
+                       "email": user.email,
+                       "children" : user.children});
     } else {
-      console.log(err.red);
       return res.send(400, err);
     }
   
