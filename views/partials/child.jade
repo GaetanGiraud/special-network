@@ -1,0 +1,13 @@
+h3 Welcome {{user.name}} 
+
+div(class= 'row')
+  div(class="span10")
+    legend Your kids
+    p
+      | {{child.firstName}}
+      | 's page
+  
+    button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
+    button(type='button', ng-click="cancelUpdate()", class='btn btn-primary', title = 'All changes will be lost!') Cancel
+
+

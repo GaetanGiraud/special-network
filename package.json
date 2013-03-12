@@ -9,5 +9,6 @@
     , "colors": "*"
     , "bcrypt": "0.7.4"
     , "connect-redis": "1.4.5"
+    , "jquery-file-upload-middleware": "0.0.8"
   }
 }

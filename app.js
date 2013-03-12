@@ -7,7 +7,8 @@ var express = require('express'),
   routes = require('./routes'),
   api = require('./routes/api'),
   colors = require('colors'),
-  RedisStore = require('connect-redis')(express);
+  RedisStore = require('connect-redis')(express),
+  upload = require('jquery-file-upload-middleware');
 
 
 var app = module.exports = express();
@@ -15,16 +16,47 @@ var app = module.exports = express();
 /* 
  * Express server configuration
  */
- 
+upload.configure({
+  /*uploadDir: __dirname + '/public/uploads',
+    uploadUrl: '/uploads',*/
+    imageTypes: /\.(gif|jpe?g|png)$/i,
+    imageVersions: {
+       thumbnail: {
+            width: 80,
+            height: 80
+            }
+    }
+});
+    
 app.configure(function(){
+  // views
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
-  app.use(express.bodyParser());
-  app.use(express.static(__dirname + '/public'));
+ 
+  //session logic
   app.use(express.cookieParser());
   app.use(express.session({ store: new RedisStore({host:'127.0.0.1', port:6379}), secret: 'ourkidsarespecial' }));
   //app.use(express.session({secret: 'ourkidsarespecial'}));
   app.use(express.methodOverride());
+  
+  // file upload middleware
+  app.use('/upload', function (req, res, next) { 
+    upload.fileHandler({
+      uploadDir: function () {
+        console.log(req.session);
+        return __dirname + '/public/uploads/' + req.session.user
+      },
+      uploadUrl: function () {
+        return '/uploads/' + req.session.user
+      }
+    
+    })(req, res, next);
+    
+  });
+  
+  // some standard settings
+  app.use(express.bodyParser());
+  app.use(express.static(__dirname + '/public'));
   app.use(app.router);
 });
 
@@ -92,6 +124,19 @@ app.get('/api/users', restrict, api.users.findAll);
 app.get('/api/users/:id',restrict, api.users.findById);
 app.put('/api/users/:id', restrict, api.users.update);
 app.delete('/api/users/:id', restrict, api.users.delete);
+
+// children API - Children get created, updated and deleted through the user API.
+app.get('/api/children/:id',restrict, api.users.findChildById);
+
+// location API
+app.get('/api/locations', restrict, api.locations.findAll);
+app.get('/api/locations/:id',restrict, api.locations.findById);
+app.post('/api/locations', api.locations.add);
+app.put('/api/locations/:id', restrict, api.locations.update);
+app.delete('/api/locations/:id', restrict, api.locations.delete);
+
+//app.put('/api/users/:id', restrict, api.users.update);
+//app.delete('/api/users/:id', restrict, api.users.delete);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);

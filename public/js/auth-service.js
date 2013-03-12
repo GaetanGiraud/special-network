@@ -13,7 +13,7 @@ angular.module('auth-service', []).
      *  It saves the current user into the $rootScope.
      *  It uses the Angula-UI bootstrap implementation for the $dialog. http://angular-ui.github.com/bootstrap/
     */
-   factory('AuthService', ['$http', '$rootScope', '$dialog', function($http, $rootScope, $dialog) {
+   factory('AuthService', ['$http', '$rootScope', '$dialog',  function($http, $rootScope, $dialog) {
   
     return {
       // calls the server to check the credentials, store the result into the currentUser global variable

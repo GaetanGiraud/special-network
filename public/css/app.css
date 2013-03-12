@@ -1,34 +1,29 @@
-/* app css stylesheet */
+body {
+  background-color: grey; }
 
-.menu {
-  list-style: none;
-  border-bottom: 0.1em solid black;
-  margin-bottom: 2em;
-  padding: 0 0 0.5em;
-}
+header {
+  height: 10%; }
 
-.menu:before {
-  content: "[";
-}
+#partial {
+  padding: 5px 0px 5px 5px;
+  margin-right: -8px;
+  border: solid 1px;
+  border-radius: 6px;
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px; }
 
-.menu:after {
-  content: "]";
-}
+#sidebar {
+  background-color: none;
+  text-align: center;
+  background-color: grey;
+  border-radius: 6px;
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px; }
+  #sidebar a, #sidebar a:visited, #sidebar a:link {
+    color: black; }
+    #sidebar a:hover, #sidebar a:visited:hover, #sidebar a:link:hover {
+      color: blue;
+      text-decoration: none; }
 
-.menu > li {
-  display: inline;
-}
-
-.menu > li:before {
-  content: "|";
-  padding-right: 0.3em;
-}
-
-.menu > li:nth-child(1):before {
-  content: "";
-  padding: 0;
-}
-
-div.modal-footer {
-  text-align: left;
-}
+.map {
+  height: 400px; }

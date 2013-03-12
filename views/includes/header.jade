@@ -1,0 +1,23 @@
+header
+  div(class="navbar", ng-switch on="loggedIn")
+    div(class="navbar-inner", ng-switch-when="true")
+      ul(class="nav")
+        li      
+          <a ng-href = "/home", title = "Home"><i class="icon-home icon-2x icon-border"></i></a>
+        li
+          <a ng-href = "/children", title="The Kids"><i class="icon-picture icon-2x icon-border"></i></a>
+        li
+          <a ng-href = "/" title="Questions & Answers"><i class="icon-question-sign icon-2x icon-border"></i></a>
+        li
+          <a ng-href = "/map", title="find"><i class="icon-group icon-2x icon-border"></i></a>
+      ul(class="nav  pull-right")
+        li
+          a(ng-href='/user') Logged in as {{currentUser.name}}
+        li
+          a(ng-href='/logout') logout
+    div(class="navbar-inner", ng-switch-when="false") 
+      ul(class="nav  pull-right")
+        li
+          a(ng-click='openLoginDialog()') login
+          
+  

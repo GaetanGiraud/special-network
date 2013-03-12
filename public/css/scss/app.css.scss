@@ -1,0 +1,66 @@
+@import "global_styling";
+
+body {
+
+  background-color: grey;
+
+}
+
+header {
+
+  height: 10%;
+
+
+}
+
+#partial {
+ // position: relative;
+ // left: 12%;
+ // width: 83%;
+  
+  // to keep the layout whatever happens inside the partial
+  //box-sizing: border-box;
+  
+  padding: 5px 0px 5px 5px;
+  
+  margin-right: -8px;
+  
+  border: solid 1px;
+  //background-color: grey; 
+  @include rounded-corners(6px);
+
+}
+
+
+#sidebar {
+  //position: relative;
+  //left: 0;
+ // float: left;
+  //width: 11%;
+  //margin-left: 5px;
+  background-color: none; 
+  text-align: center;
+  //font-size: 11px;
+  i { 
+   // font-size: 200%;
+  }   
+  a, a:visited, a:link {
+    color: black;
+    
+    &:hover {
+    color: blue;
+     text-decoration:none;
+  }
+  
+
+  }
+
+  background-color: grey; 
+  @include rounded-corners(6px);
+
+}
+
+.map {
+  height: 400px;
+  //width: 600px;
+}

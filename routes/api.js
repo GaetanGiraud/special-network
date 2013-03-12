@@ -6,6 +6,7 @@
 
 // users api
 var users = require('./userapi');
+var locations = require('./locationapi');
 
 exports.users = users;
-
+exports.locations = locations;

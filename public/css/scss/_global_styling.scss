@@ -1,0 +1,36 @@
+@mixin rounded-sides($horz, $radius: 6px ) {
+    border-bottom-#{$horz}-radius: $radius;
+    border-top-#{$horz}-radius: $radius;
+    -moz-border-radius-top#{$horz}: $radius;
+    -moz-border-radius-bottom#{$horz}: $radius;
+    -webkit-border-top-#{$horz}-radius: $radius;
+    -webkit-border-bottom-#{$horz}-radius: $radius;
+}
+
+@mixin box-shadow {
+    -webkit-box-shadow: 1px 0px 2px rgba(0,0,0,.15);
+    -moz-box-shadow: 1px 0px 2px rgba(0,0,0,.15);
+    box-shadow: 1px 0px 2px rgba(0,0,0,.15);
+  
+}
+
+@mixin white-box-shadow {
+    -webkit-box-shadow: 1px 0px 2px rgba(0,0,0,.40);
+    -moz-box-shadow: 1px 0px 2px rgba(0,0,0,.40);
+    box-shadow: 2px 0px 3px rgba(0,0,0,.40);
+  
+}
+
+@mixin gradient {
+  background-image: linear-gradient(bottom, rgb(237,245,242) 47%, rgb(245,255,253) 74%, rgb(234,252,252) 84%);
+  background-image: -o-linear-gradient(bottom, rgb(237,245,242) 47%, rgb(245,255,253) 74%, rgb(234,252,252) 84%);
+  background-image: -moz-linear-gradient(bottom, rgb(237,245,242) 47%, rgb(245,255,253) 74%, rgb(234,252,252) 84%);
+  background-image: -webkit-linear-gradient(bottom, rgb(237,245,242) 47%, rgb(245,255,253) 74%, rgb(234,252,252) 84%);
+  background-image: -ms-linear-gradient(bottom, rgb(237,245,242) 47%, rgb(245,255,253) 74%, rgb(234,252,252) 84%);
+}
+
+@mixin rounded-corners($radius: 6px ) {
+    border-radius: $radius;
+    -moz-border-radius: $radius;
+    -webkit-border-radius: $radius;
+}

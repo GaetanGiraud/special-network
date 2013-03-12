@@ -4,11 +4,11 @@
  */
 
 
-// User Model API
+// Loading model API
 
 var db = require('../config/database').connection
   , User = require('../models/User')(db)
-  , utils = require('./utils')
+  , Location = require('../models/Location')(db)
   , bcrypt = require('bcrypt');
 
 // Authenticate user
@@ -28,7 +28,7 @@ exports.currentUser = function (req, res) {
   if (req.session.user) {
     User.findById(req.session.user, function (err, user) {
       if (!err) {
-        return res.json({"email": user.email, "name": user.name, "_id": user._id}); // User logged in.
+        return res.json({"email": user.email, "name": user.name, "_id": user._id, 'picture': user.picture, '_location': user._location}); // User logged in.
       } else {
         console.log(err.red);
         return res.send(400, err);
@@ -44,6 +44,7 @@ exports.currentUser = function (req, res) {
 *
 */
 
+  
 exports.add = function (req, res) {
   console.log(('creating user: ' + req.body.stringify));
   var newUserAttrs = req.body;
@@ -55,11 +56,25 @@ exports.add = function (req, res) {
   
   var newUser = new User(newUserAttrs);
   
+      
   newUser.save(function(err, user) {  // saving the user in the database
     if (!err) {
       delete user.hash; // don't send hash
       console.log(('User ' + newUser.email + ' created').green);
-      return res.json(user);
+      
+      // create an empty location object to host the user's home location
+      var homeLocation = new Location({
+      _creator: user._id    // assign an ObjectId
+      });
+      
+      homeLocation.save(function(err, location) {
+        if (err) throw err;  
+        User.findByIdAndUpdate(user._id, {'_location': location._id }, function(err, user) {
+         if (err) throw err;
+         return res.json(user);
+        });
+      });
+          
     } else {
       console.log(err.red);
       return res.send(400, err);
@@ -75,7 +90,9 @@ exports.findById = function (req, res) {
         "_id": user._id,
         "name": user.name,
         "email": user.email,
-        "children" : user.children
+        "picture": user.picture,
+        "children" : user.children,
+        '_location': user._location
         });
     } else {
       console.log(err.red);
@@ -83,6 +100,7 @@ exports.findById = function (req, res) {
     }
   });
 };
+
 
 exports.findByEmail = function (req, res) {
   user = User.findOne({'email': res.body.email}, function(err, user) {
@@ -119,6 +137,8 @@ exports.update = function (req, res) {
       return res.json({"_id": user._id,
                        "name": user.name,
                        "email": user.email,
+                       "picture": user.picture,
+                       "_location": user._location,
                        "children" : user.children});
     } else {
       return res.send(400, err);
@@ -140,3 +160,17 @@ exports.delete = function (req, res) {
   
   });
 }; 
+
+// Requesting a particular child.
+
+exports.findChildById = function(req, res){
+  User.findById(req.session.user, function (err, user) {
+      if (!err) {
+       var child = user.children.id(req.params.id);
+        return res.json(child); // requested child
+      } else {
+        console.log(err.red);
+        return res.send(400, err);
+      }
+    });
+};
