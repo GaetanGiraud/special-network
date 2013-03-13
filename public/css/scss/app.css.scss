@@ -25,7 +25,7 @@ header {
   
   margin-right: -8px;
   
-  border: solid 1px;
+  //border: solid 1px;
   //background-color: grey; 
   @include rounded-corners(6px);
 
@@ -61,6 +61,6 @@ header {
 }
 
 .map {
-  height: 400px;
+  height: 600px;
   //width: 600px;
 }

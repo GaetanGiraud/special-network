@@ -10,6 +10,14 @@ html(ng-app="CareKids")
     link(rel='stylesheet', href='/css/bootstrap.min.css')
     link(rel='stylesheet', href='/css/bootstrap-responsive.min.css')
     link(rel="stylesheet", href="/css/font-awesome.min.css")
+    
+    // Loading some of the scripts in head to allow ng-cloak functionality. All other scripts loaded at the end.
+    script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js')
+    script(src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js')
+    script(src='js/lib/jquery.fileupload.js') 
+    script(src="js/lib/jquery.iframe-transport.js")
+    script(src='js/lib/angular/angular.js')
+    
     <!--[if lte IE 8]>
     script
       // The ieshiv takes care of our ui.directives, bootstrap module directives and 

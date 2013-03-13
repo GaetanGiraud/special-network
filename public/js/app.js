@@ -5,10 +5,9 @@
 var app = angular.module('CareKids', ['CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service']).
   config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.when('/', {templateUrl: 'partials/home', controller: HomeCtrl});
-    $routeProvider.when('/logout', {templateUrl: 'partials/logout', controller: LogoutCtrl});
+    $routeProvider.when('/logout', {templateUrl: 'partials/home', controller: LogoutCtrl});
     
     //Restricted partials
-    //$routeProvider.when('/home', {templateUrl: 'partials/userhome', controller: HomeCtrl}); 
     $routeProvider.when('/users/:userId', {templateUrl: 'partials/user', controller: UserCtrl}); 
     $routeProvider.when('/user', {templateUrl: 'partials/user', controller: UserCtrl}); 
     $routeProvider.when('/children', {templateUrl: 'partials/children', controller: ChildrenCtrl}); 

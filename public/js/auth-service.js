@@ -30,7 +30,7 @@ angular.module('auth-service', []).
           });
       },
       // asks the server to destroy the session and reset global variables
-      logout: function() {  
+      logout: function(callback) {  
         $http.delete('/sessions/destroy', {}); 
          $rootScope.currentUser = null; 
          $rootScope.loggedIn = false; 

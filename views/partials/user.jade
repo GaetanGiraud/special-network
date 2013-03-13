@@ -1,9 +1,11 @@
 
 h3 Welcome {{user.name}} 
 
-div(class= 'row')
-  
-  div(class='span6')
+div.row
+  div.span10
+    legend Yourself
+div.row 
+  div.span6
     label
       | Your Name
     input(type='text', ng-model = "user.name", class = 'span4' )
@@ -14,7 +16,7 @@ div(class= 'row')
     br
     
   div(uploader, id="fileupload", name="file", data-url="/upload", class='span4')
-    img(id="picture", width="100", ng-src="uploads/{{user._id }}/{{user.picture || 'user-default.png'}}")
+    img(id="picture", width="100", ng-src="{{ user.picture | defaultPic }}")
     p
       | {{user.picture}}
     
@@ -25,25 +27,37 @@ div(class= 'row')
     button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
     
     
-div(class= 'row')
-  div(class='span12')
+div.row
+  div.span10
     legend Where are you?
-    input(type='text', ng-model = "location.formattedAdress", ng-change = "getLocation()", placeholder="Your location", class = 'span4')
-    button(ng-click="undoLocation()", ng-show = "undoLocUpdate", class="btn btn-error") undo
-    div(ng-show='locations')
-      ul(ng-repeat='loc in locations', class="unstyled")
-        li
-          button(ng-click="validateAdress($index)", class="btn btn-success") Ok
-          {{ loc.formatted_address }}
-
+div.row
+  div.span4
+    input(type='text', ng-model = "location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span4')
+   
+    div(ng-show = "undoLocUpdate", class = "alert alert-success")
+      button(ng-click="undoLocation()", class="btn btn-danger") undo
+      |  Location updated
+      button(class = "close", ng-click="undoLocUpdate = 'false'")&times;
       
+      
+    p(ng-show = "location.formattedAddress.length > 0 && location.formattedAddress.length < 5")
+      small
+        | Looking up your adress at Google. 
+        br
+        | This information is really only meant for your convenience, we are not doing anything with it.
+        br 
+        | So if you'd rather not disclose your full adrress, no problem!
+  
+  div(ng-show='locations', class='span6')
+    ul(ng-repeat='loc in locations', class="unstyled")
+      li
+        button(ng-click="validateAdress($index)", class="btn btn-success") Ok
+        {{ loc.formatted_address }}       
 
+div.row
+  div.span10
+    legend Public Settings
+      label 
+        | Do you agree to have your data used for research purposes?
+        input(type="checkbox", ng-model="researchAgreement")
 
-
-
-
-
-
-p
-  | Showing of 'interpolate' filter:
-  | {{ 'Current version is v%VERSION%.' | interpolate }}

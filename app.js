@@ -81,7 +81,7 @@ restrict = function (req, res, next) {
     next(); 
   } else {
     if (req.session.user) {
-      console.log(('User with id ' + req.session.user+ ' authorized to view this page').green);
+    //  console.log(('User with id ' + req.session.user+ ' authorized to view this page').green);
       next();
     } else {
        req.session.error = 'Access denied!';
@@ -129,6 +129,7 @@ app.delete('/api/users/:id', restrict, api.users.delete);
 app.get('/api/children/:id',restrict, api.users.findChildById);
 
 // location API
+app.get('/api/homelocation', restrict, api.locations.homeLocation);
 app.get('/api/locations', restrict, api.locations.findAll);
 app.get('/api/locations/:id',restrict, api.locations.findById);
 app.post('/api/locations', api.locations.add);
