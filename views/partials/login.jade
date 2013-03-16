@@ -3,6 +3,10 @@ div(ng-controller='LoginCtrl')
     h3(ng-show = "!isNotRegistered") Login
     h3(ng-show = "isNotRegistered") Register
   
+  div(ng-class="modalAlert.type", ng-show="modalAlert.msg.length > 0", ng-cloak, class="ng-cloak")
+    button(class = "close", ng-click="modalAlert.msg = ''")&times;
+    {{modalAlert.msg}}
+  
   div(class="modal-body")
     div(ng-show = "!isNotRegistered")
       input(type='text', placeholder='Your email', ng-model='user.email', name='email', class = 'span3')

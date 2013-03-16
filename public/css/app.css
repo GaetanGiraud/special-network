@@ -25,4 +25,13 @@ header {
       text-decoration: none; }
 
 .map {
-  height: 600px; }
+  height: 400px;
+  width: 700px; }
+
+#markers {
+  position: absolute; }
+
+.drag {
+  position: absolute;
+  width: 32px;
+  height: 32px; }

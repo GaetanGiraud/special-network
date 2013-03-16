@@ -16,8 +16,8 @@ exports.authenticate = function (email, password, fn) {
   console.log('authenticating %s:%s', email, password);
   User.findOne({'email': email }, function(err, user) {
     if (err) throw err;
-    if (!user) { return fn(new Error('cannot find user')); }
-    if (!bcrypt.compareSync(password, user.hash)) { return fn(null, new Error('invalid password')); }
+    if (!user) { return fn(new Error('cannot find user'), null); }
+    if (!bcrypt.compareSync(password, user.hash)) { return fn(new Error('invalid password'), null); }
     return fn(null, user);;
   });
 }
@@ -64,7 +64,8 @@ exports.add = function (req, res) {
       
       // create an empty location object to host the user's home location
       var homeLocation = new Location({
-      _creator: user._id    // assign an ObjectId
+      _creator: user._id,   // assign an ObjectId
+      locationType: 'userhome'
       });
       
       homeLocation.save(function(err, location) {
@@ -130,8 +131,10 @@ exports.findAll = function (req, res) {
 
 exports.update = function (req, res) {
   var id = req.params.id;
-  //delete req.params.id; // ensure that id is not updated.
-  User.findByIdAndUpdate(id, req.body, function(err, user) {
+  var userData = req.body;
+  delete userData._id; // stripping the id for mongoDB
+
+  User.findByIdAndUpdate(id, userData, function(err, user) {
     if (!err) { 
       console.log('user updated'.green);
       return res.json({"_id": user._id,

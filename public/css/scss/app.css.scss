@@ -61,6 +61,23 @@ header {
 }
 
 .map {
-  height: 600px;
-  //width: 600px;
+  height: 400px;
+  width: 700px;
 }
+
+#markers {
+ position:absolute;
+ //top:140px;
+ //left:71%;
+ //width:200px;
+// height:110px;
+}
+
+
+
+.drag {
+ position: absolute;
+ width: 32px;
+ height: 32px;
+}
+

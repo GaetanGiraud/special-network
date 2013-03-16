@@ -81,10 +81,10 @@ exports.update = function (req, res) {
 };
 
 exports.delete = function (req, res) {
-    Location.findByIdAndRemove(req.params.id, function(err, location) {
+    Location.findByIdAndRemove(req.params.id, function(err) {
     if (!err) { 
-      console.log(('location ' + location._id + ' deleted'.green);
-      return res.json(location);
+      //console.log(('location ' + location._id + ' deleted').green);
+      return res.send(200);
     } else {
       console.log(err.red);
       return res.send(400, err);

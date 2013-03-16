@@ -2,7 +2,7 @@
 
 
 // Declare app level module which depends on filters, and services
-var app = angular.module('CareKids', ['CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service']).
+var app = angular.module('CareKids', ['CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service', 'geoService']).
   config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.when('/', {templateUrl: 'partials/home', controller: HomeCtrl});
     $routeProvider.when('/logout', {templateUrl: 'partials/home', controller: LogoutCtrl});

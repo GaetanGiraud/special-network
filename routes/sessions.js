@@ -26,7 +26,7 @@ exports.new = function(req, res){
       console.log('Unauthanticated access'.red);
       req.session.error = 'Authentication failed, please check your '
         + ' username and password.';
-      res.send(401, 'Wrong Credentials');
+      res.send(300, 'Wrong Credentials');
     }
   });
 }

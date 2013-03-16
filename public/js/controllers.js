@@ -27,6 +27,15 @@ function DialogCtrl($scope, dialog){
 }
 DialogCtrl.$inject = ['$scope', 'dialog'];
 
+
+
+/*
+ * User login and User Administration
+ * 
+ */
+
+
+
 function LoginCtrl($scope, User, $rootScope, $location, AuthService, Alert) {
 
   $scope.register = function() {
@@ -34,21 +43,22 @@ function LoginCtrl($scope, User, $rootScope, $location, AuthService, Alert) {
       function() {
         $scope.isNotRegistered = false;
         $scope.user = user;
+        Alert.success('Welcome ' + user.name + ', you are successfully registered, log in with the password you just entered!', 'modal');
       },
     function(){
-      Alert.error('A system error occurred while registering, sorry for the inconvenience.'); 
+      Alert.error('A system error occurred while registering, sorry for the inconvenience.', 'modal'); 
      });
   }
   
   
   $scope.login = function() {
     AuthService.login({'email': $scope.user.email, 'password': $scope.user.password}, function(loggedin) {
+      console.log(loggedin);
       if (loggedin) {
         $scope.$parent.close();
         Alert.success('Welcome ' + $rootScope.currentUser.name + ', you have successfullt logged in!');
-        
       } else {
-        Alert.error('Error logging in, please try again');
+        Alert.error('Error logging in, please try again', 'modal');
       }
     });
   }
@@ -63,29 +73,33 @@ function LogoutCtrl($scope, AuthService, Alert, $location) {
 }
 LogoutCtrl.$inject = ['$scope', 'AuthService', 'Alert','$location'];
 
-/*
- * Controlers related to Users and Children
- * 
- */
 
-
-function UserCtrl($scope, User, Location, $rootScope, Alert) {
- // initialize variables and constructors
-  $scope.previousLocation = [];
+function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
   $scope.undoLocUpdate = "false";
-  var geocoder = new google.maps.Geocoder();
-    
+  var previousLocation = [];
   // Fetch the user and its location
+  
   $scope.user = User.get({userId: $rootScope.currentUser._id}, 
-    function(user) {
+    function(user) {       
       $scope.location = Location.get({locationId: user._location}, 
-        function(location) {
-          // copy the location to allow undo function  
-          $scope.previousLocation[0] = angular.copy(location);
-        });
-  });
+      function(location) {
+          previousLocation[0] = angular.copy(location);
+      });
+      
+   });
 
- 
+  $scope.updateUser = function() {  
+    User.update({userId: $scope.user._id},$scope.user, 
+      function(user){
+        $scope.user = user;
+        Alert.success('Your settings have been successfully updated.');
+      }, 
+      function(err){
+        Alert.error('Error updating user: ' + err);
+      }
+    );
+  }
+  
   // Event triggered by the uploader plugin. Actions to be performed after successfull upload of profile photo.
   $scope.$on('event:profilePictureUploaded', function(res, filename) {
     $scope.user.picture = filename;  
@@ -97,111 +111,154 @@ function UserCtrl($scope, User, Location, $rootScope, Alert) {
     $scope.user = User.get({userId: $rootScope.currentUser._id});
   }
   
-   
-  $scope.updateUser = function() {
-    var id = $scope.user._id;
-    var userData = $scope.user;
+  // Using the GeoCoder service.
+  
+  $scope.getLocation = function () { 
+    if (previousLocation[1] != null) {
+       previousLocation[0] = angular.copy(previousLocation[1]) ;
+       previousLocation[1] = null;
+    }
     
-    console.log(userData);
-    delete userData._id; // stripping the id for mongoDB
-    
-    User.update({userId: id}, userData, 
-      function(user){
-        $scope.user = user;
-        Alert.success('Your settings have been successfully updated.');
+    if (($scope.location.formattedAddress.length < 5) && angular.isArray($scope.locations)) {
+     $scope.locations = null;
+     $scope.undoLocUpdate = "false";
+    }
+    if ($scope.location.formattedAddress.length > 5 ) {
+      GeoCoder.getLocation($scope.location, function(results) {
+        $scope.locations = results;
+      });
+    } 
+  }
+  
+  $scope.updateLocation = function(isUndo) {
+    Location.update({locationId: $scope.location._id}, $scope.location, 
+      function(location){
+        $scope.location = location;
+        $scope.undoLocUpdate= isUndo;
       }, 
-      function(err){
-        Alert.error('Error updating user: ' + err);
+      function(err){ 
+        Alert.error('A system error while saving your location. Could you try again?' );
       }
     );
   }
   
-  // Getting the adress based on geolocation by google
+  $scope.validateAdress = function($index) {
+    var newAddress = $scope.locations[$index];
    
-  $scope.getLocation = function() { 
+    GeoCoder.parseAddress(newAddress, function(result) {
+       $scope.location = angular.extend($scope.location, result);
+       previousLocation[1] = angular.copy($scope.location);
+       $scope.locations = null;
+       $scope.updateLocation("true");  
+    });
+  }
+ 
+  $scope.undoLocation = function() {
+    $scope.location = previousLocation[0];
+    $scope.updateLocation("false"); 
+  }
+}
+UserCtrl.$inject = ['$scope', 'User', '$rootScope', 'Alert', 'Location', 'GeoCoder'];
+
+
+
+
+
+/* 
+ * Controller for the geocoder API
+ * $scope is a sub-scope of the UserCtrl
+ * 
+ */
+
+
+// function LocationCtrl($scope, Location, $rootScope, Alert) {
+ // var geocoder = new google.maps.Geocoder();
+  
+ // $scope.undoLocUpdate = "false";
+  
+    // Getting the adress based on geolocation by google
+  
+  /*$scope.getLocation = function() { 
+    
     // When starting to type in a new address, if a secondary address has been typed in, 
     //use it as previous adress for the undo function
-    if ( $scope.previousLocation[1] != null) {
-      $scope.previousLocation[0] = angular.copy($scope.previousLocation[1]) ;
-      $scope.previousLocation[1] = null;
+    if ( $scope.$parent.previousLocation[1] != null) {
+      $scope.$parent.previousLocation[0] = angular.copy($scope.$parent.previousLocation[1]) ;
+      $scope.$parent.previousLocation[1] = null;
       $scope.undoLocUpdate = "false";
     }
+    
     // reset the locations array when retyping a new adress from scratch
-    if (($scope.location.formattedAddress.length < 5) && angular.isArray($scope.locations)) {
+    if (($scope.$parent.location.formattedAddress.length < 5) && angular.isArray($scope.locations)) {
       $scope.locations = null;
     }
     
     // fetch adress from google map and store in array for presentation
-    if ($scope.location.formattedAddress.length > 5 ) {
+    if ($scope.$parent.location.formattedAddress.length > 5 ) {
       geocoder.geocode({
-        'address': $scope.location.formattedAddress
+        'address': $scope.$parent.location.formattedAddress
         }, 
         function(results, status) {
           if(status == google.maps.GeocoderStatus.OK) { 
             $scope.locations = results;
-          //  return ;
           }
           if(status == google.maps.GeocoderStatus.ZERO_RESULTS) {
-            $scope.locations = [{ 'formatted_address': ' No match for this adress'}];
-         //   return;
+            $scope.locations = [{ 'formatted_address': 'No match found, type some more!'}];
            }
-        // return;
        });
      }
-    }
+    }*/
   
-  $scope.updateLocation = function() {
-    var id = $scope.location._id;
-    //var locData = $scope.location;
-    //delete locData._id;
-    
-    Location.update({locationId: id}, $scope.location, function(location){
-        $scope.location = location;
-        $scope.undoLocUpdate= "true";
+  /*$scope.updateLocation = function(isUndo) {
+    var id = $scope.$parent.location._id;
+
+    Location.update({locationId: id}, $scope.$parent.location, function(location){
+        $scope.$parent.location = location;
+        $scope.undoLocUpdate= isUndo;
       }, 
       function(err){
         Alert.error('A system error while saving your location. Could you try again?' );
       }
     );
-    console.log($scope.user.location);
-  }
+   // console.log($scope.user.location);
+  }*/
   
   // When the user validates a proposed location, the google api object is parsed
   // and relevant information stored into the database
-  $scope.validateAdress = function(index){
+  /*
+   var address = $scope.locations[index];
+   
+  $scope.validateAdress = function(locations[index]){
     
     var address = $scope.locations[index];
     
     // parsing the google api address object
     address['address_components'].forEach(function(component) {
-      if ( component['types'].indexOf('street_number') != -1 ) { $scope.location.streetNumber = component['short_name']; }
-      if ( component['types'].indexOf('route') != -1 ) { $scope.location.route = component['short_name']; }
-      if ( component['types'].indexOf('locality') != -1 ) { $scope.location.locality = component['short_name']; }
-      if ( component['types'].indexOf('country') != -1 ) { $scope.location.country = component['short_name']; }
+      if ( component['types'].indexOf('street_number') != -1 ) { $scope.$parent.location.streetNumber = component['short_name']; }
+      if ( component['types'].indexOf('route') != -1 ) { $scope.$parent.location.route = component['short_name']; }
+      if ( component['types'].indexOf('locality') != -1 ) { $scope.$parent.location.locality = component['short_name']; }
+      if ( component['types'].indexOf('country') != -1 ) { $scope.$parent.location.country = component['short_name']; }
     });
-    $scope.location.lat = address["geometry"]['location']['lat']();
-    $scope.location.lng = address["geometry"]['location']['lng']();   
-    $scope.location.formattedAddress = address['formatted_address'];
-    $scope.locations = null;
+    $scope.$parent.location.lat = address["geometry"]['location']['lat']();
+    $scope.$parent.location.lng = address["geometry"]['location']['lng']();   
+    $scope.$parent.location.formattedAddress = address['formatted_address'];
+    $scope.$parent.locations = null;
     
-    $scope.previousLocation[1] = angular.copy($scope.location);
+    $scope.$parent.previousLocation[1] = angular.copy($scope.location);
     
     // updating the location in the database
-    $scope.updateLocation();  
-   
-  //  return ;
+    $scope.updateLocation("true");  
+
   }
   
   $scope.undoLocation = function() {
-    
-    $scope.location = $scope.previousLocation[0];
-    $scope.updateLocation(); 
-    $scope.undoLocUpdate = "false";
+    $scope.$parent.location = $scope.$parent.previousLocation[0];
+    $scope.updateLocation("false"); 
   }
   
 }
-UserCtrl.$inject = ['$scope', 'User', 'Location', '$rootScope', 'Alert'];
-
+LocationCtrl.$inject = ['$scope', 'Location', '$rootScope', 'Alert'];
+*/
 function ChildrenCtrl($scope, User, $rootScope) {
   $scope.user = User.get({userId: $rootScope.currentUser._id});     
  
@@ -234,17 +291,47 @@ ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams'];
 
 /*
  * 
- * Looking and finding people / places
+ * Looking and finding people / places 
  * 
  * 
  * 
  */
 
 
-function MapCtrl($scope, $rootScope, Location, homeLatLng, Alert) {
- 
+function MapCtrl($scope, $rootScope, Location, homeLatLng, Map, Alert, User) {
+  
+  $scope.mapOptions = Map.setMapOptions(homeLatLng);
   
   $scope.$watch('myMap', function(myMap) {
+    $scope.locations = Map.initialize(myMap);
+  });
+  
+  /*var dummy, drag_area;
+
+  function Dummy(map) {
+    this.setMap(map);
+  }
+  Dummy.prototype = new google.maps.OverlayView();
+  Dummy.prototype.draw = function() {};
+      
+  drag_area = document.getElementById("markers");
+    
+   // initialize map options
+  $scope.mapOptions = {
+    center: homeLatLng,
+    zoom: 12,
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    mapTypeControlOptions: {
+      style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+      position: google.maps.ControlPosition.TOP_LEFT 
+      }
+   };
+ 
+  // waiting until the object myApp is available to intialize the markers
+  $scope.$watch('myMap', function(myMap) {
+  
+    dummy = new Dummy(myMap);
+             
     $scope.locations = Location.query(function() {
       
       angular.forEach($scope.locations, function(location) {
@@ -255,23 +342,51 @@ function MapCtrl($scope, $rootScope, Location, homeLatLng, Alert) {
         });
         location.marker = newMarker;
        });
-     //$scope.myMarkers.push(newMarker);
-     //$scope.openMarkerInfo(newMarker);
     });
-  });
+  });*/
  
-  $scope.mapOptions = {
-    center: homeLatLng,
-    zoom: 12,
-    mapTypeId: google.maps.MapTypeId.ROADMAP
-  };
-  
-  $scope.addMarker = function($event) {
+  $scope.endMove = function($event) {
+   Map.dropEvent($event, $scope.myMap, function(newMarker) {
+      if (newMarker) $scope.createLocation(newMarker);
+   });
+    
+    /*var element= $event.target;
+    
+    var mapDiv = $scope.myMap.getDiv(),
+        mapDivLeft = mapDiv.offsetLeft,
+        mapDivTop = mapDiv.offsetTop,
+        mapDivWidth = mapDiv.offsetWidth,
+        mapDivHeight = mapDiv.offsetHeight;
+    
+    var dropPosLeft = $event.clientX;
+    var dropPosTop = $event.clientY;
+     
+    var eleWidth = element.offsetWidth,
+        eleHeight = element.offsetHeight;
+
+   
+    if (dropPosLeft > mapDivLeft && dropPosLeft < (mapDivLeft + mapDivWidth) && dropPosTop > mapDivTop && dropPosTop < (mapDivTop + mapDivHeight)) {
+      
+      var mapPosition = new  google.maps.Point(dropPosLeft -  mapDivLeft, dropPosTop + eleHeight/2- mapDivTop);
+      var LatLng = dummy.getProjection().fromContainerPixelToLatLng(mapPosition);
+      
+      var newMarker = new  google.maps.Marker({
+        map: $scope.myMap,
+        position: LatLng
+      });*/
+
+  }
+ 
+   $scope.addMarker = function($event) {
     var newMarker = new google.maps.Marker({
       map: $scope.myMap,
       position: $event.latLng
     });
+    $scope.createLocation(newMarker);
     
+  }
+    
+  $scope.createLocation = function(newMarker) {
     Location.save({
       '_creator': $rootScope.currentUser._id,
       'lat': newMarker.getPosition().lat(),
@@ -280,7 +395,7 @@ function MapCtrl($scope, $rootScope, Location, homeLatLng, Alert) {
       function(location) {
         location.marker = newMarker;
         $scope.locations.push(location);
-        $scope.openMarkerInfo(location);
+        //$scope.openMarkerInfo(location);
       },
      function(){
        newMarker.setMap( null);
@@ -301,10 +416,6 @@ function MapCtrl($scope, $rootScope, Location, homeLatLng, Alert) {
       }
     );
    
-    
-    //console.log('delete marker: ' + marker)
-  //  $scope.myMarkers.push(newMarker);
-  //  $scope.openMarkerInfo(newMarker);
   };
   
    
@@ -314,13 +425,19 @@ function MapCtrl($scope, $rootScope, Location, homeLatLng, Alert) {
   };
    
   $scope.openMarkerInfo = function(location) {
+    console.log('click');
     $scope.currentLocation = location;
     $scope.currentMarkerLat = location.marker.getPosition().lat();
     $scope.currentMarkerLng = location.marker.getPosition().lng();
+    //$scope.userWindow.open($scope.myMap,location.marker);
     
     switch(location.locationType) {
-      case 'user':
-        $scope.userWindow.open($scope.myMap, location.marker);
+      case 'userhome':
+        User.get({userId: location._creator}, function(user) {
+          $scope.user = user;
+          $scope.delete = false;
+          $scope.userWindow.open($scope.myMap, location.marker);
+        });
         break;
       case 'hospital':
         $scope.userWindow.open($scope.myMap,  location.marker);
@@ -329,19 +446,32 @@ function MapCtrl($scope, $rootScope, Location, homeLatLng, Alert) {
         $scope.userWindow.open($scope.myMap,  location.marker);
         break;
       default:
-        $scope.userWindow.open($scope.myMap,  location.marker);
+        User.get({userId: location._creator}, function(user) {
+          $scope.user = user;
+          
+          if (user._id != $rootScope.currentUser._id)  {         
+            $scope.delete = false;
+          } else {
+            $scope.delete = true;
+          }
+          
+          $scope.userWindow.open($scope.myMap, location.marker);
+        });
+      //$scope.userWindow.open($scope.myMap,  location.marker);
     }
   };
    
   $scope.setMarkerPosition = function(marker, lat, lng) {
     marker.setPosition(new google.maps.LatLng(lat, lng));
   };
+
+
 }
-MapCtrl.$inject = ['$scope', '$rootScope', 'Location', 'homeLatLng', 'Alert'];
+MapCtrl.$inject = ['$scope', '$rootScope', 'Location', 'homeLatLng', 'Map', 'Alert', 'User'];
 
 // To load the map you need to have the home latitude and longitude resolved beforehand!
 MapCtrl.resolve = {
-  homeLatLng: function($q, $http, Location) {
+  homeLatLng: ['$q', '$http', 'Location', function($q, $http, Location) {
         var deferred = $q.defer();
         
          $http.get('/api/homelocation')
@@ -357,6 +487,6 @@ MapCtrl.resolve = {
             deferred.resolve(err);
           });
         return deferred.promise;
-    }
+    }]
 }
   

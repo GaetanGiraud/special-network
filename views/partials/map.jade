@@ -1,38 +1,38 @@
-h4 Click to add a marker!
+div.row#mapWidget
+  div.span8
+    h4 Click to add a marker!
+    
+    p 
+      |{{zoomMessage}}
 
-p 
-  |{{zoomMessage}}
-ul
-  li(ng-repeat="marker in myMarkers")
-    a(ng-click="myMap.panTo(marker.getPosition())", class="btn") Pan to Marker {{$index}}
-    //button(ng-click="deleteMarker(marker)", ui-event="") Delete
- 
-// 
-  this is the confusing part. we have to point the map marker directive
-   at an existing google.maps.Marker object, so it can hook up events
-   
-div(ng-repeat="location in locations", ui-map-marker="location.marker", ui-event="{'map-click': 'openMarkerInfo(location)'}")
+    ul
+      li(ng-repeat="marker in myMarkers")
+        a(ng-click="myMap.panTo(marker.getPosition())", class="btn") Pan to Marker {{$index}}
+        //button(ng-click="deleteMarker(marker)", ui-event="") Delete
+     
+    // 
+      this is the confusing part. we have to point the map marker directive
+       at an existing google.maps.Marker object, so it can hook up events
+       
+    div(ng-repeat="location in locations", ui-map-marker="location.marker", ui-event="{'map-click': 'openMarkerInfo(location)'}")
+    
+    div(ui-map-info-window="userWindow")
+      h2 {{ user.name }}
+      img(ng-src="{{ user | userThumbPic }}")
+      a(ng-click="deleteLocation(currentLocation)", ng-show = "delete") Delete
+        
+    // 
+      Giving the div an id="map_canvas" fix problems with twitter bootstrap affecting
+      google maps
+    
+        
+    div(id="map_canvas", ui-map="myMap", class="map", ui-event="{'map-click': 'addMarker($event)', 'map-zoom_changed': 'setZoomMessage(myMap.getZoom())' }", ui-options="mapOptions")
 
-div(ui-map-info-window="userWindow")
-  h2 Welcome {{currentUser.name}}
-  img(ng-src="uploads/{{currentUser._id }}/thumbnail/{{currentUser.picture || 'user-default.png'}}")
-  br
-  a(ng-click="deleteLocation(currentLocation)") Delete
-
-div(ui-map-info-window="myInfoWindow2")
-  h2 Welcome to this alternative window
-  img(ng-src="uploads/{{currentUser._id }}/thumbnail/{{currentUser.picture || 'user-default.png'}}")
-  br
- // a(ng-click="deleteMarker(currentMarker)") Delete
-
-
-// 
-  Giving the div an id="map_canvas" fix problems with twitter bootstrap affecting
-  google maps
-
-
-
-div(id="map_canvas", ui-map="myMap", class="map", ui-event="{'map-click': 'addMarker($event)', 'map-zoom_changed': 'setZoomMessage(myMap.getZoom())' }", ui-options="mapOptions")
-
-
- 
+  div.span2
+    h4 Click to add a marker!
+    div#markers
+      p 
+        | Drag the markers to a new location on the map
+      div(ui-jq = 'draggable', class="drag", ui-options = "{revert: true,  revertDuration: 0, cursor: 'crosshair', handle: 'h2'}", ui-event = "{'dragstop': 'endMove($event)'}", style="left:0; background-image: url('http://maps.gstatic.com/mapfiles/ms/icons/ltblue-dot.png')")
+    //  div(id="m2",class="drag", ng-mousedown = 'initDrag($event)', ng-mousemove = 'moveCursor($event)',ng-mouseup = 'endMove()', style="left:50px; background-image: url('http://maps.gstatic.com/mapfiles/ms/icons/orange-dot.png')")
+    //  div(id="m3",class="drag", ng-mousedown = 'initDrag($event)', style="left:100px; background-image: url('http://maps.gstatic.com/mapfiles/ms/icons/pink-dot.png')")
