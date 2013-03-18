@@ -35,3 +35,13 @@ header {
   position: absolute;
   width: 32px;
   height: 32px; }
+
+.dialog-box {
+  position: absolute;
+  padding: 10px;
+  border-radius: 6px;
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  background-color: #fff;
+  border: solid 2px;
+  box-sizing: border-box; }

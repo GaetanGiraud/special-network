@@ -1,11 +1,9 @@
 
 h3 Welcome {{user.name}} 
 
-div.row
-  div.span10
-    legend Yourself
 div.row 
   div.span5
+    legend Yourself
     label
       | Your Name
     input(type='text', ng-model = "user.name", class = 'span4' )
@@ -13,28 +11,44 @@ div.row
     label
       | Your email
     input(type='text', ng-model = "user.email", class = 'span4')
-    br
-    
-    div(uploader, id="fileupload", name="file", data-url="/upload", class='span4')
-      img(id="picture", width="100", ng-src="{{ user | userPic }}")
-      p
-        | {{user.picture}}
-    
-    legend Public Settings
-      label.checkbox
-        input(type="checkbox", ng-model="researchAgreement")
-        | Do you agree to have your data used for research purposes?
-   
+  
   div.span5
-    label Where are you?
+    legend Your profile picture
+    div.row
+      div.span3(uploader, id="fileupload", name="file", data-url="/upload")
+        img#picture.well(width="200", ng-src="{{ user | userPic }}")
+      div.span2
+        small
+          | <strong>Drag & Drop</strong> the file onto the existing picture or
+          br
+          | Use the <strong>button</strong> to change your profile picture.
+        br
+        span.btn.btn-success.fileinput-button
+          i.icon-plus.icon-white
+          span 
+            | New picture
+            input(type="file", uploader, data-url="/upload")
+    
+div.row
+  div.span10
+    Legend(help, open = "showLocationWidget", templatename = 'locationPopup', action="getBrowserLocation()") Where are you?
+
+div.row
+  div.span5
     div(ng-show = "undoLocUpdate", class = "alert alert-success")
       |  Location updated
       button(class = "close", ng-click="undoLocUpdate = 'false'")&times;
   
     div.form-inline
-      input(type='text', ng-model = "location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span4')
+      input(type='text', ng-style = 'updated',ng-model = "location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span4')
       button(type = 'button', ng-click="undoLocation()", class="btn btn-danger", ng-show = "undoLocUpdate") undo
-    
+      
+  
+  div.span5 
+    div(ng-show='location.country')
+      p
+        | There are xxx users registered in {{ location.country }} 
+          
     p(ng-show = "location.formattedAddress.length > 0 && location.formattedAddress.length < 5")
       small
         | Looking up your adress at Google. 
@@ -47,12 +61,18 @@ div.row
       ul(ng-repeat='loc in locations', class="unstyled")
         li
           button(ng-click="validateAdress($index)", class="btn btn-success") Ok
-          {{ loc.formatted_address }}   
-        
-        
+          {{ loc.formatted_address }} 
+      
+div.row
+  div.span10
+    legend Public Settings
+    div
+     label.checkbox
+        input(type="checkbox", ng-model="researchAgreement")
+        | Do you agree to have your data used for research purposes?
     
-div(class= 'row')
-  div(class='span7')
+div.row
+  div.span7
     button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
     button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
 

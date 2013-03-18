@@ -77,16 +77,70 @@ LogoutCtrl.$inject = ['$scope', 'AuthService', 'Alert','$location'];
 function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
   $scope.undoLocUpdate = "false";
   var previousLocation = [];
+  
+  //$scope.location = '';
+  
+  
+ // $scope.test = function () {
+  //  alert('It works!'); 
+    
+  //}
   // Fetch the user and its location
   
+ /* $scope.browserLocation = function() {
+    GeoCoder.getBrowserLocation(function(position){
+       console.log(position);
+       
+       }, 
+       function() {
+        Alert.info("To complete your profile, please fill in your location!");
+        });
+  };*/
+  
+  //$scope.toggle = function() {
+  //  
+  //   $scope.showHelp = !$scope.showHelp ;
+  //   console.log($scope.showHelp);
+ // }
+  
+    
   $scope.user = User.get({userId: $rootScope.currentUser._id}, 
     function(user) {       
-      $scope.location = Location.get({locationId: user._location}, 
-      function(location) {
-          previousLocation[0] = angular.copy(location);
+      Location.get({locationId: user._location}, 
+        function(location) {
+            // If the user's location lattitue is not defined, 
+            // user the HTML5 location service to fetch the lat && long
+            // and the google API to retrieve the address
+            $scope.location = location;
+            
+            if (angular.isUndefined(location.lat)) {
+              $scope.showLocationWidget = true;
+            
+          //  }
+            /*  GeoCoder.getBrowserLocation(
+                function(browserLoc){
+                  GeoCoder.parseAddress(browserLoc[0], 
+                    function(results) {
+                      console.log(results);
+                      $scope.location = angular.extend($scope.location, results);
+                      console.log($scope.location.formattedAddress);
+                      previousLocation[0] = angular.copy($scope.location);
+                      $scope.updateLocation("false");
+                    });
+                  }, 
+                  function(err) {
+                    // If an error occures, or the user refuses to use the location service, 
+                    // Inform the user to fill the location itself.
+                    Alert.info("Please fill in your location!");
+                });*/
+            } else {         
+            previousLocation[0] = angular.copy(location);
+           }
       });
       
    });
+   
+
 
   $scope.updateUser = function() {  
     User.update({userId: $scope.user._id},$scope.user, 
@@ -112,7 +166,27 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
   }
   
   // Using the GeoCoder service.
-  
+   $scope.getBrowserLocation = function() {
+    
+     GeoCoder.getBrowserLocation(
+       function(browserLoc, err){
+         if (err) Alert.info("Please fill in your location!");
+         GeoCoder.parseAddress(browserLoc[0], 
+         function(results) {
+           $scope.location = angular.extend($scope.location, results);
+           previousLocation[0] = angular.copy($scope.location);
+           $scope.updateLocation("true");
+           $scope.showLocationWidget = false;
+         });
+       } 
+      // function(err) {
+     //               // If an error occures, or the user refuses to use the location service, 
+                    // Inform the user to fill the location itself.
+     //     if(err) Alert.info("Please fill in your location!");
+       // }
+        );
+    }
+    
   $scope.getLocation = function () { 
     if (previousLocation[1] != null) {
        previousLocation[0] = angular.copy(previousLocation[1]) ;
@@ -135,6 +209,8 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
       function(location){
         $scope.location = location;
         $scope.undoLocUpdate= isUndo;
+        $scope.updated = {border: "4px solid blue"};
+        console.log($scope.updated);
       }, 
       function(err){ 
         Alert.error('A system error while saving your location. Could you try again?' );
@@ -155,110 +231,12 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
  
   $scope.undoLocation = function() {
     $scope.location = previousLocation[0];
-    $scope.updateLocation("false"); 
+    $scope.updateLocation("false");
   }
 }
 UserCtrl.$inject = ['$scope', 'User', '$rootScope', 'Alert', 'Location', 'GeoCoder'];
 
 
-
-
-
-/* 
- * Controller for the geocoder API
- * $scope is a sub-scope of the UserCtrl
- * 
- */
-
-
-// function LocationCtrl($scope, Location, $rootScope, Alert) {
- // var geocoder = new google.maps.Geocoder();
-  
- // $scope.undoLocUpdate = "false";
-  
-    // Getting the adress based on geolocation by google
-  
-  /*$scope.getLocation = function() { 
-    
-    // When starting to type in a new address, if a secondary address has been typed in, 
-    //use it as previous adress for the undo function
-    if ( $scope.$parent.previousLocation[1] != null) {
-      $scope.$parent.previousLocation[0] = angular.copy($scope.$parent.previousLocation[1]) ;
-      $scope.$parent.previousLocation[1] = null;
-      $scope.undoLocUpdate = "false";
-    }
-    
-    // reset the locations array when retyping a new adress from scratch
-    if (($scope.$parent.location.formattedAddress.length < 5) && angular.isArray($scope.locations)) {
-      $scope.locations = null;
-    }
-    
-    // fetch adress from google map and store in array for presentation
-    if ($scope.$parent.location.formattedAddress.length > 5 ) {
-      geocoder.geocode({
-        'address': $scope.$parent.location.formattedAddress
-        }, 
-        function(results, status) {
-          if(status == google.maps.GeocoderStatus.OK) { 
-            $scope.locations = results;
-          }
-          if(status == google.maps.GeocoderStatus.ZERO_RESULTS) {
-            $scope.locations = [{ 'formatted_address': 'No match found, type some more!'}];
-           }
-       });
-     }
-    }*/
-  
-  /*$scope.updateLocation = function(isUndo) {
-    var id = $scope.$parent.location._id;
-
-    Location.update({locationId: id}, $scope.$parent.location, function(location){
-        $scope.$parent.location = location;
-        $scope.undoLocUpdate= isUndo;
-      }, 
-      function(err){
-        Alert.error('A system error while saving your location. Could you try again?' );
-      }
-    );
-   // console.log($scope.user.location);
-  }*/
-  
-  // When the user validates a proposed location, the google api object is parsed
-  // and relevant information stored into the database
-  /*
-   var address = $scope.locations[index];
-   
-  $scope.validateAdress = function(locations[index]){
-    
-    var address = $scope.locations[index];
-    
-    // parsing the google api address object
-    address['address_components'].forEach(function(component) {
-      if ( component['types'].indexOf('street_number') != -1 ) { $scope.$parent.location.streetNumber = component['short_name']; }
-      if ( component['types'].indexOf('route') != -1 ) { $scope.$parent.location.route = component['short_name']; }
-      if ( component['types'].indexOf('locality') != -1 ) { $scope.$parent.location.locality = component['short_name']; }
-      if ( component['types'].indexOf('country') != -1 ) { $scope.$parent.location.country = component['short_name']; }
-    });
-    $scope.$parent.location.lat = address["geometry"]['location']['lat']();
-    $scope.$parent.location.lng = address["geometry"]['location']['lng']();   
-    $scope.$parent.location.formattedAddress = address['formatted_address'];
-    $scope.$parent.locations = null;
-    
-    $scope.$parent.previousLocation[1] = angular.copy($scope.location);
-    
-    // updating the location in the database
-    $scope.updateLocation("true");  
-
-  }
-  
-  $scope.undoLocation = function() {
-    $scope.$parent.location = $scope.$parent.previousLocation[0];
-    $scope.updateLocation("false"); 
-  }
-  
-}
-LocationCtrl.$inject = ['$scope', 'Location', '$rootScope', 'Alert'];
-*/
 function ChildrenCtrl($scope, User, $rootScope) {
   $scope.user = User.get({userId: $rootScope.currentUser._id});     
  
@@ -306,75 +284,12 @@ function MapCtrl($scope, $rootScope, Location, homeLatLng, Map, Alert, User) {
     $scope.locations = Map.initialize(myMap);
   });
   
-  /*var dummy, drag_area;
 
-  function Dummy(map) {
-    this.setMap(map);
-  }
-  Dummy.prototype = new google.maps.OverlayView();
-  Dummy.prototype.draw = function() {};
-      
-  drag_area = document.getElementById("markers");
-    
-   // initialize map options
-  $scope.mapOptions = {
-    center: homeLatLng,
-    zoom: 12,
-    mapTypeId: google.maps.MapTypeId.ROADMAP,
-    mapTypeControlOptions: {
-      style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-      position: google.maps.ControlPosition.TOP_LEFT 
-      }
-   };
- 
-  // waiting until the object myApp is available to intialize the markers
-  $scope.$watch('myMap', function(myMap) {
-  
-    dummy = new Dummy(myMap);
-             
-    $scope.locations = Location.query(function() {
-      
-      angular.forEach($scope.locations, function(location) {
-        var coordinates = new google.maps.LatLng(location.lat, location.lng);
-        var newMarker = new google.maps.Marker({
-          map: myMap,
-          position: coordinates
-        });
-        location.marker = newMarker;
-       });
-    });
-  });*/
- 
   $scope.endMove = function($event) {
    Map.dropEvent($event, $scope.myMap, function(newMarker) {
       if (newMarker) $scope.createLocation(newMarker);
    });
     
-    /*var element= $event.target;
-    
-    var mapDiv = $scope.myMap.getDiv(),
-        mapDivLeft = mapDiv.offsetLeft,
-        mapDivTop = mapDiv.offsetTop,
-        mapDivWidth = mapDiv.offsetWidth,
-        mapDivHeight = mapDiv.offsetHeight;
-    
-    var dropPosLeft = $event.clientX;
-    var dropPosTop = $event.clientY;
-     
-    var eleWidth = element.offsetWidth,
-        eleHeight = element.offsetHeight;
-
-   
-    if (dropPosLeft > mapDivLeft && dropPosLeft < (mapDivLeft + mapDivWidth) && dropPosTop > mapDivTop && dropPosTop < (mapDivTop + mapDivHeight)) {
-      
-      var mapPosition = new  google.maps.Point(dropPosLeft -  mapDivLeft, dropPosTop + eleHeight/2- mapDivTop);
-      var LatLng = dummy.getProjection().fromContainerPixelToLatLng(mapPosition);
-      
-      var newMarker = new  google.maps.Marker({
-        map: $scope.myMap,
-        position: LatLng
-      });*/
-
   }
  
    $scope.addMarker = function($event) {

@@ -99,7 +99,7 @@ restrict = function (req, res, next) {
 // Angular Templates routes
 app.get('/', routes.index);
 app.get('/partials/:name', restrict, routes.partials);
-
+app.get('/templates/:name', restrict, routes.templates);
 
 // Session management Routes
 

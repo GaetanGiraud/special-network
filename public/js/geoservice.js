@@ -18,12 +18,36 @@ angular.module('geoService', []).
     var geocoder = new google.maps.Geocoder();
     
     return { 
-      getLocation: function(location, callback){
+      getBrowserLocation: function(callback) {
+        if (navigator.geolocation){
+          navigator.geolocation.getCurrentPosition(function(position){
+          
+            var LatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);  
+            console.log(LatLng);
+            
+            geocoder.geocode({'location': LatLng}, 
+              function(results, status) {
+                if(status == google.maps.GeocoderStatus.OK) { 
+                  console.log(results);
+                  return callback(results, null);
+                } else {
+                  return callback(null, status);
+                } 
+            });  
+          },
+          function(error) { return callback(null, error); }
+          );
+        } else {
+          return callback(null, "Geolocation is not supported by this browser.");
+        }
+      },
+      
+      getLocation: function(address, callback){
 
-      // fetch adress from google map and store in array for presentation
+      // fetch location based on address from google map and store in array for presentation
   
          geocoder.geocode({
-           'address': location.formattedAddress
+           'address': address.formattedAddress
          }, 
          function(results, status) {
            if(status == google.maps.GeocoderStatus.OK) { 
@@ -39,19 +63,29 @@ angular.module('geoService', []).
         // parsing the google api address object
         
         address['address_components'].forEach(function(component) {
-          if ( component['types'].indexOf('street_number') != -1 ) { parsedAddress.streetNumber = component['short_name']; }
-          if ( component['types'].indexOf('route') != -1 ) { parsedAddress.route = component['short_name']; }
-          if ( component['types'].indexOf('locality') != -1 ) { parsedAddress.locality = component['short_name']; }
+          //if ( component['types'].indexOf('street_number') != -1 ) { parsedAddress.streetNumber = component['short_name']; }
+          //if ( component['types'].indexOf('route') != -1 ) { parsedAddress.route = component['short_name']; }
+          
+          if ( component['types'].indexOf('locality') != -1 ) { parsedAddress.locality = component['short_name']; } 
+          if ( component['types'].indexOf('administrative_area_level_1') != -1 ) { parsedAddress.state = component['short_name']; }
           if ( component['types'].indexOf('country') != -1 ) { parsedAddress.country = component['short_name']; }
         });
         parsedAddress.lat = address["geometry"]['location']['lat']();
         parsedAddress.lng = address["geometry"]['location']['lng']();   
-        parsedAddress.formattedAddress = address['formatted_address'];
+        
         
         // Setting some of the values to null when not present to allow for flexibility in the address format.
-        if (angular.isUndefined(parsedAddress.streetNumber)) parsedAddress.streetNumber = null;
-        if (angular.isUndefined(parsedAddress.route)) parsedAddress.route = null;
-        if (angular.isUndefined(parsedAddress.locality)) parsedAddress.locality = null;
+        //if (angular.isUndefined(parsedAddress.streetNumber)) parsedAddress.streetNumber = null;
+        //if (angular.isUndefined(parsedAddress.route)) parsedAddress.route = null;
+        
+        if (angular.isUndefined(parsedAddress.state)) parsedAddress.state = null;
+        if (angular.isUndefined(parsedAddress.locality)) parsedAddress.locality = null;     
+        
+        // Creating a custom formattedAddress based on present information
+        if(parsedAddress.locality) { parsedAddress.formattedAddress = parsedAddress.locality + ', '};
+        if(parsedAddress.state) { parsedAddress.formattedAddress = parsedAddress.formattedAddress + parsedAddress.state + ', '};
+        parsedAddress.formattedAddress =  parsedAddress.formattedAddress + parsedAddress.country;
+        
 
         return callback(parsedAddress);
       }

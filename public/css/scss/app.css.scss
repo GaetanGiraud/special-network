@@ -81,3 +81,18 @@ header {
  height: 32px;
 }
 
+.dialog-box {
+ position: absolute;
+ padding: 10px;
+ @include rounded-corners(6px);
+ background-color: #fff;
+ border: solid 2px;
+ box-sizing: border-box;
+}
+
+
+#fileupload {
+  
+  text-align: center;
+  
+}

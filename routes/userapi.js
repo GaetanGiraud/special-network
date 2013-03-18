@@ -25,6 +25,7 @@ exports.authenticate = function (email, password, fn) {
 // Send currentUser information
 
 exports.currentUser = function (req, res) {
+  
   if (req.session.user) {
     User.findById(req.session.user, function (err, user) {
       if (!err) {
@@ -35,6 +36,7 @@ exports.currentUser = function (req, res) {
       }
     });
   } else {
+    req.session.destroy();
     res.send(401);  // User not logged in. Client logic (Showing login page) handled by Angularjs.
   }
 };
