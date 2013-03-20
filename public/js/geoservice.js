@@ -67,8 +67,17 @@ angular.module('geoService', []).
           //if ( component['types'].indexOf('route') != -1 ) { parsedAddress.route = component['short_name']; }
           
           if ( component['types'].indexOf('locality') != -1 ) { parsedAddress.locality = component['short_name']; } 
-          if ( component['types'].indexOf('administrative_area_level_1') != -1 ) { parsedAddress.state = component['short_name']; }
-          if ( component['types'].indexOf('country') != -1 ) { parsedAddress.country = component['short_name']; }
+          if ( component['types'].indexOf('administrative_area_level_1') != -1 ) { 
+            parsedAddress.state = {};
+            parsedAddress.state.long = component['long_name'];
+            parsedAddress.state.short = component['short_name']; 
+          }
+          if ( component['types'].indexOf('country') != -1 ) { 
+            parsedAddress.country = {};
+            parsedAddress.country.long = component['long_name']; 
+            parsedAddress.country.short = component['short_name'];
+            }
+          if ( component['types'].indexOf('country') != -1 ) { }
         });
         parsedAddress.lat = address["geometry"]['location']['lat']();
         parsedAddress.lng = address["geometry"]['location']['lng']();   
@@ -83,8 +92,12 @@ angular.module('geoService', []).
         
         // Creating a custom formattedAddress based on present information
         if(parsedAddress.locality) { parsedAddress.formattedAddress = parsedAddress.locality + ', '};
-        if(parsedAddress.state) { parsedAddress.formattedAddress = parsedAddress.formattedAddress + parsedAddress.state + ', '};
-        parsedAddress.formattedAddress =  parsedAddress.formattedAddress + parsedAddress.country;
+        if(parsedAddress.state) { 
+          if (parsedAddress.country.short == 'US') {
+            parsedAddress.formattedAddress = parsedAddress.formattedAddress + parsedAddress.state.short + ', '
+          }
+        };
+        parsedAddress.formattedAddress =  parsedAddress.formattedAddress + parsedAddress.country.long;
         
 
         return callback(parsedAddress);
@@ -96,7 +109,7 @@ angular.module('geoService', []).
    * Factory for handling google maps. 
    *  Requires the google js api to be loaded before angular.
    */
-  factory('Map', ['User', 'Location', function(User, Location){
+  factory('Map', ['User', 'Location', '$rootScope', function(User, Location, $rootScope){
     
     // Setting dummy overlay to allow drag and drop from outside the map.
     var dummy;
@@ -111,29 +124,91 @@ angular.module('geoService', []).
    return {
      setMapOptions: function(homeLatLng) { 
        if(angular.isUndefined(customZoom)) { var customZoom = 12; }
-      
+       var styleArray = [
+          {
+            featureType: "all",
+            stylers: [
+              { saturation: -80 }
+            ]
+          },{
+            featureType: "road.arterial",
+            elementType: "geometry",
+            stylers: [
+              { hue: "#00ffee" },
+              { saturation: 50 }
+            ]
+          },{
+            featureType: "poi.business",
+            elementType: "labels",
+            stylers: [
+              { visibility: "off" }
+            ]
+          }
+          ];
+          
        return {
          center: homeLatLng,
          zoom: customZoom,
          mapTypeId: google.maps.MapTypeId.ROADMAP,
+         styles: styleArray
        };
      },
      initialize: function(myMap) {
        dummy = new Dummy(myMap);
-         
-       var locations = Location.query(function() {
+     },
+     setLocations: function(myMap) {
+      
+      var locations = Location.query(function() {
          angular.forEach(locations, function(location) {
            var coordinates = new google.maps.LatLng(location.lat, location.lng);
+           var isOwner = false;
+           var shadow = {};
+           
+           if (location._creator == $rootScope.currentUser._id ) { 
+             isOwner = true;
+             
+             shadow =  { //anchor: '(0,0)',
+               path: 'M -10,5 10,5 z',
+               //path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+               scale: 1,
+               strokeColor:'#E85690',
+               strokeWeight: 4
+              }
+            }
+             
            var newMarker = new google.maps.Marker({
              map: myMap,
-             position: coordinates
+             position: coordinates,
+             icon: '/images/' + location.locationType + '.png',
+             draggable: isOwner,
+             shadow: shadow
            });
            location.marker = newMarker;
           });
          });
+    
        return locations;
      },
-    dropEvent: function(e, myMap, callback){
+    setUserLocations: function(myMap) {
+      
+        var userLocations = Location.query({type: 'homeuser'}, function() {
+          angular.forEach(userLocations, function(location) {
+           console.log(location);
+           var coordinates = new google.maps.LatLng(location._id.lat, location._id.lng);
+           var newMarker = new google.maps.Marker({
+             map: myMap,
+             position: coordinates,
+             icon: {
+               path: google.maps.SymbolPath.CIRCLE,
+               scale: location.count * 3
+             }
+           });
+           location.marker = newMarker;
+          });
+         });
+      return userLocations;
+    },
+    dropEvent: function(e, myMap, markerIcon, callback){
       var element= e.target;
     
       var mapDiv = myMap.getDiv(),
@@ -152,10 +227,20 @@ angular.module('geoService', []).
         
         var mapPosition = new  google.maps.Point(dropPosLeft -  mapDivLeft, dropPosTop + eleHeight/2- mapDivTop);
         var LatLng = dummy.getProjection().fromContainerPixelToLatLng(mapPosition);
-        
+            
+        var shadow =  { //anchor: '(0,0)',
+               path: 'M -10,5 10,5 z',
+               //path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+               scale: 1,
+               strokeColor:'#E85690',
+               strokeWeight: 4
+            }
         var newMarker = new  google.maps.Marker({
           map: myMap,
-          position: LatLng
+          position: LatLng,
+          icon: '/images/' + markerIcon +'.png',
+          shadow: shadow,
+          draggable: true
         });
         return callback(newMarker);
       } else {

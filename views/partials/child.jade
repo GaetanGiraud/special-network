@@ -3,6 +3,12 @@ h3 Welcome {{user.name}}
 div(class= 'row')
   div(class="span10")
     legend Your kids
+    
+    label
+      | I am a:
+     input(type='select', ng-model = "user.gender", ng-options = "genders" , class = 'span4')
+     br
+    
     p
       | {{child.firstName}}
       | 's page

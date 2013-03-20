@@ -24,6 +24,8 @@ exports.homeLocation = function (req, res) {
     });
   });
 };
+
+
     
 exports.add = function (req, res) {
   console.log(('creating location: ' + req.body.stringify));
@@ -53,20 +55,36 @@ exports.findById = function (req, res) {
 
 
 exports.findAll = function (req, res) {
-  Location.find(function (err, locations) {
-    if (!err) { 
-      return res.json(locations);
-    } else {
-      console.log(err.red);
-      return res.send(400, err);
-    }
-  });  
+  console.log(req.query);
+  if (req.query.type == 'homeuser') {
+    Location.aggregate(
+      // { $project: { lat: "$lat", lng: "$lng" }},
+       { $match : { locationType : "userhome" } },
+       { $group : { _id: {lat: "$lat" , lng: "$lng"}, count : { $sum : 1 }}},
+  //     { $match : { }},
+       function (err, results) {
+          if (err) return res.send(400, err);
+          return res.json(results);
+          //console.log(res); // [ { maxAge: 98 } ]
+        }
+    );
+   // console.log(users);
+  } else {
+    Location.find({'locationType': {$ne: 'userhome'}}, function (err, locations) {
+      if (!err) { 
+        return res.json(locations);
+      } else {
+        console.log(err.red);
+        return res.send(400, err);
+      }
+    });  
+  }
 };
 
 exports.update = function (req, res) {
   var id = req.params.id;
   var locData = req.body;
-  delete locData._id;
+  if(locData._id) delete locData._id;
   
   Location.findByIdAndUpdate(id, locData, function(err, location) {
     if (!err) { 

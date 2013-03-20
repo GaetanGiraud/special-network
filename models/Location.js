@@ -5,8 +5,8 @@ var locationSchema = mongoose.Schema({
       name: String,
       locationType: String, // user, PoI
       _creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-	    country: String,
-      state: String,
+	    country: {short: String, long: String},
+      state: {short: String, long: String},
       formattedAddress: String,
       locality: String,
     //  route: String,

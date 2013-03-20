@@ -6,11 +6,55 @@ div.row
     legend Yourself
     label
       | Your Name
-    input(type='text', ng-model = "user.name", class = 'span4' )
+    div.input-prepend
+      span.add-on
+        i.icon-user
+      input(type='text', ng-model = "user.name", class = 'span4' )
     br
     label
       | Your email
-    input(type='text', ng-model = "user.email", class = 'span4')
+    div.input-prepend
+      span.add-on
+        i.icon-envelope
+      input(type='text', ng-model = "user.email", class = 'span4')
+    br
+
+      
+    Legend(help, open = "showLocationWidget", templatename = 'locationPopup', action="getBrowserLocation()") Where are you?
+    div(ng-show = "undoLocUpdate", class = "alert alert-success")
+      |  Location updated
+      button(class = "close", ng-click="undoLocUpdate = 'false'")&times;
+  
+    div.form-inline
+      div.input-prepend
+        span.add-on
+          i.icon-globe
+        input(type='text', ng-model = "location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span4')
+      button(type = 'button', ng-click="undoLocation()", class="btn btn-danger", ng-show = "undoLocUpdate") undo
+    br
+    div(ng-show='location.country')
+      p
+        | There are xxx users registered in {{ location.country.long }} 
+          
+    p(ng-show = "location.formattedAddress.length > 0 && location.formattedAddress.length < 5")
+      small
+        | Looking up your adress at Google. 
+        br
+        | This information is really only meant for your convenience, we are not doing anything with it.
+        br 
+        | So if you'd rather not disclose your full adrress, no problem!
+  
+    div(ng-show='locations')
+      ul(ng-repeat='loc in locations', class="unstyled")
+        li
+          button(ng-click="validateAdress($index)", class="btn btn-success") Ok
+          {{ loc.formatted_address }}
+    
+    legend Settings
+    div
+     label.checkbox
+        input(type="checkbox", ng-model="researchAgreement")
+        | Do you agree to have your data used for research purposes?
   
   div.span5
     legend Your profile picture
@@ -29,48 +73,7 @@ div.row
             | New picture
             input(type="file", uploader, data-url="/upload")
     
-div.row
-  div.span10
-    Legend(help, open = "showLocationWidget", templatename = 'locationPopup', action="getBrowserLocation()") Where are you?
 
-div.row
-  div.span5
-    div(ng-show = "undoLocUpdate", class = "alert alert-success")
-      |  Location updated
-      button(class = "close", ng-click="undoLocUpdate = 'false'")&times;
-  
-    div.form-inline
-      input(type='text', ng-style = 'updated',ng-model = "location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span4')
-      button(type = 'button', ng-click="undoLocation()", class="btn btn-danger", ng-show = "undoLocUpdate") undo
-      
-  
-  div.span5 
-    div(ng-show='location.country')
-      p
-        | There are xxx users registered in {{ location.country }} 
-          
-    p(ng-show = "location.formattedAddress.length > 0 && location.formattedAddress.length < 5")
-      small
-        | Looking up your adress at Google. 
-        br
-        | This information is really only meant for your convenience, we are not doing anything with it.
-        br 
-        | So if you'd rather not disclose your full adrress, no problem!
-  
-    div(ng-show='locations')
-      ul(ng-repeat='loc in locations', class="unstyled")
-        li
-          button(ng-click="validateAdress($index)", class="btn btn-success") Ok
-          {{ loc.formatted_address }} 
-      
-div.row
-  div.span10
-    legend Public Settings
-    div
-     label.checkbox
-        input(type="checkbox", ng-model="researchAgreement")
-        | Do you agree to have your data used for research purposes?
-    
 div.row
   div.span7
     button(type='button', ng-click="updateUser()", class='btn btn-primary') Update

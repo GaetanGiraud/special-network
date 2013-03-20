@@ -17,6 +17,16 @@ angular.module('CareKids.directives', []).
           }
       }
   })
+  .directive('icon', function() {
+      return function(scope, elem, attrs) {;
+        var iconPath;
+        scope.$watch(attrs.icon, function() { 
+          iconPath = 'url(/images/' + attrs.icon + '.png)';
+          elem.css('background-image', iconPath );
+          elem.css('background-repeat', 'no-repeat' );
+        });
+      }
+  })
   .directive('help', ['$compile', '$http', function($compile, $http) {
 
           
@@ -25,12 +35,12 @@ angular.module('CareKids.directives', []).
       restrict: 'A', 
       scope:  { 
         open: '=',
-        templatename: '&',
+     //   templatename: '=',
         action: '&'
       },
       link: function(scope, elm, attrs) {
         
-        var templateUrl = '/templates/'+ scope.templatename;
+        var templateUrl = '/templates/'+ attrs.templatename;
         
         var html;
         var ElmleftPosition = elm[0].offsetLeft,

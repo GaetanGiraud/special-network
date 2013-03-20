@@ -22,8 +22,12 @@ upload.configure({
     imageTypes: /\.(gif|jpe?g|png)$/i,
     imageVersions: {
        thumbnail: {
-            width: 80,
-            height: 80
+            width: 64,
+            height: 64
+            },
+       icon: {
+            width: 24,
+            height: 24
             }
     }
 });

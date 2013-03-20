@@ -12,16 +12,8 @@ var userSchema = mongoose.Schema({
 			email: String,
       hash: String,
       picture: String,
+      gender: String,
       _location: { type: mongoose.Schema.Types.ObjectId, ref: 'Location'},
-      /* location: {
-        country: String,
-        formattedAdress: String,
-        locality: String,
-        route: String,
-        streetNumber: Number,
-        lat: Number,
-        lng: Number
-        },*/
 		  children: [childSchema]
 		});
   

@@ -31,4 +31,16 @@ angular.module('CareKids.filters', []).
         }
      } 
     }
-  });
+  }).
+  filter('userIconPic', function() {
+    return function(user) {
+      if (angular.isDefined(user)) { 
+        if (angular.isUndefined(user.picture)) {
+          return 'images/defaults/user-icon-default.png'; 
+        } else {
+          var userId = user._id;
+          return 'uploads/' + userId + '/icon/' + user.picture;
+        }
+     } 
+    }
+  });;
