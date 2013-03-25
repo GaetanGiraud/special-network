@@ -1,5 +1,5 @@
 
-h3 Welcome {{user.name}} 
+h3 Welcome {{currentUser.name}} 
 
 div.row 
   div.span5
@@ -9,14 +9,14 @@ div.row
     div.input-prepend
       span.add-on
         i.icon-user
-      input(type='text', ng-model = "user.name", class = 'span4' )
+      input(type='text', ng-model = "currentUser.name", class = 'span4' )
     br
     label
       | Your email
     div.input-prepend
       span.add-on
         i.icon-envelope
-      input(type='text', ng-model = "user.email", class = 'span4')
+      input(type='text', ng-model = "currentUser.email", class = 'span4')
     br
 
       
@@ -53,14 +53,17 @@ div.row
     legend Settings
     div
      label.checkbox
-        input(type="checkbox", ng-model="researchAgreement")
-        | Do you agree to have your data used for research purposes?
-  
+       input(type="checkbox", ng-model="researchAgreement")
+       | Do you agree to have your data used for research purposes?
+     label.checkbox
+       input(type="checkbox", ng-model="currentUser.settings.createChildOptOut")
+       | Until further notice, I do not want to create pages.
+
   div.span5
     legend Your profile picture
-    div.row
-      div.span3(uploader, id="fileupload", name="file", data-url="/upload")
-        img#picture.well(width="200", ng-src="{{ user | userPic }}")
+    div.row()
+      div.span3
+        img#picture.well(width="200", ng-src="{{ currentUser | userPic }}")
       div.span2
         small
           | <strong>Drag & Drop</strong> the file onto the existing picture or
@@ -71,7 +74,7 @@ div.row
           i.icon-plus.icon-white
           span 
             | New picture
-            input(type="file", uploader, data-url="/upload")
+            input(type="file", uploader, done='setProfilePicture(file)', data-url="/upload")
     
 
 div.row

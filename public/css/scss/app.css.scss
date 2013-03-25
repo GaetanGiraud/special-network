@@ -55,7 +55,7 @@ header {
 
   }
 
-  background-color: grey; 
+ // background-color: grey; 
   @include rounded-corners(6px);
 
 }
@@ -99,40 +99,7 @@ header {
   
 }
 
-  
- /* #hospital-location {
-    background-image: url('/images/hospital.png');
-    background-repeat: no-repeat;
-  }
-  
-  #baby-location {
-    background-image: url('/images/stroller.png');
-    background-repeat: no-repeat;
-  }
-  
-  
-  #shop-location{
-    background-image: url('/images/shopping.png');
-    background-repeat: no-repeat;
-  }
-  
-  #clothing-location{
-     background-image: url('/images/clothing.png');
-     background-repeat: no-repeat;
-  }
-  
-  #support-group-location{
-     background-image: url('/images/groups.png');
-     background-repeat: no-repeat;
-  }
-  #official-location{
-     background-image: url('/images/official.png');
-     background-repeat: no-repeat;
-  }
-  
-  #event-location {
-  
-  }*/
+
   
 #infoWindow {
  overflow: auto;
@@ -144,3 +111,83 @@ header {
     position: absolute;
   }
 }
+
+.autocomplete {
+
+  display: block;
+  position: absolute;
+  z-index: 999;
+  background-color: white;
+  padding: 0;
+  margin: 0;
+  border: 1px solid;
+  box-sizing: border-box;
+       
+  li {
+    display: block;
+    width: inherit;
+    padding: 4px 0;
+    margin: 0;
+
+    
+    img {
+      padding: 2px;
+    }
+    
+    &:hover {
+      color: white;
+      background-color: black;   
+    }
+  }
+  
+
+}
+
+.editable {
+  border: 1px solid grey;
+}
+
+#new-discussion {
+   width: 30%;
+  
+  .editable {
+     min-height: 80px;
+   }
+   
+}
+
+.comment {
+  margin-left: 10%;
+
+}
+   
+  .content { 
+   
+
+   
+
+   
+  }
+  
+  .footer {
+  
+  
+  }
+  
+a.selected {
+  font-weight: 700;
+  background-color: black;
+
+}
+
+a.share {
+  font-weight: 700;
+  background-color: black;
+
+}
+a.question {
+  font-weight: 700;
+  background-color: black;
+
+}
+

@@ -9,11 +9,42 @@ div(class= 'row')
      input(type='select', ng-model = "user.gender", ng-options = "genders" , class = 'span4')
      br
     
-    p
-      | {{child.firstName}}
-      | 's page
   
     button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
     button(type='button', ng-click="cancelUpdate()", class='btn btn-primary', title = 'All changes will be lost!') Cancel
 
 
+article#new-question
+  h5 Publish an update
+  
+  div.content
+    div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
+    div.btn-group.fileupload-buttonbar.footer
+      span.fileinput-button 
+        button.btn(type = "button", ng-click = "createQuestion()") Post
+      span.btn.fileinput-button 
+        i.icon-picture.icon-white
+          input(type = "file", uploader, done = "", data-url="/upload", name="file")
+      span.btn.fileinput-button 
+        i.icon-film.icon-white
+          input(type = "file", uploader, done = "", data-url="/upload", name="file")
+   
+//Existing discussions
+
+div(ng-repeat = "discussion in discussions | orderBy:'createdAt':true")
+  h4
+    img(ng-src = '{{ discussion._creator | iconPicture }}')
+    | {{discussion._creator.name}} 
+    | {{ $index }}
+  h5 {{discussion.type}} 
+  ul
+    li(ng-repeat = "child in discussion.children")
+      | {{child.name}}
+    
+  p(ng-bind-html = 'discussion.content')
+    
+  div.comment(ng-repeat =  'comment in discussion.comments | orderBy:"createdAt":false')
+    h5 {{comment._creator.name}}
+    p(ng-bind-html = 'comment.content')
+    
+    //div.comment.footer(new-comment, index = "{{$index}}", publish = 'createComment(index, comment)')

@@ -1,0 +1,28 @@
+
+article#new-question
+  h5 Ask a new question
+  
+  div.content
+    div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
+    div.btn-group.fileupload-buttonbar.footer
+      span.fileinput-button 
+        button.btn(type = "button", ng-click = "createQuestion()") Post
+      span.btn.fileinput-button 
+        i.icon-picture.icon-white
+          input(type = "file", uploader, done = "", data-url="/upload", name="file")
+      span.btn.fileinput-button 
+        i.icon-film.icon-white
+          input(type = "file", uploader, done = "", data-url="/upload", name="file")
+   
+//Existing discussions
+
+div(ng-repeat = "discussion in discussions | orderBy:'createdAt':true")
+  article.discussion
+    h5 {{discussion._creator.name}}
+    p(ng-bind-html = 'discussion.content')
+    
+    div.comment(ng-repeat =  'comment in discussion.comments | orderBy:"createdAt":false')
+      h5 {{comment._creator.name}}
+      p(ng-bind-html = 'comment.content')
+    
+    //div.comment.footer(new-comment, index = "{{$index}}", publish = 'createComment(index, comment)')

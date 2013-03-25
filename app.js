@@ -78,7 +78,7 @@ app.configure('production', function(){
  */
  
 restrict = function (req, res, next) {
-  var exeptions = ['login', 'logout', 'home']; // define exceptions to the restriction
+  var exeptions = ['login', 'logout', 'index']; // define exceptions to the restriction
   var name = req.params.name;
   
   if (exeptions.indexOf(name) != -1) { // check for exception to the restriction
@@ -125,18 +125,33 @@ app.post('/api/users', api.users.add);
 
 // user API
 app.get('/api/users', restrict, api.users.findAll);
+app.get('/api/users/search', restrict, api.users.search)
 app.get('/api/users/:id',restrict, api.users.findById);
 app.put('/api/users/:id', restrict, api.users.update);
 app.delete('/api/users/:id', restrict, api.users.delete);
 
-// children API - Children get created, updated and deleted through the user API.
-app.get('/api/children/:id',restrict, api.users.findChildById);
+
+// children API.
+app.get('/api/children', restrict, api.children.findAll);
+app.get('/api/children/:id',restrict, api.children.findById);
+app.post('/api/children', restrict, api.children.add);
+app.put('/api/children/:id', restrict, api.children.update);
+app.delete('/api/children/:id', restrict, api.children.delete);
+
+// discussion API.
+app.get('/api/discussions', restrict, api.discussions.findAll);
+app.get('/api/discussions/:id',restrict, api.discussions.findById);
+app.post('/api/discussions', restrict, api.discussions.add);
+app.post('/api/discussions/:id/comments', restrict, api.discussions.addComment);
+
+//app.put('/api/discussions/:id', restrict, api.discussions.update);
+//app.delete('/api/discussions/:id', restrict, api.discussions.delete);
 
 // location API
 app.get('/api/homelocation', restrict, api.locations.homeLocation);
 app.get('/api/locations', restrict, api.locations.findAll);
 app.get('/api/locations/:id',restrict, api.locations.findById);
-app.post('/api/locations', api.locations.add);
+app.post('/api/locations', restrict, api.locations.add);
 app.put('/api/locations/:id', restrict, api.locations.update);
 app.delete('/api/locations/:id', restrict, api.locations.delete);
 

@@ -1,13 +1,16 @@
-ul(class="unstyled". ng-cloak, class="ng-cloak")
-  li      
-    <a ng-href = "/home"><i class="icon-home icon-2x icon-border"></i> <br /> Home</a>
-  li
-    <a ng-href = "/children"><i class="icon-picture icon-2x icon-border"></i> <br />Show your Kids!</a>
-  li
-    <a ng-href = "/"><i class="icon-group icon-2x icon-border"></i> <br /> Find People</a>
-  li
-    <a ng-href = "/"><i class="icon-globe icon-2x icon-border"></i> <br /> Local Initiatives</a>
-  li
-    <a ng-href = "/"><i class="icon-question-sign icon-2x icon-border"></i> <br /> Questions & Answers</a>
+div(ng-cloak, class="ng-cloak")
+  div
+    h5 My Children:
+      ul(class="unstyled") 
+        li(ng-repeat = 'child in myChildren')
+          a(ng-href = '/children/{{child._id}}') {{child.name}}
+  div
+    h5 Following:
+    ul.unstyled
+      li(ng-repeat = 'child in followed')
+        {{child.name}}
+  
+  div
+    h5 What's happening right now
 
       

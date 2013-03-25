@@ -2,17 +2,22 @@
 
 
 // Declare app level module which depends on filters, and services
-var app = angular.module('CareKids', ['CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service', 'geoService']).
+var app = angular.module('CareKids', ['ngSanitize', 'CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service', 'geoService']).
   config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
-    $routeProvider.when('/', {templateUrl: 'partials/home', controller: HomeCtrl});
+    $routeProvider.when('/', {templateUrl: 'partials/index', controller: AppCtrl});
     $routeProvider.when('/logout', {templateUrl: 'partials/home', controller: LogoutCtrl});
     
     //Restricted partials
+    $routeProvider.when('/home', {templateUrl: 'partials/home', controller: HomeCtrl}); 
+    $routeProvider.when('/questions', {templateUrl: 'partials/questions', controller: QuestionsCtrl}); 
+    
     $routeProvider.when('/users/:userId', {templateUrl: 'partials/user', controller: UserCtrl}); 
     $routeProvider.when('/user', {templateUrl: 'partials/user', controller: UserCtrl}); 
     $routeProvider.when('/children', {templateUrl: 'partials/children', controller: ChildrenCtrl}); 
     $routeProvider.when('/children/:childId', {templateUrl: 'partials/child', controller: ChildCtrl}); 
+    
     $routeProvider.when('/map', {templateUrl: 'partials/map', controller: MapCtrl, resolve: MapCtrl.resolve}); 
+   
     // parameters
     $routeProvider.otherwise({redirectTo: '/'});
     $locationProvider.html5Mode(true);
@@ -23,10 +28,10 @@ app.run(['$rootScope', '$location', 'AuthService', 'requests401',  function ($ro
     //global variables
     $rootScope.currentUser = null; 
     $rootScope.loggedIn = false; 
-    //watching the value of the currentUser variable.
     
+    //watching the value of the currentUser variable.
     $rootScope.$watch('currentUser', function(currentUser) {
-      if (!currentUser) { 
+      if (!currentUser && $location.path() != '/' ) { 
         AuthService.currentUser();
       }
     });
@@ -36,18 +41,11 @@ app.run(['$rootScope', '$location', 'AuthService', 'requests401',  function ($ro
       if(['/', '/login', '/logout'].indexOf($location.path()) == -1 ) { // exepting for the root and the login-logout pages
         AuthService.loginModal(function(result) {
           if(result) { return requests401.retryAll(); }
-          $location.path('/');
+          $location.path('/home');
           return false;
         });
       }
     });
-
-    /*$rootScope.$on('$routeChangeStart', function(event, next, current) {
-      console.log('routechange');
-      console.log($rootScope.loggedIn);
-
-   });*/
-
 
 }]);
     

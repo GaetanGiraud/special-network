@@ -1,12 +1,6 @@
 //Declaring user mongoose schema and model
 var mongoose = require('mongoose');
 
-var childSchema = mongoose.Schema({
-  firstName: String, 
-  dob: Date, 
-  specialty: String}
-  );
-
 var userSchema = mongoose.Schema({
     	name: String,
 			email: String,
@@ -14,7 +8,10 @@ var userSchema = mongoose.Schema({
       picture: String,
       gender: String,
       _location: { type: mongoose.Schema.Types.ObjectId, ref: 'Location'},
-		  children: [childSchema]
+		  children: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Child'}],
+      settings: {
+        createChildOptOut: {type: Boolean, default: false}
+        }
 		});
   
 mongoose.model('User', userSchema);

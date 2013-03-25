@@ -1,1 +1,55 @@
-h1 Welcome!
+div(ng-controller = 'DiscussionCtrl')
+  article#new-discussion
+    h5 Create a new discussion
+    a(ng-click = 'newDiscussion.type = "update"', ng-class = 'selectedDiscussion("update")' ) Update
+    a(ng-click = 'newDiscussion.type = "question"', ng-class = 'selectedDiscussion("question")'  ) I have a question 
+    a(ng-click = 'newDiscussion.type = "share"', ng-class = 'selectedDiscussion("share")'  ) Share information 
+    
+    div(ng-show = 'newDiscussion.type == "update"')
+      div(ng-repeat = "child in children")
+       label.checkbox
+         input(type="checkbox", ng-model="child.send") 
+         | {{child.name}}
+  
+      
+    div.content
+      div.well(ng-show = 'newDiscussion.picture')
+        img(ng-src = "{{ newDiscussion | picture }}")
+      div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
+      div.btn-group.fileupload-buttonbar.footer
+        span.fileinput-button 
+          button.btn(type = "button", ng-click = "createDiscussion()") Post
+        span.btn.fileinput-button 
+          i.icon-picture.icon-white
+            input(type = "file", uploader, done = "addPicture(file)", data-url="/upload", name="file")
+        span.btn.fileinput-button 
+          i.icon-film.icon-white
+            input(type = "file", uploader, done = "addPicture(file)", data-url="/upload", name="file")
+     
+  //Existing discussions
+  
+  div(ng-repeat = "discussion in discussions")
+    article.discussion
+      h4
+        img(ng-src = '{{ discussion._creator | iconPicture }}')
+        | {{discussion._creator.name}} 
+        | {{ $index }}
+      h5 {{discussion.type}} 
+      ul
+        li(ng-repeat = "child in discussion.children")
+          | {{child.name}}
+      
+      p(ng-bind-html = 'discussion.content')
+      
+      div.comment(ng-repeat =  'comment in discussion.comments | orderBy:"createdAt":false')
+        h6 {{comment._creator.name}}
+        p(ng-bind-html = 'comment.content')
+     
+    div(ng-controller = 'newCommentCtrl')
+      a(ng-show = "!reply", ng-click="reply = true") Reply
+      div.footer(ng-show = "reply")
+        textarea(ng-model = "newComment.content") 
+        br
+        button.btn.btn-primary(ng-click="createComment($index)") Post 
+        button.btn(ng-click="reply = false") Cancel
+  

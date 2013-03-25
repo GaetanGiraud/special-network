@@ -1,17 +1,62 @@
-h3 Welcome {{user.name}} 
+h3 {{currentUser.name}} 
 
-div(class= 'row')
-  div(class='span10')
+div.row(ng-show = "!optOut")
+  div(class='span5')
     legend Your kids
-    div(ng-repeat="child in user.children")
-      a(ng-href = "/children/{{child._id}}") {{child.firstName}}'s page
-      button(type='button', ng-click="deleteChild($index)", class='btn' ) Delete
-      
-    input(type='text', placeholder='name', ng-model = "newChild.firstName")
-    button(type='button', ng-click="addChild($index)", class='btn' ) Add
-    br
-    button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
-    button(type='button', ng-click="cancelUpdate()", class='btn btn-primary', title = 'All changes will be lost!') Cancel
+    div(ng-show='children.length < 1')
+      p
+        | You do have created any children page, create a page using the right menu
+        br
+        small 
+          | Alternatively, if you are only planning to follow and post on exisiting page (For example you are following a niece, a nephew or a friend's child)
+          | let us know by checking the check box and we will not ask you again. 
+      button(type='button', ng-click="registerOptOut()", class='btn btn-small') I want to opt out.
+      br
+      small You can reverse this setting on your profile page.
+    
+    div.inline-form(ng-repeat="child in children")
+      p
+        | You are the {{child.creator.relationship}} of {{child.name}}
+        br
+        | Access his page here: 
+        a(ng-href = "/children/{{child._id}}") {{child.name}}'s page
+      button(type='button', ng-click="deleteChild($index)", class='btn' ) Remove Page
+  
+  div(class = 'span5')
+    Legend Create a new kid page.
+    div
+      label Enter a name for the child
+      input(type='text', placeholder='name', ng-model = "newChild.name")
+      label What is your relationship to the child?
+      select(placeholder='Who is he/her to you', ng-options = "r.name as r.name for r in relationships", ng-model = "newChild.creator.relationship")
+      p(ng-show = '(newChild.creator.relationship != "Father" && newChild.creator.relationship != "Mother")' )
+        | Have you asked their parents ? 
+        br
+        | Always good to check before posting personal information on the web, especially concerning a child!
+      br
+      div.btn-group
+        button(type='button', ng-click="addChild()", class='btn btn-primary' ) Add
+        button(type='button', ng-click="cancel()", class='btn btn', title = 'All changes will be lost!') Cancel
+div.row
+  div.span5
+    legend The kids you are following
+    p(ng-show='followedChildren.length < 1')
+      | You are not following any children yet. 
+    div(ng-repeat="child in followedChildren")
+      a(ng-href = "/children/{{child._id}}") {{child.name}}'s page
+
+  div.span5
+    legend Look up someone you know
+    p(ng-show='followedChildren.length < 1')
+     | Look up the parents of the child you want to follow and ask them to add you !
+    
+    <autocomplete results = 'user' url = '/api/users/search'></autocomplete>
+    
+    div(ng-show = 'user.name.length > 0')
+      h5 Contact request 
+      img(ng-src = "{{user | userThumbPic}}")
+      button(class = 'btn') Can I follow {{ user.name }}?
+   
 
 
 

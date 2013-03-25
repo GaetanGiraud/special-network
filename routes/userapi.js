@@ -29,7 +29,13 @@ exports.currentUser = function (req, res) {
   if (req.session.user) {
     User.findById(req.session.user, function (err, user) {
       if (!err) {
-        return res.json({"email": user.email, "name": user.name, "_id": user._id, 'picture': user.picture, '_location': user._location}); // User logged in.
+        return res.json({"email": user.email, 
+        "name": user.name, 
+        "_id": user._id, 
+        'picture': user.picture, 
+        '_location': user._location, 
+        'settings': user.settings}); // User logged in.
+        
       } else {
         console.log(err.red);
         return res.send(400, err);
@@ -95,7 +101,8 @@ exports.findById = function (req, res) {
         "email": user.email,
         "picture": user.picture,
         "children" : user.children,
-        '_location': user._location
+        '_location': user._location,
+        'settings': user.settings
         });
     } else {
       console.log(err.red);
@@ -118,64 +125,53 @@ exports.findByEmail = function (req, res) {
 };
 
 exports.findAll = function (req, res) {
-  /*res.json(data.users);*/
-  users = User.find(function (err, users) {
-    if (!err) { 
-      users.forEach(function(user){ delete user.hash }); // don't send hash
-      return res.json(users);
-    } else {
-      console.log(err.red);
-      return res.send(400, err);
-    }
+  User.find(function (err, users) {
+    if (err) return res.send(400, err);
+    users.forEach(function(user){ delete user.hash }); // don't send hash
+    return res.json(users);
   });  
-    
 };
 
 exports.update = function (req, res) {
   var id = req.params.id;
   var userData = req.body;
-  delete userData._id; // stripping the id for mongoDB
+  if (userData._id) delete userData._id; // stripping the id for mongoDB
 
   User.findByIdAndUpdate(id, userData, function(err, user) {
-    if (!err) { 
-      console.log('user updated'.green);
-      return res.json({"_id": user._id,
-                       "name": user.name,
-                       "email": user.email,
-                       "picture": user.picture,
-                       "_location": user._location,
-                       "children" : user.children});
-    } else {
-      return res.send(400, err);
-    }
-  
+    if (err) return res.send(400, err);
+    console.log('user '+ user._id + ' updated'.green);
+    return res.json({"_id": user._id,
+                    "name": user.name,
+                    "email": user.email,
+                    "picture": user.picture,
+                    "_location": user._location,
+                    "settings": user.settings,
+                    "children" : user.children});
   });
 };
 
 exports.delete = function (req, res) {
-    User.findByIdAndRemove(req.params.id, function(err, user) {
-    if (!err) { 
-      delete user.hash // don't send hash
+    User.findByIdAndRemove(req.params.id, function(err) {
+      if (err) return res.send(400, err);
       console.log('user deleted'.green);
-      return res.json(user);
-    } else {
-      console.log(err.red);
-      return res.send(400, err);
-    }
-  
+      return res.send(200);
   });
 }; 
 
-// Requesting a particular child.
+exports.search = function (req, res) {
+   var cleanQuery = req.query.q.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
 
-exports.findChildById = function(req, res){
-  User.findById(req.session.user, function (err, user) {
-      if (!err) {
-       var child = user.children.id(req.params.id);
-        return res.json(child); // requested child
-      } else {
-        console.log(err.red);
-        return res.send(400, err);
-      }
-    });
-};
+   if (cleanQuery.length > 0) { 
+     var re = new RegExp(cleanQuery);
+     console.log(re);
+     User.find({$or: [{name: re}, {email: re}]}, '_id name picture').limit(5).exec(function(err, users) {
+       if (err) return res.send(400, err);
+       return res.json(users);
+     });
+   } else {
+     res.json({}); 
+  }
+ //    consol.log(users);
+ 
+}; 
+

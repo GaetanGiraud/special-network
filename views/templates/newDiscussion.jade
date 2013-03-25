@@ -1,0 +1,9 @@
+div.content
+    p.editable(contenteditable="true", ng-model = 'discussion.content')
+      | {{ newDiscussion.type}}
+  div.footer
+    button(ng-click = 'newDiscussion()', class = 'btn') Create
+    
+    span.btn.fileinput-button
+          i.icon-photo.icon-white
+          input(type = 'file', photo-uploader, id="fileupload", name="file", data-url="/upload"))
