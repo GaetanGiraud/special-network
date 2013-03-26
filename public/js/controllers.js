@@ -30,14 +30,9 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child) {
       'type': 'update',
       '_creator': $rootScope.currentUser._id
       }
-
     
     $scope.newDiscussion = defaults;
-    
-    //$scope.newDiscussion.type ='update';
-    //$scope.newDiscussion._creator = $rootScope.currentUser._id;
 
-   // querying discussions on the server.
     $scope.discussions = Discussion.query({});
 
     $scope.children = Child.query({'post': true});
@@ -55,21 +50,15 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child) {
              }
          } 
        }
-      
        Discussion.save($scope.newDiscussion, function(data) {
          $scope.discussions.unshift(data);
          $scope.newDiscussion = '';
-        // $scope.newDiscussion = {};
-        // $scope.newDiscussion = defaults;
        },
        function(err) {
          Alert.error(err);
-       //  $scope.discussions[index-1] = '';
       }); 
       
     }
-
-
     
     $scope.selectedDiscussion = function(type) {
       if ($scope.newDiscussion.type == type) return 'selected'; 
@@ -83,7 +72,6 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child) {
     }
     
     $scope.$on('event:commentAdded', function(event, index, comment) {
-      console.log('got you ' + index + ' coucou');
       $scope.discussions[index].comments.push(comment);
     });
     
@@ -94,7 +82,9 @@ function newCommentCtrl($scope, $rootScope, $http, Alert) {
   $scope.newComment = {};
   
   $rootScope.$watch('currentUser', function(currentUser) {
-      $scope.newComment._creator = currentUser._id;
+      $scope.$watch('newComment', function(newComment) {
+        $scope.newComment._creator = currentUser._id;
+      });
   });
     
   $scope.createComment = function(index) {
@@ -102,7 +92,6 @@ function newCommentCtrl($scope, $rootScope, $http, Alert) {
   
       var comment = $http({method: 'POST', url: '/api/discussions/' + discussionId + '/comments' , data: $scope.newComment})
       .success(function(comment) {
-        //$scope.discussions
         $scope.$emit('event:commentAdded', index, comment );
         $scope.newComment = '';
       });
@@ -123,14 +112,14 @@ function QuestionsCtrl($scope, $rootScope, Discussion, $http, Alert) {
 
     $scope.createQuestion = function() {
        Discussion.save($scope.newDiscussion, function(data) {
-        $scope.discussions.push(data);
+        $scope.discussions.unshift(data);
         $scope.newDiscussion = {};
         $scope.newDiscussion.type ='update';
         $scope.newDiscussion._creator = $rootScope.currentUser._id;
        },
        function(err) {
          Alert.error(err);
-         $scope.discussions[index-1] = '';
+         //$scope.discussions[index-1] = '';
       }); 
       
     }
@@ -142,8 +131,12 @@ function QuestionsCtrl($scope, $rootScope, Discussion, $http, Alert) {
       .success(function(comment) {
          $scope.discussions[index].comments.push(comment);
         });
-      
     }
+    
+    $scope.$on('event:commentAdded', function(event, index, comment) {
+      console.log('got you ' + index + ' coucou');
+      $scope.discussions[index].comments.push(comment);
+    });
     
 }
 QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert'];
@@ -314,6 +307,11 @@ UserCtrl.$inject = ['$scope', 'User', '$rootScope', 'Alert', 'Location', 'GeoCod
 
 function ChildrenCtrl($scope, Child, Alert, User, $rootScope, $http) {
   //setting up some default values
+  $scope.notFollowing = true;
+  //$scope.user = {};
+  
+  
+  
   $rootScope.$watch('currentUser', function(currentUser) {
     $scope.optOut = currentUser.settings.createChildOptOut;
   });
@@ -338,10 +336,12 @@ function ChildrenCtrl($scope, Child, Alert, User, $rootScope, $http) {
       }
   };
   
-  
-  $scope.user = {};
+
 //  $scope.search = '';
-  $scope.followedChildren = Child.query({following: true});
+  $scope.followedChildren = Child.query({following: true}, function(data) {
+    console.log(data);
+   // if (data.length > 0) $scope.notFollowing = false;
+  });
   
   if (!$scope.optOut) { $scope.children = Child.query(); }
 
@@ -380,55 +380,109 @@ function ChildrenCtrl($scope, Child, Alert, User, $rootScope, $http) {
 }
 ChildrenCtrl.$inject = ['$scope', 'Child', 'Alert', 'User', '$rootScope', '$http'];
 
-function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion) {
+function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child) {
   
     $scope.newDiscussion = {};
-    $scope.newDiscussion.type ='question';
+    $scope.newDiscussion.type ='update';
     $scope.newDiscussion._creator = $rootScope.currentUser._id;
-
+    $scope.newDiscussion.children = [];
+    
    // querying discussions on the server.
     $scope.discussions = Discussion.query({'children':  $routeParams.childId});
+
+   $scope.child = Child.get({childId:  $routeParams.childId });
+  // $http({method: 'GET', url: '/api/children/' + $routeParams.childId})
+  //  .success(function(data, status, headers, config) {
+ //           $scope.child = data;
+           // return true;
+//    })
+  //  .error(function(data, status, headers, config) {
+   //         return data;
+   // });
     
-    $scope.$watch('discussions', function(discussions) {
-      console.log(discussions);
-    });
-  
-    $scope.createQuestion = function() {
+ 
+    $scope.createUpdate = function() {
+       $scope.newDiscussion.children.push($scope.child._id);
+       console.log('creating uppdate');
        Discussion.save($scope.newDiscussion, function(data) {
-        $scope.discussions.push(data);
-        $scope.newDiscussion = {};
-        $scope.newDiscussion.type ='update';
-        $scope.newDiscussion._creator = $rootScope.currentUser._id;
+        $scope.discussions.unshift(data);
+        $scope.newDiscussion.content = '';
        },
        function(err) {
          Alert.error(err);
-         $scope.discussions[index-1] = '';
+         //$scope.discussions[index-1] = '';
       }); 
       
     }
 
-    $scope.createComment = function(index, newComment) {
-      var discussionId = $scope.discussions[index]._id;
+   $scope.$on('event:commentAdded', function(event, index, comment) {
+      console.log('got you ' + index + ' coucou');
+      $scope.discussions[index].comments.push(comment);
+    });
+
+   $scope.updateChild = function() {
+     Child.update({childId: $scope.child._id}, $scope.child, 
+      function(child){
+        $scope.child = child;
+      }, 
+      function(err){ 
+        Alert.error('A system error while saving the page. Could you try again?' );
+      }
+    );
+  }
+    
+  $scope.setProfilePicture = function(file) {
+    $scope.child.picture = 
+     { '_creatorId': $rootScope.currentUser._id, 
+       'picture': file.name } ;
+    $scope.updateChild();
+  };
   
-      var comment = $http({method: 'POST', url: '/api/discussions/' + discussionId + '/comments' , data: newComment})
-      .success(function(comment) {
-         $scope.discussions[index].comments.push(comment);
-        });
-      
+  $scope.addSpecialty = function(specialty) {
+    if(angular.isDefined(specialty)) {
+      $scope.child.specialties.push(specialty); 
+      $scope.newDiscussion.content = 'I have just created the ' + specialty + ' group, join it if you are interested!';
+      $scope.newDiscussion.groups  = [ specialty ];
+      $scope.createUpdate();
+    }  else {
+       $scope.child.specialties.push($scope.child.newSpecialty);   
     }
+    $scope.updateChild();
+  }
   
-  $http({method: 'GET', url: '/api/children/' + $routeParams.childId})
-    .success(function(data, status, headers, config) {
-            $scope.child = data;
-            return true;
-    })
-    .error(function(data, status, headers, config) {
-            return data;
-    });;
+   $scope.addSuperpower = function(superpower) {
+    if(angular.isDefined(superpower)) {
+      console.log('I am here');
+      $scope.child.superpowers.push(superpower);  
+      $scope.newDiscussion.content = 'I have just added a new superpower ( ' + superpower + ' ) to my page, come check it out!';
+      $scope.newDiscussion.tags = [ superpower ];
+      $scope.createUpdate();
+    }  else {
+       $scope.child.superpowers.push($scope.child.newSuperpower);   
+    }
+    
+    $scope.updateChild();
+  }
+  
+  $scope.removeSpecialty = function(index) {
+    $scope.child.specialties.splice(index, 1);
+    $scope.updateChild();
+  }
+    
+    
+   $scope.removeSuperpower = function(index) {
+    $scope.child.superpowers.splice(index, 1);
+    $scope.updateChild();
+  }
+
+
+
   
   
 }
-ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams', 'Discussion'];
+ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams', 'Discussion', 'Child'];
+
+
 
 /*
  * 

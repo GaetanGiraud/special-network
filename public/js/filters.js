@@ -8,23 +8,58 @@ angular.module('CareKids.filters', []).
       return String(text).replace(/\%VERSION\%/mg, version);
     }
   }]).
-  filter('iconPicture', function() {
+  filter('fromNow', function() {
+    return function(date) {
+      if (angular.isDefined(date)) {
+        console.log(date);
+        //var day = moment(date);
+        return moment(date).fromNow();
+      }
+    }
+  }).
+  filter('thumbPicture', function() {
     return function(object) {
+    if (angular.isDefined(object)) {
       if (angular.isUndefined(object.picture)) { 
            return 'images/defaults/user-default.png';  
         } else {
-          return 'uploads/' + object._id + '/icon/' + object.picture;
+          if ( angular.isUndefined(object._creatorId)) {
+            return 'uploads/' + object._id + '/thumbnail/' + object.picture;
+          }
+          return 'uploads/' + object._creatorId + '/thumbnail/' + object.picture;
         }
+      } 
+    }
+  }).
+  filter('iconPicture', function() {
+    return function(object) {
+    if (angular.isDefined(object)) {
+      if (angular.isUndefined(object.picture)) { 
+           return 'images/defaults/user-default.png';  
+        } else {
+          if ( angular.isUndefined(object._creatorId)) {
+            return 'uploads/' + object._id + '/icon/' + object.picture;
+          }
+          return 'uploads/' + object._creatorId + '/icon/' + object.picture;
+        }
+      } 
     }
   }).
   filter('picture', function() {
     return function(object) {
+     if (angular.isDefined(object)) {
       if (angular.isUndefined(object.picture)) { 
            return 'images/defaults/user-default.png';  
         } else {
-          return 'uploads/' + object._creator + '/' + object.picture;
+          if ( angular.isUndefined(object._creatorId)) {
+            return 'uploads/' + object._id + '/' + object.picture;
+          }
+          return 'uploads/' + object._creatorId + '/' + object.picture;
         }
-    }
+      } else {
+        return 'images/defaults/user-default.png';   
+      }
+    } 
   }).
   filter('userPic', function() {
     return function(user) {
@@ -64,7 +99,7 @@ angular.module('CareKids.filters', []).
   }).
   filter('pronomize', function() {
     return function(relationship) {
-      if (['father', 'mother'].indexOf(relationship) != -1) return 'the ' + relationship; 
+      if (['Father', 'Mother'].indexOf(relationship) != -1) return 'the ' + relationship; 
       return 'a ' + relationship;  
     }
   });

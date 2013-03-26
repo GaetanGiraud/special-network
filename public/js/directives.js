@@ -37,10 +37,8 @@ angular.module('CareKids.directives', []).
        return {
          restrict: 'E',
          scope: {
-         //  discussionType: '@',
            publish: '&'
            },
-        // replace: true,
          template: '<div class = "content">' +
                             '<div class = "btn-group fileupload-buttonbar footer">' + 
                               '<button type = "button" ng-click = "create()" class = "btn">Create</button>' + 
@@ -64,8 +62,6 @@ angular.module('CareKids.directives', []).
               editableHtml.append(imageTag);
             }
           }
-            
-            
             return link;
             
            },
@@ -104,18 +100,6 @@ angular.module('CareKids.directives', []).
       }
     };
 })
-/*.directive('discussion', function() {
-  return {
-    restrict: 'E',
-    scope: {
-      discussion: '=',
-      publishComment: '&'
-    },
-  //  replace: true,
-    templateUrl: '/templates/discussion',
-  }
-
-})*/
 .directive('newComment', [ '$rootScope', function($rootScope) {
   return {
     restrict: 'A',
@@ -151,40 +135,121 @@ angular.module('CareKids.directives', []).
    return {
      restrict: 'E',
      scope: {
-       results: '='
+       results: '=',
+       create: '&'
        },
-     template: '<input id = "autocomplete" "type ="text" ng-change="complete()" ng-model="term">',
+     template: '<input id = "autocomplete" "type ="text" ng-change="complete()" ng-model="results">',
      link: function(scope, elm, attrs) {
      
+     // setting these templates outside of the directive template allow to dynamically 
      var ElmWidth = elm[0].offsetWidth;
      var suggestionTemplate = '<ul class = "autocomplete">' +
-                                   "<li ng-click='select($index)' ng-repeat = 'suggestion in suggestions'>" +
-                                   '<img src="/uploads/{{suggestion._id}}/icon/{{suggestion.picture}}">' +
-                                   '{{suggestion.name}}'+
+                                   "<li ng-click='select($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
+                                   '{{suggestion}}'+
+                                   '</li></ul>';
+    var noresultTemplate = '<ul class = "autocomplete">' +
+                                   "<li ng-click='select()'>" +
+                                   'Do you want to create a new occurence?' +
                                    '</li></ul>';
     var html;                          
-       
+
+    
+    // watching the bindings to set up some smart defaults
+      scope.$watch('results', function(results) {
+        if (angular.isDefined(scope.results)) {
+          if (scope.results.length == 0) { 
+            if (angular.isDefined(html)) html.remove(); 
+          }
+        }
+      });
+      
+      scope.$watch('suggestions', function(suggestions) {
+        scope.selected = 0;
+      });
+    
+    /*
+     * 
+     *  get the autocompletion data from the server
+     * 
+     */
+     
      scope.complete = function() {
-        $http({method: 'GET', url: attrs.url, params: {'q': scope.term }})
+       
+       // if no data entered do not show anything (Handling backspace )
+       if (scope.results.length == 0) { 
+         if (angular.isDefined(html)) html.remove(); 
+      } else {
+       
+        $http({method: 'GET', url: attrs.url, params: {'q': scope.results }})
          .success(function(data) {
           if (html) html.remove();
-                console.log(data);
+          console.log(data);
           scope.suggestions = data;
-          html = $compile(suggestionTemplate)(scope);
+          
+          // if no data ask to create a new object
+          if (data.length < 1) {
+            html = $compile(noresultTemplate)(scope);
+            
+          } else {
+          // compile the suggestions
+            html = $compile(suggestionTemplate)(scope);
+          }
+          // append the result of the query to the element
           html.css('width', ElmWidth);
           $('ul.autocomplete').css('width', ElmWidth);
           elm.append(html);
+        
         });
        
+       }
      
       }
-      
-      scope.select = function($index) {
+      // on click function
+      scope.select = function($index, $event) {
         html.remove();
-        scope.term = scope.suggestions[$index].name;
-        scope.results = scope.suggestions[$index];
+        if (angular.isDefined($index)) {
+          scope.results = scope.suggestions[$index];
+        } else {
+          scope.create({'string': scope.results});
+        }
       }
-    
+      
+      /*
+       * 
+       *  Handling the user interface
+       * 
+       */
+        
+      elm.bind('keydown', function(event) {
+          if ((event.keyCode == '40') && (scope.suggestions.length > 1) && (scope.selected < scope.suggestions.length ) ) {
+            scope.selected = scope.selected + 1; 
+            scope.$apply(scope.selected);
+          }
+          if ((event.keyCode == '38') && (scope.suggestions.length > 1) && (scope.selected <= scope.suggestions.length ) ) {
+            scope.selected = scope.selected - 1; 
+            scope.$apply(scope.selected);
+          }
+          if ( event.keyCode == '13' ) {
+            scope.$apply(scope.select(scope.selected)); 
+          }
+          if ( event.keyCode == '27' ) {
+            html.remove();
+            scope.results = '';
+            scope.$apply(scope.results);
+          }
+        });
+      
+      scope.toggleClass = function($index) {
+       scope.selected =  $index;
+        
+      }
+      
+      scope.highlight = function(index) {
+       if (scope.selected == index) return 'selected';
+       return '';
+      }
+      
+      
    }
  }
 }])
@@ -243,6 +308,24 @@ angular.module('CareKids.directives', []).
       }
     }
   }])
+  .directive( [ 'focus', 'blur', 'keyup', 'keydown', 'keypress' ].reduce( function ( container, name ) {
+    var directiveName = 'ng' + name[ 0 ].toUpperCase( ) + name.substr( 1 );
+
+    container[ directiveName ] = [ '$parse', function ( $parse ) {
+        return function ( scope, element, attr ) {
+            var fn = $parse( attr[ directiveName ] );
+            element.bind( name, function ( event ) {
+                scope.$apply( function ( ) {
+                    fn( scope, {
+                        $event : event
+                    } );
+                } );
+            } );
+        };
+    } ];
+
+    return container;
+}, { } ) )
   .directive('appVersion', ['version', function(version) {
     return function(scope, elm, attrs) {
       elm.text(version);

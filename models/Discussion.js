@@ -8,7 +8,8 @@ var discussionSchema = mongoose.Schema({
   updatedAt: { type: Date, default: Date.now},
   _creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   children: [ {type: mongoose.Schema.Types.ObjectId, ref: 'Child'}],
-  tags: [ { tag: String }],
+  groups: [ String ],
+  tags: [ String ],
   comments : [{
     _creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     content: String,

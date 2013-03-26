@@ -6,6 +6,7 @@
 var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , Discussion = require('../models/Discussion')(db)
+  , Child = require('../models/Child')(db)
   , extend = require('node.extend');
   
   
@@ -16,6 +17,17 @@ exports.add = function (req, res) {
     console.log(('Discussion: ' + discussion._id + ' created.'));
  
     // populate the creator before sending back the response.
+    
+    if (discussion.type == 'update') {
+      discussion.children.forEach( function(childId) {
+      
+       Child.findByIdAndUpdate(childId, {'lastUpdate': discussion._id}, function(err, child) {
+         
+         console.log(child);
+       });
+      });
+    }
+    
     discussion.populate({path: '_creator', select: '_id name picture'}).populate('children', function(err, discussion) {
       if (err) return res.send(400, err);
       return res.json(discussion);
@@ -96,6 +108,57 @@ exports.delete = function (req, res) {
     return res.send(200);
   });
 }; 
+
+
+exports.search = function (req, res) {
+   var cleanQuery = req.query.q.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
+   var type = req.query.type;
+   
+   if (cleanQuery.length > 0) { 
+     var re = new RegExp(cleanQuery);
+    
+     // returning search for groups only
+     if (type == 'groups') {
+       Discussion.aggregate(
+         { $project: { groups : "$groups"  }},
+         {$unwind: "$groups"},
+         { $match : { groups : re } },
+         function (err, results) {
+           if (err) return res.send(400, err);
+             //parsing the results for groups
+             results.forEach(function(element, index) {
+               results[index] = element.groups;      
+              });
+           console.log(results);
+             return res.json(results);
+           });
+       } 
+    
+    // returning search for tags only
+       if (type == 'tags') {
+      //   Discussion.find({tags: re}).limit(5).exec(function(err, results) {
+        Discussion.aggregate(
+          { $project: { tags : "$tags"  }},
+          {$unwind: "$tags"},
+          { $match : { tags : re } }, 
+          function(err, results) {
+            if (err) return res.send(400, err);
+              results.forEach(function(element, index) {
+                results[index] = element.tags;
+            
+              });
+            console.log(results);
+            return res.json(results);
+         });
+        }
+         
+       } else {
+  
+     // empty array, nothing found    
+     return res.json({}); 
+    }
+      
+}
 
 
 

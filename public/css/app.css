@@ -59,13 +59,15 @@ header {
   background-color: white;
   padding: 0;
   margin: 0;
-  border: 1px solid;
   box-sizing: border-box; }
   .autocomplete li {
     display: block;
     width: inherit;
     padding: 4px 0;
     margin: 0; }
+    .autocomplete li.selected {
+      color: white;
+      background-color: black; }
     .autocomplete li img {
       padding: 2px; }
     .autocomplete li:hover {
@@ -94,3 +96,6 @@ a.share {
 a.question {
   font-weight: 700;
   background-color: black; }
+
+#discussions {
+  overflow: auto; }

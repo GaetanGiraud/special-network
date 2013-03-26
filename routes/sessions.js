@@ -20,7 +20,12 @@ exports.new = function(req, res){
         req.session.success = 'Authenticated as ' + user.name
           + ' click to <a href="/logout">logout</a>. '
           + ' You may now access <a href="/restricted">/restricted</a>.';
-        res.json({'email': user.email, 'name': user.name, '_id': user._id});
+        res.json({"email": user.email, 
+                  "name": user.name, 
+                  "_id": user._id, 
+                  'picture': user.picture, 
+                  '_location': user._location, 
+                  'settings': user.settings});
       });
     } else {
       console.log('Unauthanticated access'.red);

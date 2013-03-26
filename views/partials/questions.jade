@@ -16,7 +16,7 @@ article#new-question
    
 //Existing discussions
 
-div(ng-repeat = "discussion in discussions | orderBy:'createdAt':true")
+div(ng-repeat = "discussion in discussions")
   article.discussion
     h5 {{discussion._creator.name}}
     p(ng-bind-html = 'discussion.content')
@@ -24,5 +24,11 @@ div(ng-repeat = "discussion in discussions | orderBy:'createdAt':true")
     div.comment(ng-repeat =  'comment in discussion.comments | orderBy:"createdAt":false')
       h5 {{comment._creator.name}}
       p(ng-bind-html = 'comment.content')
-    
-    //div.comment.footer(new-comment, index = "{{$index}}", publish = 'createComment(index, comment)')
+   
+  div(ng-controller = 'newCommentCtrl')
+    a(ng-show = "!reply", ng-click="reply = true") Reply
+    div.footer(ng-show = "reply")
+      textarea(ng-model = "newComment.content") 
+      br
+      button.btn.btn-primary(ng-click="createComment($index)") Post 
+      button.btn(ng-click="reply = false") Cancel

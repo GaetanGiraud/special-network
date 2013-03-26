@@ -4,6 +4,7 @@
  */
 
 var express = require('express'),
+  http = require('http')
   routes = require('./routes'),
   api = require('./routes/api'),
   colors = require('colors'),
@@ -11,7 +12,9 @@ var express = require('express'),
   upload = require('jquery-file-upload-middleware');
 
 
-var app = module.exports = express();
+var app = express();
+var server = http.createServer(app);
+var io = require("socket.io").listen(server);
 
 /* 
  * Express server configuration
@@ -22,8 +25,8 @@ upload.configure({
     imageTypes: /\.(gif|jpe?g|png)$/i,
     imageVersions: {
        thumbnail: {
-            width: 64,
-            height: 64
+            width: 100,
+            height: 100
             },
        icon: {
             width: 24,
@@ -140,6 +143,7 @@ app.delete('/api/children/:id', restrict, api.children.delete);
 
 // discussion API.
 app.get('/api/discussions', restrict, api.discussions.findAll);
+app.get('/api/discussions/search', restrict, api.discussions.search)
 app.get('/api/discussions/:id',restrict, api.discussions.findById);
 app.post('/api/discussions', restrict, api.discussions.add);
 app.post('/api/discussions/:id/comments', restrict, api.discussions.addComment);
@@ -163,7 +167,7 @@ app.get('*', routes.index);
 
 // Start server
 
-app.listen(3000, function(){
+server.listen(3000, function(){
   console.log("Express server listening on port %d in %s mode", this.address().port, app.settings.env);
 });
 
