@@ -1,0 +1,59 @@
+include ../includes/findMenu
+
+div.row
+  div.span6
+   h2 Find People
+   div.input-prepend
+      span.add-on
+        i.icon-search
+      input.search.span5(type='text', ng-change = 'getResults()',ng-model = 'search.term')
+    //button(ng-click = 'getResults()') Search
+      
+      
+  div.span4
+    h4 Refine your search
+    
+    h5 How far from 
+      | {{ homeLocation.data.formattedAddress }}
+      | ?
+    select(ng-options = "distance.value as distance.label for distance in distances", ng-change = 'getResults()', ng-model = "search.distance")
+    
+    h5 Related to specific superpowers?
+    ul.unstyled
+      li(ng-repeat = "superp in search.superpowers")
+        | {{ superp }}
+        button(ng-click = 'removeSuperpower($index)') &times
+    
+    autocomplete(results = 'superpower', url = '/api/discussions/search?type=tags', create = 'add(string, newObject)')
+
+  p
+    | {{ search }}
+
+div.row(ng-show = "!searchResults")
+  div.span10
+    p
+      | No results yet.
+
+div.row(ng-show = "searchResults.length > 0")
+  div.span10
+    table.table
+      tr
+        th
+        th Name
+        th Where?
+        th Child
+        th Member since
+        th Contact
+      tr(ng-repeat = 'user in searchResults' )
+        td
+          img(ng-src="{{ user | userThumbPic }}")
+        td
+          | {{ user.name }}
+        td
+          | {{ user.location.formattedAddress }}
+        td
+          | to do
+        td 
+          | {{ user.createdAt | fromNow }}
+        td
+          | Contact us?

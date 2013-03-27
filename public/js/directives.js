@@ -208,10 +208,15 @@ angular.module('CareKids.directives', []).
       scope.select = function($index, $event) {
         html.remove();
         if (angular.isDefined($index)) {
+          //scope.results.createNew = false;
           scope.results = scope.suggestions[$index];
+          scope.create({string: scope.results, newObject: false });
         } else {
-          scope.create({'string': scope.results});
-        }
+          //scope.results.createNew = true;
+          scope.create({string: scope.results, newObject: true});
+        } 
+    
+        
       }
       
       /*

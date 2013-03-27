@@ -1,0 +1,11 @@
+div.row
+  div.span4.menu
+    ul.unstyled
+      li(ng-class = 'selectedView("find")')
+        a(href='/find')
+          i.icon-list
+          | Search in line
+      li(ng-class = 'selectedView("map")')
+        a(href='/map') 
+          i.icon-globe
+          | Search on the Map

@@ -54,7 +54,7 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert) {
     });
       
     socket.on('connect', function (){
-          Alert.success('You are connected!');
+        //  Alert.success('You are connected!');
           console.info('successfully established a working and authorized connection');
     });
       
@@ -185,18 +185,15 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
   $scope.undoLocUpdate = "false";
   var previousLocation = [];
     
-  //$scope.user = User.get({userId: $rootScope.currentUser._id}, 
-  //  function(user) {       
+  
   $scope.location = Location.get({locationId: $rootScope.currentUser._location}, 
      function(location) {
-     //    $scope.location = location;
           
         if (angular.isUndefined(location.lat)) {
            $scope.showLocationWidget = true;
         } else {         
           previousLocation[0] = angular.copy(location);
         }
-//    });
    });
    
 
@@ -288,8 +285,103 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
 UserCtrl.$inject = ['$scope', 'User', '$rootScope', 'Alert', 'Location', 'GeoCoder'];
 
 /*
- *  Children 
  * 
+ * 
+ * Controllers for Discussion logic 
+ * 
+ * 
+ */
+ 
+function DiscussionCtrl($scope, $location) {
+
+    $scope.createDiscussion = function() {
+      $scope.newDiscussion.children = [];
+    // linking chosen children to the discussion
+       if ($scope.newDiscussion.type == 'update') {
+         
+         for(var i = 0; i < $scope.children.length; i++) {
+           console.log($scope.children[i].send)
+           if ($scope.children[i].send) { 
+             $scope.newDiscussion.children.push($scope.children[i]); 
+             }
+         } 
+       }
+      $scope.$emit('event:discussionCreated', $scope.newDiscussion );
+      $scope.discussions.unshift(angular.copy($scope.newDiscussion));
+      $scope.newDiscussion.content = '';
+      $scope.newDiscussion.children = ''; 
+      
+    }   
+   
+   
+   $scope.$on('event:createDiscussion', function(){
+      $scope.createDiscussion(); 
+    });
+    
+    $scope.$on('event:newComment', function(event, comment) {
+      console.log(comment);  
+      for(var i = 0; i < $scope.discussions.length; i ++) {
+        console.log($scope.discussions[i]._id);
+        if ( $scope.discussions[i]._id == comment.discussionId) {
+           $scope.$apply($scope.discussions[i].comments.push(comment.comment));
+          break;     
+        }
+      }
+    });
+    
+    $scope.$on('event:newDiscussion', function(event, discussion) {
+      var location = $location.path();
+      
+      if (/children/.exec(location) != null && discussion.children.indexOf($scope.child._id) != -1) {
+         $scope.$apply($scope.discussions.unshift(discussion));
+      }
+      if (/home/.exec(location) != null) {
+         $scope.$apply($scope.discussions.unshift(discussion));
+      }
+      if (/question/.exec(location) != null && discussion.type == 'question' ) {
+         $scope.$apply($scope.discussions.unshift(discussion));
+      }
+    });
+    
+    
+     $scope.$on('event:discussionSavedSuccess', function(event, discussion) {
+      $scope.$apply($scope.discussions[0] = discussion);
+    });
+    
+    $scope.$on('event:commentAdded', function(event, index, comment) {
+      $scope.discussions[index].comments.push(comment);
+    });
+
+}
+DiscussionCtrl.$inject = ['$scope', '$location'];
+
+function newCommentCtrl($scope) {
+  $scope.newComment = {};
+  
+  $scope.$watch('currentUser', function(currentUser) {
+      $scope.$watch('newComment', function(newComment) {
+        $scope.newComment._creator = {_id: currentUser._id, name: currentUser.name, picture: currentUser.picture};
+      });
+  });
+    
+  $scope.createComment = function(index) {
+      var discussionId = $scope.$parent.discussions[index]._id;
+      $scope.$emit('event:commentAdded', index, $scope.newComment, discussionId );
+      $scope.newComment = '';
+  }
+  
+}
+newCommentCtrl.$inject = ['$scope'];
+
+
+/*
+ *  Views controller.
+ * 
+ * They handle the logic and the data that is pecific to views
+ * 
+ */ 
+
+/* 
  * 
  * Children ctrl for handling the children summary page.
  * Child ctrl for specific parts.
@@ -299,14 +391,11 @@ UserCtrl.$inject = ['$scope', 'User', '$rootScope', 'Alert', 'Location', 'GeoCod
 
 
 
-function ChildrenCtrl($scope, Child, Alert, User, $rootScope, $http) {
+function ChildrenCtrl($scope, Child, Alert, User) {
   //setting up some default values
   $scope.notFollowing = true;
-  //$scope.user = {};
   
-  
-  
-  $rootScope.$watch('currentUser', function(currentUser) {
+  $scope.$watch('currentUser', function(currentUser) {
     if (angular.isDefined(currentUser)) {
       $scope.optOut = currentUser.settings.createChildOptOut;
     }
@@ -321,26 +410,18 @@ function ChildrenCtrl($scope, Child, Alert, User, $rootScope, $http) {
     {name:'Friend'}
   ];
   
- // $scope.newChild = {};
-  //$scope.newChild.creator = { _creatorId: $rootScope.currentUser._id};
- // $scope.newChild.creator.relationship = "Mother";
   
   $scope.newChild = {
     creator: {
-       _creatorId: $rootScope.currentUser._id,
+       _creatorId: $scope.currentUser._id,
       relationship: "Mother"
       }
   };
-  
 
-//  $scope.search = '';
-  $scope.followedChildren = Child.query({following: true}, function(data) {
-    console.log(data);
-   // if (data.length > 0) $scope.notFollowing = false;
-  });
-  
+  $scope.followedChildren = Child.query({following: true});
+
+  // if the user has not opted to only follow children, show their children  
   if (!$scope.optOut) { $scope.children = Child.query(); }
-
  
   $scope.deleteChild = function(index) {
     Child.delete({ childId: $scope.children[index]._id }, 
@@ -357,7 +438,7 @@ function ChildrenCtrl($scope, Child, Alert, User, $rootScope, $http) {
     
      $scope.newChild = {
        creator: {
-          _creatorId: $rootScope.currentUser._id,
+          _creatorId: $scope.currentUser._id,
          relationship: "Mother"
         }
      };
@@ -367,14 +448,14 @@ function ChildrenCtrl($scope, Child, Alert, User, $rootScope, $http) {
   } 
   
   $scope.registerOptOut = function() {
-    User.update({userId: $rootScope.currentUser._id}, {'settings.createChildOptOut': true}, 
+    User.update({userId: $scope.currentUser._id}, {'settings.createChildOptOut': true}, 
       function() {
          $scope.optOut = true; 
       });
   }
   
 }
-ChildrenCtrl.$inject = ['$scope', 'Child', 'Alert', 'User', '$rootScope', '$http'];
+ChildrenCtrl.$inject = ['$scope', 'Child', 'Alert', 'User'];
 
 function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child) {
   
@@ -395,41 +476,6 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child) {
       $scope.children.push(child);
     });
     
-     
-  // $http({method: 'GET', url: '/api/children/' + $routeParams.childId})
-  //  .success(function(data, status, headers, config) {
- //           $scope.child = data;
-           // return true;
-//    })
-  //  .error(function(data, status, headers, config) {
-   //         return data;
-   // });
-    
- 
-  /*  $scope.createUpdate = function() {
-       $scope.newDiscussion.children.push($scope.child._id);
-       console.log('creating uppdate');
-       
-       //$scope.$emit('event:commentAdded', $scope.newDiscussion);    
-       
-   //    Discussion.save($scope.newDiscussion, function(data) {
-        
-        $scope.$emit('event:discussionCreated', $scope.newDiscussion );
-        $scope.discussions.unshift($scope.newDiscussion);
-        $scope.newDiscussion.content = '';
-     //  },
-     //  function(err) {
-     //    Alert.error(err);
-         //$scope.discussions[index-1] = '';
-     // }); 
-      
-    }
-
-   $scope.$on('event:commentAdded', function(event, index, comment) {
-        // angular.extend(comment._creator, { name : $rootScope.name, 
-         $scope.discussions[index].comments.push(comment);
-         
-    });*/
 
    $scope.updateChild = function() {
      Child.update({childId: $scope.child._id}, $scope.child, 
@@ -449,25 +495,30 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child) {
     $scope.updateChild();
   };
   
-  $scope.addSpecialty = function(specialty) {
+  $scope.addSpecialty = function(specialty, newSpecialty) {
     if(angular.isDefined(specialty)) {
       $scope.child.specialties.push(specialty); 
-      $scope.newDiscussion.content = 'I have just created the ' + specialty + ' group, join it if you are interested!';
-      $scope.newDiscussion.groups  = [ specialty ];
-      $scope.createUpdate();
+      if (newSpecialty) {
+        $scope.newDiscussion.content = 'I have just created the ' + specialty + ' group, join it if you are interested!';
+        $scope.newDiscussion.groups  = [ specialty ];
+        $scope.$broadcast('event:createDiscussion');
+      }
     }  else {
        $scope.child.specialties.push($scope.child.newSpecialty);   
     }
     $scope.updateChild();
   }
   
-   $scope.addSuperpower = function(superpower) {
+   $scope.addSuperpower = function(superpower, newSuperpower) {
     if(angular.isDefined(superpower)) {
       console.log('I am here');
-      $scope.child.superpowers.push(superpower);  
-      $scope.newDiscussion.content = 'I have just added a new superpower ( ' + superpower + ' ) to my page, come check it out!';
-      $scope.newDiscussion.tags = [ superpower ];
-      $scope.createUpdate();
+      $scope.child.superpowers.push(superpower);
+      console.log(superpower);
+      if (newSuperpower)  {
+        $scope.newDiscussion.content = 'I have just added a new superpower ( ' + superpower + ' ) to my page, come check it out!';
+        $scope.newDiscussion.tags = [ superpower ];
+        $scope.$broadcast('event:createDiscussion');
+      } 
     }  else {
        $scope.child.superpowers.push($scope.child.newSuperpower);   
     }
@@ -493,128 +544,10 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child) {
 }
 ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams', 'Discussion', 'Child'];
 
-function DiscussionCtrl($scope, $rootScope, $location, Alert, Child, $route) {
-
-    $scope.createDiscussion = function() {
-      $scope.newDiscussion.children = [];
-    // linking chosen children to the discussion
-       if ($scope.newDiscussion.type == 'update') {
-         
-         console.log($scope.children);
-         for(var i = 0; i < $scope.children.length; i++) {
-           console.log($scope.children[i].send)
-           if ($scope.children[i].send) { 
-             $scope.newDiscussion.children.push($scope.children[i]); 
-             }
-         } 
-       }
-      $scope.$emit('event:discussionCreated', $scope.newDiscussion );
-   //    Discussion.save($scope.newDiscussion, function(data) {
-         $scope.discussions.unshift(angular.copy($scope.newDiscussion));
-         $scope.newDiscussion.content = '';
-         $scope.newDiscussion.children = '';
-         //$scope.newDiscussion = $scope.defaults;
-   //    },
-   //    function(err) {
-  //       Alert.error(err);
-  //    }); 
-      
-    }
-    
-    
-   /* $scope.addPicture = function(file) {
-      $scope.$apply(function() {
-        $scope.newDiscussion.picture = file.name; 
-      });
-    }*/
-    
-   
-    
-    $scope.$on('event:newComment', function(event, comment) {
-      console.log(comment);  
-      for(var i = 0; i < $scope.discussions.length; i ++) {
-        console.log($scope.discussions[i]._id);
-        if ( $scope.discussions[i]._id == comment.discussionId) {
-           $scope.$apply($scope.discussions[i].comments.push(comment.comment));
-          break;     
-        }
-      }
-    });
-    
-    $scope.$on('event:newDiscussion', function(event, discussion) {
-      //var newComment = comment;
-      //newComment._creator = {'name': $rootScope.currentUser.name, 'picture': $rootScope.currentUser.picture };
-      //console.log(discussion);
-      
-      //console.log
-     // var locations = []/children/;
-      var location = $location.path();
-      
-      if (/children/.exec(location) != null && discussion.children.indexOf($scope.child._id) != -1) {
-         $scope.$apply($scope.discussions.unshift(discussion));
-      }
-      if (/home/.exec(location) != null) {
-         $scope.$apply($scope.discussions.unshift(discussion));
-      }
-      if (/question/.exec(location) != null && discussion.type == 'question' ) {
-           $scope.$apply($scope.discussions.unshift(discussion));
-      }
-      
-      
-      /*        case /children/':
-          console.info('children');
-          break;
-        case 'Questions':
-          console.info('question');
-          break;
-        case 'Home':
-          console.info('home');
-          break;
-        default: console.log('do nothhing');
-        
-        
-        
-       }*/
-      //console.log($route.current.locals)
-    //  if ( == '/questions' && )
-      //console.log($route.current.scope === 'Child')
-      
-      
-      
-    });
-    
-    
-     $scope.$on('event:discussionSavedSuccess', function(event, discussion) {
-      //var newComment = comment;
-      //newComment._creator = {'name': $rootScope.currentUser.name, 'picture': $rootScope.currentUser.picture };
-      console.log(discussion);
-      $scope.$apply($scope.discussions[0] = discussion);
-    });
-    
-    
-    $scope.$on('event:commentAdded', function(event, index, comment) {
-      //var newComment = comment;
-      //newComment._creator = {'name': $rootScope.currentUser.name, 'picture': $rootScope.currentUser.picture };
-      $scope.discussions[index].comments.push(comment);
-    });
-
-
-
-
-}
 
 function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child) {
     
-    // setting default values for new discussions.
-    /*var defaults = {
-      'type': 'update',
-      $scope.newDiscussion._creator = { '_id': $rootScope.currentUser._id, 'name': $rootScope.currentUser.name, 'picture': $rootScope.currentUser.picture) ;
-
-      }
-    
-    $scope.newDiscussion = defaults;
-    $scope.newDiscussion._creator = { '_id': $rootScope.currentUser._id, 'name': $rootScope.currentUser.name, 'picture': $rootScope.currentUser.picture) ;
-*/  $scope.newDiscussion = {};
+    $scope.newDiscussion = {};
     $scope.$watch('currentUser', function(user) {
       $scope.newDiscussion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
     });
@@ -628,96 +561,23 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child) {
       if ($scope.newDiscussion.type == type) return 'selected'; 
       return '';
     }
-    
-    /*$scope.createDiscussion = function() {
-    
-    // linking chosen children to the discussion
-       if ($scope.newDiscussion.type == 'update') {
-         $scope.newDiscussion.children = [];
-         
-         for(var i = 0; i < $scope.children.length; i++) {
-           console.log($scope.children[i].send)
-           if ($scope.children[i].send) { 
-             $scope.newDiscussion.children.push($scope.children[i]._id); 
-             }
-         } 
-       }
-      $scope.$emit('event:discussionCreated', $scope.newDiscussion );
-   //    Discussion.save($scope.newDiscussion, function(data) {
-         $scope.discussions.unshift($scope.newDiscussion);
-         $scope.newDiscussion = '';
-         $scope.newDiscussion = defaults;
-   //    },
-   //    function(err) {
-  //       Alert.error(err);
-  //    }); 
       
-    }*/
-    
     $scope.addPicture = function(file) {
       $scope.$apply(function() {
         $scope.newDiscussion.picture = file.name; 
       });
     }
     
-    /*
-    $scope.$on('event:newComment', function(event, comment) {
-      console.log(comment);  
-      for(var i = 0; i < $scope.discussions.length; i ++) {
-        console.log($scope.discussions[i]._id);
-        if ( $scope.discussions[i]._id == comment.discussionId) {
-          console.log(comment.comment);
-           $scope.$apply($scope.discussions[i].comments.push(comment.comment));
-            
-          break;     
-        }
-        
-      }
-    });*/
-    
-   /* 
-    $scope.$on('event:commentAdded', function(event, index, comment) {
-      //var newComment = comment;
-      //newComment._creator = {'name': $rootScope.currentUser.name, 'picture': $rootScope.currentUser.picture };
-      $scope.discussions[index].comments.push(comment);
-    });*/
     
 }
 HomeCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert', 'Child'];
 
-function newCommentCtrl($scope, $rootScope, $http, Alert) {
-  $scope.newComment = {};
-  
-  $rootScope.$watch('currentUser', function(currentUser) {
-      $scope.$watch('newComment', function(newComment) {
-        $scope.newComment._creator = {_id: currentUser._id, name: currentUser.name, picture: currentUser.picture};
-      });
-  });
-    
-  $scope.createComment = function(index) {
-      var discussionId = $scope.$parent.discussions[index]._id;
-  
-      //var comment = $http({method: 'POST', url: '/api/discussions/' + discussionId + '/comments' , data: $scope.newComment})
-      //.success(function(comment) {
-  //      $scope.$parent.discussions[index].comments.push(comment);
-        $scope.$emit('event:commentAdded', index, $scope.newComment, discussionId );
-        $scope.newComment = '';
-      //});
-     
-  }
-  
-}
 
 function QuestionsCtrl($scope, $rootScope, Discussion, $http, Alert) {
     
     // setting default values for new discussions.
     $scope.newDiscussion = {};
-   
-    //$scope.newDiscussion._creator = { '_id': $rootScope.currentUser._id, 'name': $rootScope.currentUser.name, 'picture': $rootScope.currentUser.picture) ;
-
-   // querying discussions on the server.
-    
-    
+     
     $scope.newDiscussion = {};
     $scope.$watch('currentUser', function(user) {
       $scope.newDiscussion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
@@ -729,35 +589,6 @@ function QuestionsCtrl($scope, $rootScope, Discussion, $http, Alert) {
     //$scope.children = Child.query({'post': true});
     $scope.children = [];
 
- /*   $scope.createQuestion = function() {
-    //   Discussion.save($scope.newDiscussion, function(data) {
-        $scope.discussions.unshift($scope.newDiscussion);
-        $scope.$emit('event:discussionCreated', $scope.newDiscussion);
-        $scope.newDiscussion = {};
-        $scope.newDiscussion.type ='update';
-        $scope.newDiscussion._creator = $rootScope.currentUser._id;
-   //    },
-  //     function(err) {
-  //       Alert.error(err);
-         //$scope.discussions[index-1] = '';
- //     }); 
-      
-    }
-
-    $scope.createComment = function(index, newComment) {
-      var discussionId = $scope.discussions[index]._id;
-  
-      var comment = $http({method: 'POST', url: '/api/discussions/' + discussionId + '/comments' , data: newComment})
-      .success(function(comment) {
-         $scope.discussions[index].comments.push(comment);
-        });
-    }
-    
-    $scope.$on('event:commentAdded', function(event, index, comment) {
-      console.log('got you ' + index + ' coucou');
-      $scope.discussions[index].comments.push(comment);
-    });
-   */ 
 }
 QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert'];
 
@@ -768,6 +599,47 @@ QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert']
  * 
  * 
  */
+ 
+function FindCtrl($scope, User, Alert, $http) {
+  
+  // declaring the search object and reseting some defaults.
+  $scope.search = {} ;
+  $scope.search.superpowers = [];
+  $scope.search.homeLocation = $scope.currentUser._location;
+  $scope.distances = [
+    {'label': '10 km', 'value': 10},
+    {'label': '25 km', 'value': 25},
+    {'label': '50 km', 'value': 50},
+    {'label': '100 km', 'value': 100},
+    {'label': 'All', 'value': 0},
+  ];
+   
+  $scope.homeLocation = $http.get('/api/homelocation');
+   
+  $scope.getResults = function() {
+  
+   $http({method: 'GET', url: 'api/users/search', params: $scope.search }).
+   success(function(data) {
+     $scope.searchResults = data
+     console.log('data received');
+    });
+   //console.log('results')
+  //  User.query($scope.search) ;
+    
+  }
+  
+  $scope.add = function(superp) {
+    console.log('adding superp');
+    $scope.search.superpowers.push(superp);  
+  }
+   
+   
+  $scope.selectedView = function(view) {
+     if (view == 'find') return 'selected';
+     return '';
+  }
+   
+}
  
 function MapCtrl($scope, $rootScope, Location, homeLatLng, Map, Alert, User) {
   
@@ -787,7 +659,11 @@ function MapCtrl($scope, $rootScope, Location, homeLatLng, Map, Alert, User) {
     $scope.userLocations = Map.setUserLocations(myMap);
   });
   
-
+  $scope.selectedView = function(view) {
+    if (view == 'map') return 'selected';
+    return '';
+  }
+  
   $scope.registerDrop = function($event, locationType) {
     Map.dropEvent($event, $scope.myMap, locationType, function(newMarker) {
       if (newMarker) { 

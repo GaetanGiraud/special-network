@@ -120,7 +120,7 @@ header {
   background-color: white;
   padding: 0;
   margin: 0;
-  //border: 1px solid;
+  border: 1px solid;
   box-sizing: border-box;
        
   li {
@@ -177,10 +177,28 @@ header {
   
   
   }
+
+div.menu { 
   
+  li {
+  display: inline-block;
+  
+  padding: 10px;
+  
+  color: black;
+  
+  &.selected {
+    font-weight: 700;
+    background-color: black;
+    color: black;
+  
+  }
+  
+  }
+
+}
 a.selected {
-  font-weight: 700;
-  background-color: black;
+
 
 }
 

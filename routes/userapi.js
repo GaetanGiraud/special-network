@@ -10,6 +10,16 @@ var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , Location = require('../models/Location')(db)
   , bcrypt = require('bcrypt');
+  
+  
+var calculateDistance = function(lat1, lon1, lat2, lon2) {
+  var R = 6371;
+  var x = (lon2-lon1) * Math.cos((lat1+lat2)/2);
+  var y = (lat2-lat1);
+  var d = Math.sqrt(x*x + y*y) * R;
+  
+  return d;
+  }
 
 // Authenticate user
 exports.authenticate = function (email, password, fn) {
@@ -159,18 +169,60 @@ exports.delete = function (req, res) {
 }; 
 
 exports.search = function (req, res) {
-   var cleanQuery = req.query.q.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
-
-   if (cleanQuery.length > 0) { 
+   var distance = req.query.distance;
+   var superpowers = req.query.superpowers;
+   
+   var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
+      console.log(req.query.homeLocation);
+   Location.findById(req.query.homeLocation, function(err,location) {
+     var searchLocation = location;
+     //console.log(location)
+     //console.log(calculateDistance(searchLocation.lat, searchLocation.lng, this._location.lat, this._location.lng) &lt; distance
+        if (cleanQuery.length > 0) { 
      var re = new RegExp(cleanQuery);
      console.log(re);
-     User.find({$or: [{name: re}, {email: re}]}, '_id name picture').limit(5).exec(function(err, users) {
+     User.find({$or: [{name: re}, {email: re}]})
+       //.populate('_location')
+       .limit(5)
+       .$where(function() { 
+         //console.log(this);
+         return true;
+            
+       //  Location.findById(this.
+       //  var d = calculateDistance(searchLocation.lat, searchLocation.lng, element._location.lat, this._location.lng) 
+       //  if (d > distance) return true;
+          
+          
+          
+          
+         // return false;
+        
+          
+      })
+      .exec(function(err, users) {
        if (err) return res.send(400, err);
+       
+ //      users.forEach(function(index, element, users) {
+   //    
+      //  }};
+       
+       
        return res.json(users);
      });
    } else {
      res.json({}); 
   }
+   
+   
+   
+   });   
+
+   
+   
+   
+
+
+
  //    consol.log(users);
  
 }; 

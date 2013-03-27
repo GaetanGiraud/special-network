@@ -23,7 +23,7 @@ div(class= 'row')
           | {{ specialty }}
           button(ng-click = 'removeSpecialty($index)') &times
         li
-          autocomplete(results = 'child.newSpecialty', url = '/api/discussions/search?type=groups', create = 'addSpecialty(string)')
+          autocomplete(results = 'child.newSpecialty', url = '/api/discussions/search?type=groups', create = 'addSpecialty(string, newObject)')
           button.btn(ng-click = 'addSpecialty()') Add
           button.btn(ng-click = 'child.newSpecialty = ""') Cancel
       
@@ -34,7 +34,7 @@ div(class= 'row')
            | {{ superpower }}
            button(ng-click = 'removeSuperpower($index)') &times
         li 
-          autocomplete(results = 'child.newSuperpower', url = '/api/discussions/search?type=tags', create = 'addSuperpower(string)')
+          autocomplete(results = 'child.newSuperpower', url = '/api/discussions/search?type=tags', create = 'addSuperpower(string, newObject)')
           button.btn(ng-click = 'addSuperpower()') Add
           button.btn(ng-click = 'child.newSuperpower = ""') Cancel
     

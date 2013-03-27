@@ -180,7 +180,10 @@ exports.search = function (req, res) {
                results[index] = element.groups;      
               });
            console.log(results);
-             return res.json(results);
+           var uniqueResults = results.filter(function(elem, pos, self) {
+              return self.indexOf(elem) == pos;
+            });
+             return res.json(uniqueResults);
            });
        } 
     
@@ -198,7 +201,11 @@ exports.search = function (req, res) {
             
               });
             console.log(results);
-            return res.json(results);
+            var uniqueResults = results.filter(function(elem, pos, self) {
+              return self.indexOf(elem) == pos;
+            })
+            
+            return res.json(uniqueResults);
          });
         }
          

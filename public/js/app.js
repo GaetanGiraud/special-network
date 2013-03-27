@@ -16,6 +16,7 @@ var app = angular.module('CareKids', ['ngSanitize', 'CareKids.filters', 'CareKid
     $routeProvider.when('/children', {templateUrl: 'partials/children', controller: ChildrenCtrl}); 
     $routeProvider.when('/children/:childId', {templateUrl: 'partials/child', controller: ChildCtrl}); 
     
+    $routeProvider.when('/find', {templateUrl: 'partials/find', controller: FindCtrl}); 
     $routeProvider.when('/map', {templateUrl: 'partials/map', controller: MapCtrl, resolve: MapCtrl.resolve}); 
    
     // parameters
