@@ -41,7 +41,7 @@ div(class= 'row')
     button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
     button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
 
-  div.span5
+  div.span5(ng-controller = 'DiscussionCtrl')
     article#new-question
       h5 Publish an update
       
@@ -49,7 +49,7 @@ div(class= 'row')
         div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
         div.btn-group.fileupload-buttonbar.footer
           span.fileinput-button 
-            button.btn(type = "button", ng-click = "createUpdate()") Post
+            button.btn(type = "button", ng-click = "createDiscussion()") Post
           span.btn.fileinput-button 
             i.icon-picture.icon-white
               input(type = "file", uploader, done = "", data-url="/upload", name="file")
@@ -59,7 +59,7 @@ div(class= 'row')
        
     //Existing discussions
     
-    div(ng-repeat = "discussion in discussions | orderBy:'createdAt':true")
+    div(ng-repeat = "discussion in discussions")
       h4
         img(ng-src = '{{ discussion._creator | iconPicture }}')
         | {{discussion._creator.name}} 
@@ -71,7 +71,7 @@ div(class= 'row')
         
       p(ng-bind-html = 'discussion.content')
         
-      div.comment(ng-repeat =  'comment in discussion.comments | orderBy:"createdAt":false')
+      div.comment(ng-repeat =  'comment in discussion.comments')
         h5 {{comment._creator.name}}
         p(ng-bind-html = 'comment.content')
       

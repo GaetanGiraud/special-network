@@ -11,7 +11,7 @@ var db = require('../config/database').connection
   
   
 // Create a new discussion
-exports.add = function (req, res) {
+/*exports.add = function (req, res) {
   Discussion.create(req.body, function(err, discussion) {
     if (err)  return res.send(400, err);
     console.log(('Discussion: ' + discussion._id + ' created.'));
@@ -23,7 +23,7 @@ exports.add = function (req, res) {
       
        Child.findByIdAndUpdate(childId, {'lastUpdate': discussion._id}, function(err, child) {
          
-         console.log(child);
+    //     console.log(child);
        });
       });
     }
@@ -34,10 +34,37 @@ exports.add = function (req, res) {
     })
     
   });
+};*/
+
+exports.add = function (discussion, callback) {
+  Discussion.create(discussion, function(err, discussion) {
+    if (err)  return callback(err, null);
+    console.log(('Discussion: ' + discussion._id + ' created.'));
+ 
+    // if children have been referenced, 
+    // link the lastUpdate value inside the child model to this discussion.
+    
+    if (discussion.type == 'update') {
+      discussion.children.forEach( function(childId) {
+      
+       Child.findByIdAndUpdate(childId, {'lastUpdate': discussion._id}, function(err, child) {
+         if (err) return callback(err, null);
+       });
+      });
+    }
+    
+    discussion.populate({path: '_creator', select: '_id name picture'}).populate('children', function(err, discussion) {
+      if (err) return callback(err, null);
+      return callback(null, discussion);
+    })
+    
+  });
 };
 
+
+
 // Create a comment on an already existing discussion
-exports.addComment = function (req, res) {
+/*exports.addComment = function (req, res) {
 
 // First identify the discussion
    Discussion.findById(req.params.id, function(err, discussion) {
@@ -55,6 +82,29 @@ exports.addComment = function (req, res) {
       discussion.populate({path: 'comments._creator', select: '_id name picture'}, function(err, discussion) {
           if (err) return res.sen(400, err);
           return res.json(discussion.comments.id(comment._id));
+      });
+    });
+  });
+};*/
+
+exports.addComment = function (id, comment, callback) {
+
+// First identify the discussion
+   Discussion.findById(id, function(err, discussion) {
+    if (err)  return callback(err, null);
+
+    // add the comment to the discussion comments and save the index for further referencing of the comment.
+    var index = discussion.comments.push(comment);
+    discussion.updatedAt = Date.now();
+    
+    discussion.save(function(err) {
+      if (err) return callback(err, null);
+      
+    //  var comment =  ;
+      
+      discussion.populate({path: 'comments._creator', select: '_id name picture'}, function(err, discussion) {
+          if (err) return callback(err, null);
+          return callback(null, {discussionId: discussion._id, comment: discussion.comments[index-1]});
       });
     });
   });

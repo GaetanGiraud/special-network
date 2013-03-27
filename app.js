@@ -9,10 +9,15 @@ var express = require('express'),
   api = require('./routes/api'),
   colors = require('colors'),
   RedisStore = require('connect-redis')(express),
+  SessionSockets = require('session.socket.io'),
   upload = require('jquery-file-upload-middleware');
 
 
 var app = express();
+var sessionStore = new RedisStore({host:'127.0.0.1', port:6379});
+var cookieParser =  express.cookieParser('ourkidsarespecial');
+
+
 var server = http.createServer(app);
 var io = require("socket.io").listen(server);
 
@@ -41,8 +46,8 @@ app.configure(function(){
   app.set('view engine', 'jade');
  
   //session logic
-  app.use(express.cookieParser());
-  app.use(express.session({ store: new RedisStore({host:'127.0.0.1', port:6379}), secret: 'ourkidsarespecial' }));
+  app.use(cookieParser);
+  app.use(express.session({ store: sessionStore }));
   //app.use(express.session({secret: 'ourkidsarespecial'}));
   app.use(express.methodOverride());
   
@@ -148,8 +153,6 @@ app.get('/api/discussions/:id',restrict, api.discussions.findById);
 app.post('/api/discussions', restrict, api.discussions.add);
 app.post('/api/discussions/:id/comments', restrict, api.discussions.addComment);
 
-//app.put('/api/discussions/:id', restrict, api.discussions.update);
-//app.delete('/api/discussions/:id', restrict, api.discussions.delete);
 
 // location API
 app.get('/api/homelocation', restrict, api.locations.homeLocation);
@@ -159,11 +162,97 @@ app.post('/api/locations', restrict, api.locations.add);
 app.put('/api/locations/:id', restrict, api.locations.update);
 app.delete('/api/locations/:id', restrict, api.locations.delete);
 
-//app.put('/api/users/:id', restrict, api.users.update);
-//app.delete('/api/users/:id', restrict, api.users.delete);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);
+
+/*
+ * 
+ * Socket.io events
+ * 
+ * 
+ */
+ 
+ 
+//io.set('authorization', function (handshakeData, accept) {
+
+ // if (handshakeData.headers.cookie) {
+ //   console.log('cookie found!');
+
+  //  handshakeData.cookie = cookieParser.parse(handshakeData.headers.cookie);
+
+    //handshakeData.sessionID = connect.utils.parseSignedCookie(handshakeData.cookie['express.sid'], 'secret');
+
+  //  if (handshakeData.cookie['express.sid'] == handshakeData.sessionID) {
+   //   return accept('Cookie is invalid.', false);
+   // }
+
+  //} else {
+   // return accept('No cookie transmitted.', false);
+ // } 
+
+ // return accept(null, true);
+//});
+
+
+
+var SessionSockets = require('session.socket.io')
+  , sessionSockets = new SessionSockets(io, sessionStore, cookieParser);
+
+
+
+sessionSockets.on('connection', function(err, socket, session){
+    
+    sessionSockets.getSession(socket, function (err, session) {
+      if (err || !session.user) { 
+        console.log('no sessions');
+        socket.disconnect();
+         //  console.log(session);
+       console.log("Connection " + socket.id + " refused.");
+        }
+     
+    });
+    
+    socket.on('commentAdded', function(data) {
+      // storing only the comment creator id into the database.
+      data.comment._creator = data.comment._creator._id;
+      
+      api.discussions.addComment(data.discussionId, data.comment, function(err, comment) {
+        if (err) socket.emit('error', err);
+        socket.broadcast.emit('newComment', comment);
+      });
+    });
+    
+    socket.on('discussionCreated', function(data) {
+      // var discussion = data;
+       if (Array.isArray(data.children)) {
+         for(var i =0; i < data.children.length; i++) { 
+       //  discussion.children.forEach(function(element, index, array) {
+          data.children[i] = data.children[i]._id ; 
+         }
+       } else {
+     //   discussion.children = [ { discussion.children._id} ];  
+        
+       }
+      
+      data._creator = data._creator._id;
+      
+      api.discussions.add(data, function(err, discussion) {
+       // if (err) return console.log(err);
+        
+        if (err) return socket.emit('error', err);
+        socket.emit('discussionSavedSuccess', discussion);
+        socket.broadcast.emit('newDiscussion', discussion);
+        console.log((discussion._id + ' created').green);
+        return;
+      });
+   
+      
+    });
+
+
+});
+
 
 // Start server
 

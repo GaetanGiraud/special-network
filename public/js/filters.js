@@ -10,11 +10,11 @@ angular.module('CareKids.filters', []).
   }]).
   filter('fromNow', function() {
     return function(date) {
-      if (angular.isDefined(date)) {
+      if (angular.isDefined(date) && date != null) {
         console.log(date);
         //var day = moment(date);
         return moment(date).fromNow();
-      }
+      } else { return ''}
     }
   }).
   filter('thumbPicture', function() {

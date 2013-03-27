@@ -11,5 +11,6 @@
     , "connect-redis": "1.4.5"
     , "jquery-file-upload-middleware": "0.0.8"
     , "socket.io": "0.9.13"
+    , "session.socket.io": "0.1.x"
   }
 }
