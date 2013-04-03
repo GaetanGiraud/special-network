@@ -29,14 +29,14 @@ div.row
       div.input-prepend
         span.add-on
           i.icon-globe
-        input(type='text', ng-model = "location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span4')
+        input(type='text', ng-model = "currentUser.location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span4')
       button(type = 'button', ng-click="undoLocation()", class="btn btn-danger", ng-show = "undoLocUpdate") undo
     br
-    div(ng-show='location.country')
+    div(ng-show='currentUser.location.country')
       p
-        | There are xxx users registered in {{ location.country.long }} 
+        | There are xxx users registered in {{ currentUser.location.country.long }} 
           
-    p(ng-show = "location.formattedAddress.length > 0 && location.formattedAddress.length < 5")
+    p(ng-show = "currentUser.location.formattedAddress.length > 0 && currentUser.location.formattedAddress.length < 5")
       small
         | Looking up your adress at Google. 
         br
@@ -79,7 +79,7 @@ div.row
 
 div.row
   div.span7
-    button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
+    button(type='button', ng-click="updateUser(false)", class='btn btn-primary') Update
     button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
 
 

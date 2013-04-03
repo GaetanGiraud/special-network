@@ -17,6 +17,7 @@ div(class= 'row')
             | New picture
             input(type="file", uploader, done='setProfilePicture(file)', data-url="/upload")
     div
+    //  
       h5 My Specialties
       ul.unstyled
         li(ng-repeat = 'specialty in child.specialties')
@@ -34,19 +35,21 @@ div(class= 'row')
            | {{ superpower }}
            button(ng-click = 'removeSuperpower($index)') &times
         li 
+          | Search
           autocomplete(results = 'child.newSuperpower', url = '/api/discussions/search?type=tags', create = 'addSuperpower(string, newObject)')
-          button.btn(ng-click = 'addSuperpower()') Add
-          button.btn(ng-click = 'child.newSuperpower = ""') Cancel
+          //button.btn(ng-click = 'addSuperpower()') Add
+          //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
     
-    button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
-    button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
+    //button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
+    //button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
 
   div.span5(ng-controller = 'DiscussionCtrl')
     article#new-question
       h5 Publish an update
-      
       div.content
         div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
+        tags(tags = 'newDiscussion.tags', url = '/api/discussions/search?type=tags')
+        br
         div.btn-group.fileupload-buttonbar.footer
           span.fileinput-button 
             button.btn(type = "button", ng-click = "createDiscussion()") Post
@@ -68,7 +71,10 @@ div(class= 'row')
       ul
         li(ng-repeat = "child in discussion.children")
           | {{child.name}}
-        
+      h5 Tags
+      ul.unstyled
+        li(ng-repeat = "tag in discussion.tags")
+          | {{ tag }}
       p(ng-bind-html = 'discussion.content')
         
       div.comment(ng-repeat =  'comment in discussion.comments')
@@ -82,4 +88,6 @@ div(class= 'row')
           br
           button.btn.btn-primary(ng-click="createComment($index)") Post 
           button.btn(ng-click="reply = false") Cancel
+          
+    div(paginate, new-page-target = "discussions", url = "/api/discussions?children={{child._id}}")  
 

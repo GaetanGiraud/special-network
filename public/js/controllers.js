@@ -39,16 +39,16 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert) {
     // handling communication messages.
      
     socket.on('error', function (reason){
-      Alert.error('We are unable to connect to the server. We might be having technical difficulties,' +
-          ' if so we are probably working on them right now.'+
-          ' Alternatively, you might want to check your internet connection. ');
+      //Alert.error('We are unable to connect to the server. We might be having technical difficulties,' +
+      //    ' if so we are probably working on them right now.'+
+      //    ' Alternatively, you might want to check your internet connection. ');
       console.error('error', reason);
      });
       
     socket.on('disconnect', function (reason){
-          Alert.error('You have been disconnected. We might be having technical difficulties,' +
-          ' if so we are probably working on them right now.'+
-          ' Alternatively, you might want to check your internet connection. ');
+    //      Alert.error('You have been disconnected. We might be having technical difficulties,' +
+    //      ' if so we are probably working on them right now.'+
+    //      ' Alternatively, you might want to check your internet connection. ');
           
         console.error('disconnect', reason);
     });
@@ -184,9 +184,14 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
     
   $scope.undoLocUpdate = "false";
   var previousLocation = [];
-    
   
-  $scope.location = Location.get({locationId: $rootScope.currentUser._location}, 
+  $scope.$watch('currentUser', function(currentUser) {
+    if (angular.isUndefined(currentUser.location)) {
+      $scope.currentUser.location = {};
+    } 
+  });
+  
+  /*$scope.location = Location.get({locationId: $rootScope.currentUser._location}, 
      function(location) {
           
         if (angular.isUndefined(location.lat)) {
@@ -195,13 +200,14 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
           previousLocation[0] = angular.copy(location);
         }
    });
-   
+   */
 
 
-  $scope.updateUser = function() {  
-    User.update({userId: $rootScope.currentUser._id}, $rootScope.currentUser, 
+  $scope.updateUser = function(isUndo) {  
+    User.update({userId: $scope.currentUser._id}, $scope.currentUser, 
       function(user){
         $rootScope.currentUser = user;
+        $scope.undoLocUpdate= isUndo;
         Alert.success('Your settings have been successfully updated.');
       }, 
       function(err){
@@ -213,7 +219,7 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
   // Event triggered by the uploader plugin. Actions to be performed after successfull upload of profile photo.
   $scope.setProfilePicture = function(file) {
     $rootScope.currentUser.picture = file.name;  
-    $scope.updateUser();
+    $scope.updateUser(false);
   };
   
   // reset the user value to the one stored on the database.
@@ -229,8 +235,8 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
          if (err) Alert.info("Please fill in your location!");
          GeoCoder.parseAddress(browserLoc[0], 
          function(results) {
-           $scope.location = angular.extend($scope.location, results);
-           previousLocation[0] = angular.copy($scope.location);
+           $scope.currentUser.location = angular.extend($scope.currentUser.location, results);
+           previousLocation[0] = angular.copy($scope.currentUser.location);
            $scope.updateLocation("true");
            $scope.showLocationWidget = false;
          });
@@ -243,18 +249,18 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
        previousLocation[1] = null;
     }
     
-    if (($scope.location.formattedAddress.length < 5) && angular.isArray($scope.locations)) {
+    if (($scope.currentUser.location.formattedAddress.length < 5) && angular.isArray($scope.locations)) {
      $scope.locations = null;
      $scope.undoLocUpdate = "false";
     }
-    if ($scope.location.formattedAddress.length > 5 ) {
-      GeoCoder.getLocation($scope.location, function(results) {
+    if ($scope.currentUser.location.formattedAddress.length > 5 ) {
+      GeoCoder.getLocation($scope.currentUser.location, function(results) {
         $scope.locations = results;
       });
     } 
   }
   
-  $scope.updateLocation = function(isUndo) {
+ /* $scope.updateLocation = function(isUndo) {
     Location.update({locationId: $scope.location._id}, $scope.location, 
       function(location){
         $scope.location = location;
@@ -264,22 +270,22 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
         Alert.error('A system error while saving your location. Could you try again?' );
       }
     );
-  }
+  }*/
   
   $scope.validateAdress = function($index) {
     var newAddress = $scope.locations[$index];
    
     GeoCoder.parseAddress(newAddress, function(result) {
-       $scope.location = angular.extend($scope.location, result);
-       previousLocation[1] = angular.copy($scope.location);
+       $scope.currentUser.location = angular.extend($scope.currentUser.location, result);
+       previousLocation[1] = angular.copy($scope.currentUser.location);
        $scope.locations = null;
-       $scope.updateLocation("true");  
+       $scope.updateUser("true");  
     });
   }
  
   $scope.undoLocation = function() {
-    $scope.location = previousLocation[0];
-    $scope.updateLocation("false");
+    $scope.currentUser.location = previousLocation[0];
+    $scope.updateUser("false");
   }
 }
 UserCtrl.$inject = ['$scope', 'User', '$rootScope', 'Alert', 'Location', 'GeoCoder'];
@@ -413,7 +419,7 @@ function ChildrenCtrl($scope, Child, Alert, User) {
   
   $scope.newChild = {
     creator: {
-       _creatorId: $scope.currentUser._id,
+       _user: $scope.currentUser._id,
       relationship: "Mother"
       }
   };
@@ -438,7 +444,7 @@ function ChildrenCtrl($scope, Child, Alert, User) {
     
      $scope.newChild = {
        creator: {
-          _creatorId: $scope.currentUser._id,
+          _user: $scope.currentUser._id,
          relationship: "Mother"
         }
      };
@@ -468,12 +474,14 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child) {
     });
     $scope.children = [];
     
+    
    // querying discussions on the server.
-    $scope.discussions = Discussion.query({'children':  $routeParams.childId});
+    $scope.discussions = Discussion.query({'children':  $routeParams.childId, 'page': 1});
 
     $scope.child = Child.get({childId:  $routeParams.childId }, function(child){
       child.send = true;
       $scope.children.push(child);
+      $scope.newDiscussion.tags = child.superpowers;
     });
     
 
@@ -490,12 +498,12 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child) {
     
   $scope.setProfilePicture = function(file) {
     $scope.child.picture = 
-     { '_creatorId': $rootScope.currentUser._id, 
+     { '_creatorId': $rootScope.currentUser._id, // creator of the photo need to be recorded to recover the photos location
        'picture': file.name } ;
     $scope.updateChild();
   };
   
-  $scope.addSpecialty = function(specialty, newSpecialty) {
+ /* $scope.addSpecialty = function(specialty, newSpecialty) {
     if(angular.isDefined(specialty)) {
       $scope.child.specialties.push(specialty); 
       if (newSpecialty) {
@@ -507,7 +515,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child) {
        $scope.child.specialties.push($scope.child.newSpecialty);   
     }
     $scope.updateChild();
-  }
+  }*/
   
    $scope.addSuperpower = function(superpower, newSuperpower) {
     if(angular.isDefined(superpower)) {
@@ -548,14 +556,49 @@ ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams', 'Discussio
 function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child) {
     
     $scope.newDiscussion = {};
+    //$scope.page = 1;
+    
+    // loading the data
+    $scope.discussions = Discussion.query({'page': 1});
+
+    $scope.children = Child.query({'post': true}, function(children){
+      if (children.length > 0) {
+        $scope.newDiscussion.type = 'update' ;
+        $scope.initializeChildren();
+      } else {
+        $scope.newDiscussion.type = 'question' ;
+        
+      }
+    });
+
+    // setting up watchers
     $scope.$watch('currentUser', function(user) {
       $scope.newDiscussion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
     });
-    $scope.newDiscussion.type = 'update'  ;
     
-    $scope.discussions = Discussion.query({});
-
-    $scope.children = Child.query({'post': true});
+    $scope.$watch('children', function(children) {
+      console.log('Change in chuldren');
+      if ($scope.newDiscussion.type == 'update') {
+        var count =  $scope.children.filter(function(child) { return child.send == true }).length;
+        if (count == 0) {
+          alert('You need to specify the child to which the update belong')
+          $scope.initializeChildren();
+        }
+      }
+    }, true);
+    
+    $scope.$watch('newDiscussion.type', function(type) {
+      var childrenCount =  $scope.children.filter(function(child) { return child.send == true }).length;
+      if (type == 'update') {
+        $scope.initializeChildren();
+      }
+    });
+    
+  // functions
+    $scope.initializeChildren = function() {
+      $scope.children[0].send = true;
+      $scope.newDiscussion.tags = angular.copy($scope.children[0].superpowers);
+    }
     
     $scope.selectedDiscussion = function(type) {
       if ($scope.newDiscussion.type == type) return 'selected'; 
@@ -566,6 +609,14 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child) {
       $scope.$apply(function() {
         $scope.newDiscussion.picture = file.name; 
       });
+    }
+    
+    $scope.loadTags = function(index) {
+      if ($scope.children[index].send) { 
+        $scope.newDiscussion.tags = $scope.children[index].superpowers;
+      } else { 
+          $scope.newDiscussion.tags = [];
+      }
     }
     
     
@@ -604,21 +655,35 @@ function FindCtrl($scope, User, Alert, $http) {
   
   // declaring the search object and reseting some defaults.
   $scope.search = {} ;
-  $scope.search.superpowers = [];
-  $scope.search.homeLocation = $scope.currentUser._location;
+  $scope.superpowers = [];
+  $scope.search.lng = $scope.currentUser.location.loc[0];
+  $scope.search.lat = $scope.currentUser.location.loc[1];
+  $scope.search.distance = 10000;
+  
   $scope.distances = [
     {'label': '10 km', 'value': 10},
     {'label': '25 km', 'value': 25},
     {'label': '50 km', 'value': 50},
     {'label': '100 km', 'value': 100},
-    {'label': 'All', 'value': 0},
+    {'label': 'All', 'value': 10000},
   ];
    
-  $scope.homeLocation = $http.get('/api/homelocation');
+  //$scope.homeLocation = $scope.currentUser.location;
+   
+  $scope.$watch('superpowers', function(superpowers) {
+    console.log('superpowers changed!');
+    $scope.getResults();  
+    
+  })
    
   $scope.getResults = function() {
+   var params = angular.copy($scope.search);
+   
+   if ($scope.superpowers.length > 0) {
+     params = angular.extend(params, { 'superpowers': $scope.superpowers });  
+   }
   
-   $http({method: 'GET', url: 'api/users/search', params: $scope.search }).
+   $http({method: 'GET', url: 'api/users/search', params: params }).
    success(function(data) {
      $scope.searchResults = data
      console.log('data received');
@@ -628,10 +693,7 @@ function FindCtrl($scope, User, Alert, $http) {
     
   }
   
-  $scope.add = function(superp) {
-    console.log('adding superp');
-    $scope.search.superpowers.push(superp);  
-  }
+
    
    
   $scope.selectedView = function(view) {
@@ -774,8 +836,8 @@ MapCtrl.resolve = {
         
          $http.get('/api/homelocation')
           .success(function(location) {
-            if (angular.isDefined(location.lat)) {
-              var response = new google.maps.LatLng(location.lat, location.lng);
+            if (angular.isDefined(location.loc)) {
+              var response = new google.maps.LatLng(location.loc[1], location.loc[0]);
             } else {
               var response = new google.maps.LatLng(35.0, 35.0);
             }

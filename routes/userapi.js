@@ -9,6 +9,7 @@
 var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , Location = require('../models/Location')(db)
+  , Child = require('../models/Child')(db)
   , bcrypt = require('bcrypt');
   
   
@@ -43,8 +44,10 @@ exports.currentUser = function (req, res) {
         "name": user.name, 
         "_id": user._id, 
         'picture': user.picture, 
-        '_location': user._location, 
-        'settings': user.settings}); // User logged in.
+      //  '_location': user._location, 
+        'settings': user.settings,
+        'location': user.location
+        }); // User logged in.
         
       } else {
         console.log(err.red);
@@ -76,28 +79,29 @@ exports.add = function (req, res) {
   
       
   newUser.save(function(err, user) {  // saving the user in the database
-    if (!err) {
-      delete user.hash; // don't send hash
-      console.log(('User ' + newUser.email + ' created').green);
+       console.log(('User ' + newUser.email + ' created').green);
       
       // create an empty location object to host the user's home location
-      var homeLocation = new Location({
-      _creator: user._id,   // assign an ObjectId
-      locationType: 'userhome'
-      });
+     // var homeLocation = new Location({
+     // _creator: user._id,   // assign an ObjectId
+    //  locationType: 'userhome'
+    //  });
       
-      homeLocation.save(function(err, location) {
-        if (err) throw err;  
-        User.findByIdAndUpdate(user._id, {'_location': location._id }, function(err, user) {
-         if (err) throw err;
-         return res.json(user);
+    //  homeLocation.save(function(err, location) {
+        if (err) return (400, err);  
+      //  User.findByIdAndUpdate(user._id, {'_location': location._id }, function(err, user) {
+        // if (err) throw err;
+        return res.json({
+        "_id": user._id,
+        "name": user.name,
+        "email": user.email,
+        "picture": user.picture,
+        "children" : user.children,
+        '_location': user._location,
+        'settings': user.settings
         });
-      });
+       // });
           
-    } else {
-      console.log(err.red);
-      return res.send(400, err);
-    }
   });
 };
 
@@ -135,11 +139,31 @@ exports.findByEmail = function (req, res) {
 };
 
 exports.findAll = function (req, res) {
+  
+  if (req.query.count) {
+    User.aggregate(
+      // { $project: { lat: "location.loc[1]", lng: "location.loc[]" }},
+     //  { $match : { locationType : "userhome" } },
+       { $group : { _id: {loc: "$location.loc"}, count : { $sum : 1 }}},
+  //     { $match : { }},
+       function (err, results) {
+          if (err) return res.send(400, err);
+          return res.json(results);
+          //console.log(res); // [ { maxAge: 98 } ]
+        }
+    );
+  
+} else {
+  
+  
+  
   User.find(function (err, users) {
     if (err) return res.send(400, err);
     users.forEach(function(user){ delete user.hash }); // don't send hash
     return res.json(users);
   });  
+  
+}
 };
 
 exports.update = function (req, res) {
@@ -156,6 +180,7 @@ exports.update = function (req, res) {
                     "picture": user.picture,
                     "_location": user._location,
                     "settings": user.settings,
+                    "location": user.location,
                     "children" : user.children});
   });
 };
@@ -170,19 +195,99 @@ exports.delete = function (req, res) {
 
 exports.search = function (req, res) {
    var distance = req.query.distance;
-   var superpowers = req.query.superpowers;
+   var querySuperpowers = req.query.superpowers;
+   var centerlocation = [req.query.lng, req.query.lat] ;
    
-   var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
-      console.log(req.query.homeLocation);
+  // console.log(req.query.superpowers);
+   
+   if (typeof req.query.term == "undefined") {
+         var cleanedTerm = ".";
+         
+   } else {
+      var cleanedTerm = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
+
+    }
+   console.log( querySuperpowers )
+    
+    if (typeof querySuperpowers != 'undefined') {
+      querySuperpowers = req.query.superpowers.replace(/[\[\]{}|&;$%@"<>()+]/g, "").split(',');
+      var opts = {'superpowers': {$in: querySuperpowers }};
+      
+      //console.log(querySuperpowers)
+      } else { 
+         var opts = {};
+      };
+    
+   //console.log(querySuperpowers.length);
+    //re = new RegExp(cleanQuery)
+   /* if ( querySuperpowers == null) {
+      console.log('not super po wnter');
+     ;
+    } else { 
+      
+    }*/
+    
+      Child.find(opts).populate({ 
+        path: 'creator._user',
+        match: {'location.loc': {$nearSphere: centerlocation, $maxDistance: distance/6371} , 'name': {$regex: cleanedTerm, $options: 'i'} },
+        select: '_id name picture location'
+        })
+      .populate({
+        path: 'permissions._user',
+        select: '_id name picture'
+        //match: {'location.loc': {$nearSphere: centerlocation, $maxDistance: distance/6371},  'name': { $regex: cleanedTerm, $options: 'i'} } 
+        })
+       .populate({
+        path: 'lastUpdate' ,
+        select: 'updatedAt'
+      })
+      .exec(function (err, children) {
+      // result array
+      // var results = [];
+     //  console.log(err);
+      if (err) return res.send(400, err);
+     
+     // eliminating results where no users have been matched either as creator of follower
+     var results = [];
+     for(var i = 0; i < children.length; i++) {
+        
+       
+        var permissionsCount =  children[i].permissions.filter(function(value) { return value._user !== null }).length;
+         console.log(permissionsCount);
+         console.log(children[i].creator._user );
+         
+         if (children[i].creator._user != null || permissionsCount  > 0) {
+           console.log('result detected');
+           results.push(children[i]);
+        }
+      //  children[i].adults = [ children[i].creator ] + children[i].permissions;
+      
+      }
+       
+       res.json(results);
+      
+      
+     })
+   
+   
+   //Child.populate
+
+};
+   
+   /*
    Location.findById(req.query.homeLocation, function(err,location) {
      var searchLocation = location;
      //console.log(location)
      //console.log(calculateDistance(searchLocation.lat, searchLocation.lng, this._location.lat, this._location.lng) &lt; distance
-        if (cleanQuery.length > 0) { 
+     //   if (cleanQuery.length > 0) { 
      var re = new RegExp(cleanQuery);
-     console.log(re);
-     User.find({$or: [{name: re}, {email: re}]})
-       //.populate('_location')
+     console.log(searchLocation);
+     
+     Location.find({loc: {$nearSphere: searchLocation.loc, $maxDistance: distance/6371}
+                    })
+     .where('locationType').equals('userhome')
+     /*.populate('_location')
+       
        .limit(5)
        .$where(function() { 
          //console.log(this);
@@ -198,24 +303,37 @@ exports.search = function (req, res) {
          // return false;
         
           
-      })
-      .exec(function(err, users) {
-       if (err) return res.send(400, err);
+      })*/
+      /*
+      .populate('_creator')
+      //.or([{'_creator.name': re}, {'_creator.email': re}])
+      .exec(function(err, locations) {
+        console.log(err);
+        console.log(locations);
+        if (err) return res.send(400, err);
+        
+        var users = [];
+        var limit = 5;
+        
+        for(var i = 0; i < locations.length; i++) {
+           if ( re.exec(locations[i]._creator.name)  != null || re.exec(locations[i]._creator.email)  != null)
+           { 
+             users.push(locations[i]._creator); 
+             limit--;
+             if (limit == 0) break;
+           }
+        }
+      */
        
- //      users.forEach(function(index, element, users) {
-   //    
-      //  }};
-       
-       
-       return res.json(users);
-     });
-   } else {
-     res.json({}); 
-  }
+  //     return res.json(users);
+   //  });
+ //  } else {
+ //    res.json({}); 
+ // }
    
    
    
-   });   
+ //  });   
 
    
    
@@ -225,5 +343,5 @@ exports.search = function (req, res) {
 
  //    consol.log(users);
  
-}; 
+//}; 
 

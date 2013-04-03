@@ -20,14 +20,14 @@ var childSchema = mongoose.Schema({
   dob: Date,
   gender: { type: String, match: /(boy|girl)/ },
   picture: {_creatorId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User' } , picture: String},
-  creator: { _creatorId: {type: mongoose.Schema.Types.ObjectId, ref: 'User' }, relationship: String },
+  creator: { _user: {type: mongoose.Schema.Types.ObjectId, ref: 'User' }, relationship: String },
   specialties: [String],
   superpowers: [String],
   albums: [albumSchema],
   lastUpdate: {type: mongoose.Schema.Types.ObjectId, ref: 'Discussion' },
   permissions: [
    {
-    userId: mongoose.Schema.Types.ObjectId, // _id of an individual user or of a group
+    _user: {type: mongoose.Schema.Types.ObjectId, ref: 'User' },// _id of an individual user or of a group
     rigth: {type: String, match: /(read|write)/}, // read - write
     relationship: String
     }]

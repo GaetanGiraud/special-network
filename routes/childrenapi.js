@@ -28,20 +28,20 @@ exports.findById = function (req, res) {
 
 exports.findAll = function (req, res) {
   if(req.query.following) {  
-     Child.find({'permissions.userId': req.session.user}).populate('lastUpdate').exec(function (err, children) {
+     Child.find({'permissions._user': req.session.user}).populate('lastUpdate').exec(function (err, children) {
        if (err)  return res.send(400, err);
        console.log(children);
        return res.json(children);
      });
    } 
    if(req.query.post) {
-     Child.find().or([{'creator._creatorId': req.session.user}, {'permissions.userId': req.session.user, 'permissions.rigth': 'post'}]).exec(function (err, children) {
+     Child.find().or([{'creator._user': req.session.user}, {'permissions._user': req.session.user, 'permissions.rigth': 'post'}]).exec(function (err, children) {
        if (err)  return res.send(400, err);
        return res.json(children);
      }); 
    }
 
-   Child.find({'creator._creatorId': req.session.user}).populate('lastUpdate').exec(function (err, children) {
+   Child.find({'creator._user': req.session.user}).populate('lastUpdate').exec(function (err, children) {
       if (err)  return res.send(400, err);
       return res.json(children);
    });  

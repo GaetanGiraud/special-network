@@ -7,7 +7,13 @@ var userSchema = mongoose.Schema({
       hash: String,
       picture: String,
       gender: String,
-      _location: { type: mongoose.Schema.Types.ObjectId, ref: 'Location'},
+      location: {      
+        country: {short: String, long: String},
+        state: {short: String, long: String},
+        formattedAddress: String,
+        locality: String,
+        loc: { type: [Number], index: '2dsphere' }
+      },
 		  children: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Child'}],
       settings: {
         createChildOptOut: {type: Boolean, default: false}

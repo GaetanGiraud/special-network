@@ -4,7 +4,49 @@
 
 
 angular.module('CareKids.directives', []).
-  directive('uploader', function($rootScope) {
+  directive('paginate', function($http, $window) {
+    var page = 2;
+    
+       return {
+         restrict: 'A',
+           scope: {
+             newPageTarget: '=',
+             url: '@'
+           },
+         template: '<i class = "icon-spinner icon-spin"></i> {{ status }}',
+         link: function(scope, elem, attrs) {
+        
+         scope.status = 'Loading';
+         $(window).bind('scroll', function(event) {
+           if ($(window).scrollTop() > ($(document).height() - $(window).height() - 50)) {
+             console.log('near the bottom');
+             
+             scope.loadNewPage();
+             page++;
+           }
+           
+          });
+        
+            scope.loadNewPage = function() {
+              $http({method: 'GET', url: scope.url, params: {'page': page} })
+                .success(function(data) {
+                  
+                  
+                  if (data.length == 0) {
+                    scope.status = 'End of page'; 
+                    $(window).unbind('scroll');
+                    elem.children()[0].remove();
+                    
+                  }
+                  scope.newPageTarget = scope.newPageTarget.concat(data);
+                 });
+            }
+          
+          }
+          
+      }
+  })
+.directive('uploader', function($rootScope) {
        return {
          restrict: 'A',
          scope: {
@@ -130,6 +172,179 @@ angular.module('CareKids.directives', []).
     }
   }   
 }])
+.directive('tags',[ '$http', '$compile', function($http, $compile) {
+   return {
+     restrict: 'E',
+     scope: {
+       tags: '=',
+     //  create: '@'
+       create: '&',
+       select: '&'
+       },
+     template: '<ul class = "unstyled">' + 
+                  '<li ng-repeat = "tag in tags">' +
+                    ' {{ tag }} <button type = "button" ng-click = "remove($index)"> &times</button>' + 
+                  '</li>' +
+                '</ul>' +
+                '<div class = "input-prepend">' +
+                  '<span class= "add-on">' +
+                    '<i class = "icon-tags"></i>'+ 
+                  '</span>' +
+                  ' <input id = "autocomplete" type ="text" ng-change="complete()" ng-model="newTag">' + 
+                '</div>',
+     link: function(scope, elm, attrs) {
+     
+  
+     
+     // find the input element inside the template
+     var inputElm =  elm.children().children()[1];
+     var ElmWidth =  inputElm.offsetWidth;
+
+     var suggestionTemplate = '<ul class = "autocomplete">' +
+                                   "<li ng-click='add($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
+                                   '{{suggestion}}'+
+                                   '</li></ul>';
+    var createnewTemplate = '<ul class = "autocomplete">' +
+                                   "<li ng-click='add()'>" +
+                                   'Do you want to create a new occurence?' +
+                                   '</li></ul>';
+    var noresultTemplate = '<ul class = "autocomplete">' +
+                                   "<li>" +
+                                   'No results matching your request' +
+                                   '</li></ul>';
+    var html;                          
+
+    
+    // watching the bindings to set up some smart defaults
+      scope.$watch('newTag', function(tag) {
+        if (angular.isDefined(scope.tag) && scope.tag.length == 0) { 
+            if (angular.isDefined(html)) html.remove(); 
+          }
+      });
+      
+      scope.$watch('suggestions', function(suggestions) {
+        scope.selected = 0;
+      });
+    
+    /*
+     * 
+     *  get the autocompletion data from the server
+     * 
+     */
+     
+     scope.complete = function() {
+
+       // if no data entered do not show anything (Handling backspace )
+       if (scope.newTag.length == 0) { 
+         if (angular.isDefined(html)) html.remove(); 
+      } else {
+       
+        $http({method: 'GET', url: attrs.url, params: {'q': scope.newTag }})
+         .success(function(data) {
+          if (html) html.remove();
+          console.log(data);
+          scope.suggestions = data;
+          
+          // if no data ask to create a new object
+          if (data.length < 1) {
+            console.log(scope.create());
+            if (angular.isDefined(scope.create())) {
+              html = $compile(createnewTemplate)(scope);
+            } else {
+              html = $compile(noresultTemplate)(scope);
+            }
+            
+          } else {
+          // compile the suggestions
+            html = $compile(suggestionTemplate)(scope);
+          }
+          // append the result of the query to the element
+          html.css('width', ElmWidth);
+          $('ul.autocomplete').css('width', ElmWidth);
+          elm.append(html);
+        
+        });
+       
+       }
+     
+      }
+      // on click function
+      scope.add = function($index, $event) {
+        html.remove();
+        if (angular.isDefined($index)) {
+          scope.tags.push(scope.suggestions[$index]);
+          scope.newTag = '';
+          //if select action defined, trigger create action
+          if (angular.isDefined(scope.select())) scope.select();
+          
+        } else {
+          //if create action defined, trigger create action
+          if (angular.isDefined(scope.create())) scope.create({string: scope.results, newObject: true});
+          
+          //if select action defined, trigger create action
+          if (angular.isDefined(scope.select())) scope.select();
+        } 
+    
+        
+      }
+      
+     scope.remove = function (index) {
+       scope.tags.splice(index,1);
+      if (angular.isDefined(scope.select)) scope.select();
+     }
+      
+
+
+      
+      /*
+       * 
+       *  Handling the user interface
+       * 
+       */
+        
+      elm.bind('keydown', function(event) {
+          if ((event.keyCode == '40') && (scope.suggestions.length > 1) && (scope.selected < scope.suggestions.length ) ) {
+            scope.selected = scope.selected + 1; 
+            scope.$apply(scope.selected);
+          }
+          if ((event.keyCode == '38') && (scope.suggestions.length > 1) && (scope.selected <= scope.suggestions.length ) ) {
+            scope.selected = scope.selected - 1; 
+            scope.$apply(scope.selected);
+          }
+          if ( event.keyCode == '13' ) {
+            scope.$apply(scope.select(scope.selected)); 
+          }
+          if ( event.keyCode == '27' ) {
+            html.remove();
+            scope.$apply(scope.newTag = '');
+          }
+        });
+      
+      $('html').bind('mousedown', function(event) {
+      //if(!$(event.target).is('#foo')) && !$(event.target).parents("#foo").is("#foo")
+        if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
+          scope.$apply(scope.newTag = '');
+          html.remove();
+        }
+       });
+      
+      //elm.bind
+      //mousedown
+      scope.toggleClass = function($index) {
+       scope.selected =  $index;
+        
+      }
+      
+      scope.highlight = function(index) {
+       if (scope.selected == index) return 'selected';
+       return '';
+      }
+      
+      
+   }
+ }
+}])
+
 
 .directive('autocomplete',[ '$http', '$compile', function($http, $compile) {
    return {

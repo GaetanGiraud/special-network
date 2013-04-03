@@ -122,6 +122,11 @@ exports.findById = function (req, res) {
 exports.findAll = function (req, res) {
   // setting up the default query parameter 
   var params = {};
+  if (req.query.page) {
+     var skipIndex = req.query.page -1;
+  } else { 
+    var skipIndex = 0;
+  }
   
   if(req.query.type) {  
     var params = {'type': req.query.type}; 
@@ -131,8 +136,12 @@ exports.findAll = function (req, res) {
   } 
   
   console.log(params);
-    Discussion.find(params).populate('_creator', '_id name picture').populate('comments._creator', '_id name picture').populate('children')
-    .sort({updatedAt: 'desc'}).exec(function (err, discussions) {
+    Discussion.find(params)
+    .sort({updatedAt: 'desc'})
+    .skip(skipIndex*10)
+    .limit(10)
+    .populate('_creator', '_id name picture').populate('comments._creator', '_id name picture').populate('children')
+    .exec(function (err, discussions) {
       if (err)  return res.send(400, err);
       return res.json(discussions);
     });  

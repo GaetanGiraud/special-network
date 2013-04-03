@@ -11,8 +11,7 @@ var locationSchema = mongoose.Schema({
       locality: String,
     //  route: String,
     //  streetNumber: Number,
-      lat: Number,
-      lng: Number
+      loc: { type: [Number], index: '2dsphere' }
 		});
   
 mongoose.model('Location', locationSchema);

@@ -14,14 +14,14 @@ exports.homeLocation = function (req, res) {
   User.findById(req.session.user, function(err, user) {
     if (err) { return res.send(401) ;}
     // fetch the user home location
-    Location.findById(user._location, function (err, location) {
-      if (!err) {
-        return res.json(location);
-      } else {
-        console.log(err.red);
-        return res.send(400, err);
-      }
-    });
+    //Location.findById(user._location, function (err, location) {
+    //  if (!err) {
+        return res.json(user.location);
+    //  } else {
+       // console.log(err.red);
+      //  return res.send(400, err);
+   //   }
+   // });
   });
 };
 

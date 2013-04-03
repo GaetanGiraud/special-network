@@ -2,7 +2,7 @@ div.row
   div.span10
     article
       h5 Create a new discussion
-      a(ng-click = 'newDiscussion.type = "update"', ng-class = 'selectedDiscussion("update")' ) Update
+      a(ng-click = 'newDiscussion.type = "update"', ng-class = 'selectedDiscussion("update")', ng-show = "children.length >= 0"  ) Update
       a(ng-click = 'newDiscussion.type = "question"', ng-class = 'selectedDiscussion("question")'  ) I have a question 
       a(ng-click = 'newDiscussion.type = "share"', ng-class = 'selectedDiscussion("share")'  ) Share information 
 
@@ -12,13 +12,14 @@ div(ng-controller = 'DiscussionCtrl')
       div(ng-show = 'newDiscussion.type == "update"')
         div(ng-repeat = "child in children")
          label.checkbox
-           input(type="checkbox", ng-model="child.send") 
+           input(type="checkbox", ng-model="child.send", ng-change = "loadTags($index)") 
            | {{child.name}}
         div(ng-show = "children.length == 0")
           p
             | You are not following any children. 
       
-          
+      tags(tags = 'newDiscussion.tags', url = '/api/discussions/search?type=tags')
+
       div.content
         div.well(ng-show = 'newDiscussion.picture')
           img(ng-src = "{{ newDiscussion | picture }}")
@@ -45,7 +46,10 @@ div(ng-controller = 'DiscussionCtrl')
             li(ng-repeat = "child in discussion.children")
               img(ng-src = '{{ child.picture | iconPicture }}')
               | {{child.name}}
-            
+          h5 Tags
+          ul.unstyled
+            li(ng-repeat = "tag in discussion.tags")
+              | {{ tag }}
           p(ng-bind-html = 'discussion.content')
             
           div.comment(ng-repeat =  'comment in discussion.comments')
@@ -60,4 +64,4 @@ div(ng-controller = 'DiscussionCtrl')
             button.btn.btn-primary(ng-click="createComment($index)") Post 
             button.btn(ng-click="reply = false") Cancel
       
-  
+      div(paginate, new-page-target = "discussions", url = "/api/discussions")

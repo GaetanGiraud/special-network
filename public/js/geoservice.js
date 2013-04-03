@@ -28,7 +28,7 @@ angular.module('geoService', []).
             geocoder.geocode({'location': LatLng}, 
               function(results, status) {
                 if(status == google.maps.GeocoderStatus.OK) { 
-                  console.log(results);
+                //  console.log(results);
                   return callback(results, null);
                 } else {
                   return callback(null, status);
@@ -79,8 +79,9 @@ angular.module('geoService', []).
             }
           if ( component['types'].indexOf('country') != -1 ) { }
         });
-        parsedAddress.lat = address["geometry"]['location']['lat']();
-        parsedAddress.lng = address["geometry"]['location']['lng']();   
+        parsedAddress.loc = [];
+        parsedAddress.loc[1] = address["geometry"]['location']['lat']();
+        parsedAddress.loc[0] = address["geometry"]['location']['lng']();   
         
         
         // Setting some of the values to null when not present to allow for flexibility in the address format.
@@ -91,12 +92,10 @@ angular.module('geoService', []).
         if (angular.isUndefined(parsedAddress.locality)) parsedAddress.locality = null;     
         
         // Creating a custom formattedAddress based on present information
-        if(parsedAddress.locality) { parsedAddress.formattedAddress = parsedAddress.locality + ', '};
-        if(parsedAddress.state) { 
-          if (parsedAddress.country.short == 'US') {
+        if(parsedAddress.locality != null) { parsedAddress.formattedAddress = parsedAddress.locality + ', '};
+        if(parsedAddress.state != null && parsedAddress.country.short == 'US') {
             parsedAddress.formattedAddress = parsedAddress.formattedAddress + parsedAddress.state.short + ', '
-          }
-        };
+          };
         parsedAddress.formattedAddress =  parsedAddress.formattedAddress + parsedAddress.country.long;
         
 
@@ -191,10 +190,10 @@ angular.module('geoService', []).
      },
     setUserLocations: function(myMap) {
       
-        var userLocations = Location.query({type: 'homeuser'}, function() {
-          angular.forEach(userLocations, function(location) {
-           console.log(location);
-           var coordinates = new google.maps.LatLng(location._id.lat, location._id.lng);
+        var userLocations = User.query({'count': true}, function(locations) {
+          angular.forEach(locations, function(location) {
+           //console.log(location);
+           var coordinates = new google.maps.LatLng(location._id.loc[1], location._id.loc[0]);
            var newMarker = new google.maps.Marker({
              map: myMap,
              position: coordinates,

@@ -203,15 +203,15 @@ var SessionSockets = require('session.socket.io')
 
 sessionSockets.on('connection', function(err, socket, session){
     
-    sessionSockets.getSession(socket, function (err, session) {
-      if (err || !session.user) { 
-        console.log('no sessions');
-        socket.disconnect();
+   // sessionSockets.getSession(socket, function (err, session) {
+   //   if (err || !session.user) { 
+  //      console.log('no sessions');
+ //       socket.disconnect();
          //  console.log(session);
-       console.log("Connection " + socket.id + " refused.");
-        }
+ //      console.log("Connection " + socket.id + " refused.");
+ //       }
      
-    });
+   // });
     
     socket.on('commentAdded', function(data) {
       // storing only the comment creator id into the database.
