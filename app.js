@@ -162,6 +162,8 @@ app.post('/api/locations', restrict, api.locations.add);
 app.put('/api/locations/:id', restrict, api.locations.update);
 app.delete('/api/locations/:id', restrict, api.locations.delete);
 
+// messages API
+app.get('/api/messages', restrict, api.messages.findAll);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);
@@ -212,8 +214,17 @@ sessionSockets.on('connection', function(err, socket, session){
  //       }
      
    // });
-    
-    socket.on('commentAdded', function(data) {
+   
+   socket.on('subscribe', function(data) { 
+     socket.join(data.room);
+     console.log('user joined room: ' + data.room);   
+  })
+   socket.on('unsubscribe', function(data) { 
+     socket.leave(data.room); 
+     console.log('user left room: ' + data.room);      
+  })
+   
+   /* socket.on('commentAdded', function(data) {
       // storing only the comment creator id into the database.
       data.comment._creator = data.comment._creator._id;
       
@@ -221,35 +232,70 @@ sessionSockets.on('connection', function(err, socket, session){
         if (err) socket.emit('error', err);
         socket.broadcast.emit('newComment', comment);
       });
+    });*/
+   
+   
+    socket.on('commentAdded', function(data) {
+      // storing only the comment creator id into the database.
+      data.comment._creator = data.comment._creator._id;
+      
+      api.discussions.addComment(data.discussionId, data.comment, function(err, discussion, comment) {
+        if (err) socket.emit('error', err);
+        if (discussion.type == 'update') {
+            discussion.children.forEach(function(index, element, array) {
+              console.log('brodcasting to child_' + element._id);
+              socket.broadcast.to('child_' + element._id).emit('newComment', {'discussionId': discussion._id, 'comment': comment});
+            });
+          }
+        if (discussion.type == 'question') { 
+          socket.broadcast.to('question_' + discussion._id).emit('newComment', {'discussionId': discussion._id, 'comment': comment});
+        }
+        socket.broadcast.to('discussions').emit('newComment', {'discussionId': discussion._id, 'comment': comment});
+      });
     });
     
     socket.on('discussionCreated', function(data) {
-      // var discussion = data;
-       if (Array.isArray(data.children)) {
-         for(var i =0; i < data.children.length; i++) { 
-       //  discussion.children.forEach(function(element, index, array) {
-          data.children[i] = data.children[i]._id ; 
-         }
-       } else {
-     //   discussion.children = [ { discussion.children._id} ];  
-        
-       }
-      
-      data._creator = data._creator._id;
-      
-      api.discussions.add(data, function(err, discussion) {
-       // if (err) return console.log(err);
-        
+      api.discussions.add(data, function(err, discussion) {        
         if (err) return socket.emit('error', err);
         socket.emit('discussionSavedSuccess', discussion);
-        socket.broadcast.emit('newDiscussion', discussion);
+        
+        if (discussion.type == 'update') {
+          
+            discussion.children.forEach(function(index, element, array) {
+              console.log('brodcasting to child_' + element._id);
+              socket.broadcast.to('child_' + element._id).emit('newDiscussion', discussion);
+            });
+        }
+        socket.broadcast.to('discussions').emit('newDiscussion', discussion);
         console.log((discussion._id + ' created').green);
+        return;
+      });
+    });
+    
+    socket.on('replyAdded', function(data) {
+      api.messages.addReply(data.messageId, data.reply, function(err, reply) {
+        if (err) socket.emit('error', err);
+        socket.broadcast.emit('newReply', reply);
+      });
+    });
+    
+    socket.on('messageCreated', function(data) {
+      console.log(data);
+      api.messages.add(data, function(err, message) {    
+        if (err) return socket.emit('error', err);
+          socket.emit('messageSavedSuccess', message);
+          
+          message.receivers.forEach(function(index, element, array) {
+              console.log('brodcasting to user_' + element._id);
+              socket.broadcast.to('messages_' + element._id).emit('newMessage', message);
+            });
+          //socket.broadcast.to('messages_' + ).emit('newMessage', message);
+          console.log((message._id + ' created').green);
         return;
       });
    
       
     });
-
 
 });
 

@@ -11,15 +11,42 @@ var db = require('../config/database').connection
   , Child = require('../models/Child')(db);
   
 exports.add = function (req, res) {
+  
+  
+  
   Child.create(req.body, function(err, child) {
     if (err)  return res.send(400, err);
     console.log(('Child: ' + child._id + ' created.'));
-    return res.json(child);
+    
+    // create a default page title based on the name and _id
+    child.pageTitle = child.name + '_' + child._id;
+    
+    // add the creator to the permissions list with 'write' rights.
+    child.permissions.push({'_user': child.creator._user, 'rights': 'write', 'relationship': child.creator.relationship});
+    
+    child.save(function(err, child) {
+      if (err)  return res.send(400, err); 
+      return res.json(child);
     });
+    
+    
+  });
 };
 
 exports.findById = function (req, res) {
-  Child.findById(req.params.id, function (err, child) {
+  var opts;
+  var id = req.params.id;
+  
+  // Check if params.id match a mongo ObjerctId
+  if ( id.match(/^[0-9a-fA-F]{24}$/)) {
+    var opts = {'_id': id};
+    
+  }  else {
+    // otherwise use page title as unique identifier.
+     var opts = {'pageTitle': id};
+  }
+  
+  Child.findOne(opts, function (err, child) {
     if (err)  return res.send(400, err);
     return res.json(child);
   });
@@ -27,21 +54,17 @@ exports.findById = function (req, res) {
 
 
 exports.findAll = function (req, res) {
+  var opts;
+  
   if(req.query.following) {  
-     Child.find({'permissions._user': req.session.user}).populate('lastUpdate').exec(function (err, children) {
-       if (err)  return res.send(400, err);
-       console.log(children);
-       return res.json(children);
-     });
-   } 
-   if(req.query.post) {
-     Child.find().or([{'creator._user': req.session.user}, {'permissions._user': req.session.user, 'permissions.rigth': 'post'}]).exec(function (err, children) {
-       if (err)  return res.send(400, err);
-       return res.json(children);
-     }); 
-   }
-
-   Child.find({'creator._user': req.session.user}).populate('lastUpdate').exec(function (err, children) {
+    opts = {'permissions._user': req.session.user};
+  } else if(req.query.post) {
+     opts = {'permissions._user': req.session.user, 'permissions.rigths': 'write'};
+  } else {
+    opts = {'creator._user': req.session.user};
+  }
+  
+  Child.find(opts).populate('lastUpdate').exec(function (err, children) {
       if (err)  return res.send(400, err);
       return res.json(children);
    });  

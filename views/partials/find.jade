@@ -45,7 +45,7 @@ div.row(ng-show = "searchResults.length > 0")
       tr(ng-repeat = 'child in searchResults' )
         td
           h6 
-            a(ng-href = '/children/{{ child._id }}'){{ child.name }}
+            a(ng-href = '/children/{{ child.pageTitle }}'){{ child.name }}
           img(ng-src="{{ child.picture | thumbPicture }}")
         td
           | {{ child.creator._user.location.formattedAddress }}
@@ -67,4 +67,4 @@ div.row(ng-show = "searchResults.length > 0")
           | {{ child.lastUpdate.updatedAt | fromNow }}
         td
           | Contact my {{ child.creator.relationship }} : 
-          a(ng-href="#") {{ child.creator._user.name }}
+          contact( user = "child.creator", child = "{{  child._id }}")

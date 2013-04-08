@@ -2,7 +2,7 @@
 
 
 // Declare app level module which depends on filters, and services
-var app = angular.module('CareKids', ['ngSanitize', 'CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service', 'geoService']).
+var app = angular.module('CareKids', ['ngSanitize', 'CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service', 'geoService', 'SocketServices']).
   config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.when('/', {templateUrl: 'partials/index', controller: AppCtrl});
     $routeProvider.when('/logout', {templateUrl: 'partials/home', controller: LogoutCtrl});
@@ -10,7 +10,8 @@ var app = angular.module('CareKids', ['ngSanitize', 'CareKids.filters', 'CareKid
     //Restricted partials
     $routeProvider.when('/home', {templateUrl: 'partials/home', controller: HomeCtrl}); 
     $routeProvider.when('/questions', {templateUrl: 'partials/questions', controller: QuestionsCtrl}); 
-    
+    $routeProvider.when('/messages', {templateUrl: 'partials/messages', controller: MessageCtrl}); 
+     
     $routeProvider.when('/users/:userId', {templateUrl: 'partials/user', controller: UserCtrl}); 
     $routeProvider.when('/user', {templateUrl: 'partials/user', controller: UserCtrl}); 
     $routeProvider.when('/children', {templateUrl: 'partials/children', controller: ChildrenCtrl}); 

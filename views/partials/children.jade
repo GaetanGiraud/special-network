@@ -25,7 +25,7 @@ div.row(ng-show = "!optOut")
         th
       tr(ng-repeat="child in children")
         th
-          a(ng-href = "/children/{{child._id}}") {{child.name}}
+          a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
         td 
           img(ng-src="{{ child.picture | thumbPicture }}")
         td
@@ -64,7 +64,7 @@ div.row
       | You are not following any children yet. 
     div(ng-show = "!notFollowing")
       div(ng-repeat="child in followedChildren")
-        a(ng-href = "/children/{{child._id}}") {{child.name}}'s page
+        a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}'s page
 
   div.span5
     legend Look up someone you know

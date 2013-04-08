@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert) {
+function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socket) {
   /*
    * 
    * The application controller handles the socket.io interface.
@@ -12,7 +12,7 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert) {
   
   
   // connection logic
-  var socket;
+  /*var socket;
 	var firstconnect = true;
   
   $scope.connect = function connect() {
@@ -26,73 +26,22 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert) {
 		}
 
     // connect to the server on start up.
-    $scope.connect();
+    //$scope.connect();
      
     // watch the logged in variable for changes. When value goes from false to true, attempt connection.
-    $rootScope.$watch('loggedin', function(loggedin) {
+   /* $rootScope.$watch('loggedin', function(loggedin) {
         if (loggedin) {
         scope.connect();
       }
-     });
+     }); */
      
     
     // handling communication messages.
      
-    socket.on('error', function (reason){
-      //Alert.error('We are unable to connect to the server. We might be having technical difficulties,' +
-      //    ' if so we are probably working on them right now.'+
-      //    ' Alternatively, you might want to check your internet connection. ');
-      console.error('error', reason);
-     });
-      
-    socket.on('disconnect', function (reason){
-    //      Alert.error('You have been disconnected. We might be having technical difficulties,' +
-    //      ' if so we are probably working on them right now.'+
-    //      ' Alternatively, you might want to check your internet connection. ');
-          
-        console.error('disconnect', reason);
-    });
-      
-    socket.on('connect', function (){
-        //  Alert.success('You are connected!');
-          console.info('successfully established a working and authorized connection');
-    });
+  //var socket;
+  $scope.socket = Socket.connect();
       
   
-  // receiving events from the server and dispaching to the application
-        
-        socket.on('newComment', function (data) {
-            $scope.$broadcast('event:newComment', data);
-            console.log('new Comment');
-        });
-        
-        socket.on('newDiscussion', function (data) {
-            $scope.$broadcast('event:newDiscussion', data);
-            console.log(data);
-            console.log('new Discussion');
-        });
-      
-        socket.on('discussionSavedSuccess', function (data) {
-          console.log('success ' + data);
-            $scope.$broadcast('event:discussionSavedSuccess', data);
-        });
-       
-  // receiving events from the application and dispaching them to the server
-       
-         $scope.$on('event:commentAdded', function(event, index, comment, id) {
-           socket.emit('commentAdded', { 'comment': comment, 'discussionId': id});
-         });
-        
-        $scope.$on('event:discussionCreated', function(event, discussion) { 
-           socket.emit('discussionCreated', discussion);          
-        });
-        
-        $scope.$on('event:socketDisconnect', function() {
-           Alert.error('You have been disconnected from the server');
-           socket.disconnect();
-        });
-    // }
-  //});
 
 
 
@@ -116,7 +65,7 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert) {
   });
   
 }
-AppCtrl.$inject = ['$scope', 'AuthService', '$location', 'Child', '$rootScope', 'Alert'];
+AppCtrl.$inject = ['$scope', 'AuthService', '$location', 'Child', '$rootScope', 'Alert', 'Socket'];
 
 function DialogCtrl($scope, dialog){
   $scope.close = function(result){
@@ -141,6 +90,30 @@ function LoginCtrl($scope, User, $rootScope, $location, AuthService, Alert) {
       function() {
         $scope.isNotRegistered = false;
         $scope.user = user;
+        Alert.success('Welcome ' + user.name + ', you are successfully registered, log in with the password you just entered!');
+      },
+    function(){
+      Alert.error('A system error occurred while registering, sorry for the inconvenience.'); 
+     });
+  }
+  
+  $scope.login = function() {
+    AuthService.login({'email': $scope.user.email, 'password': $scope.user.password}, function(loggedin) {
+      console.log(loggedin);
+      if (loggedin) {
+        $location.path('/home');
+        Alert.success('Welcome ' + $scope.currentUser.name + ', you have successfullt logged in!');
+      } else {
+        Alert.error('Error logging in, please try again');
+      }
+    });
+  }
+  
+  $scope.modalRegister = function() {
+    var user = User.save($scope.newUser, 
+      function() {
+        $scope.isNotRegistered = false;
+        $scope.user = user;
         Alert.success('Welcome ' + user.name + ', you are successfully registered, log in with the password you just entered!', 'modal');
       },
     function(){
@@ -148,11 +121,11 @@ function LoginCtrl($scope, User, $rootScope, $location, AuthService, Alert) {
      });
   }
   
-  
-  $scope.login = function() {
+  $scope.modalLogin = function() {
     AuthService.login({'email': $scope.user.email, 'password': $scope.user.password}, function(loggedin) {
       console.log(loggedin);
       if (loggedin) {
+        
         $scope.$parent.close();
         $location.path('/home');
         Alert.success('Welcome ' + $rootScope.currentUser.name + ', you have successfullt logged in!');
@@ -298,7 +271,62 @@ UserCtrl.$inject = ['$scope', 'User', '$rootScope', 'Alert', 'Location', 'GeoCod
  * 
  */
  
-function DiscussionCtrl($scope, $location) {
+function DiscussionCtrl($scope, $location, Socket) {
+
+/* socket.on('newComment', function (data) {
+            $scope.$broadcast('event:newComment', data);
+            console.log('new Comment');
+        });
+        
+        socket.on('newDiscussion', function (data) {
+            $scope.$broadcast('event:newDiscussion', data);
+            console.log(data);
+            console.log('new Discussion');
+        });
+      
+        socket.on('discussionSavedSuccess', function (data) {
+          console.log('success ' + data);
+            $scope.$broadcast('event:discussionSavedSuccess', data);
+        });
+       
+       socket.on('newComment', function (data) {
+            $scope.$broadcast('event:newComment', data);
+            console.log('new Comment');
+        });
+        
+        socket.on('newDiscussion', function (data) {
+            $scope.$broadcast('event:newDiscussion', data);
+            console.log(data);
+            console.log('new Discussion');
+        });
+      
+        socket.on('discussionSavedSuccess', function (data) {
+          console.log('success ' + data);
+            $scope.$broadcast('event:discussionSavedSuccess', data);
+        });
+        
+  // receiving events from the application and dispaching them to the server
+       
+         $scope.$on('event:commentAdded', function(event, index, comment, id) {
+           socket.emit('commentAdded', { 'comment': comment, 'discussionId': id});
+         });
+        
+        $scope.$on('event:discussionCreated', function(event, discussion) { 
+           socket.emit('discussionCreated', discussion);          
+        });
+        
+        $scope.$on('event:socketDisconnect', function() {
+           Alert.error('You have been disconnected from the server');
+           socket.disconnect();
+        });
+     }
+
+*/
+
+
+
+
+
 
     $scope.createDiscussion = function() {
       $scope.newDiscussion.children = [];
@@ -312,7 +340,9 @@ function DiscussionCtrl($scope, $location) {
              }
          } 
        }
-      $scope.$emit('event:discussionCreated', $scope.newDiscussion );
+      //$scope.$emit('event:discussionCreated', $scope.newDiscussion );
+      Socket.socket().emit('discussionCreated', $scope.newDiscussion);
+      
       $scope.discussions.unshift(angular.copy($scope.newDiscussion));
       $scope.newDiscussion.content = '';
       $scope.newDiscussion.children = ''; 
@@ -324,10 +354,12 @@ function DiscussionCtrl($scope, $location) {
       $scope.createDiscussion(); 
     });
     
-    $scope.$on('event:newComment', function(event, comment) {
+   // $scope.$on('event:newComment', function(event, comment) {
+   Socket.socket().on('newComment', function(comment) {
       console.log(comment);  
       for(var i = 0; i < $scope.discussions.length; i ++) {
         console.log($scope.discussions[i]._id);
+        console.log(comment.discussionId);
         if ( $scope.discussions[i]._id == comment.discussionId) {
            $scope.$apply($scope.discussions[i].comments.push(comment.comment));
           break;     
@@ -335,31 +367,35 @@ function DiscussionCtrl($scope, $location) {
       }
     });
     
-    $scope.$on('event:newDiscussion', function(event, discussion) {
-      var location = $location.path();
+    //$scope.$on('event:newDiscussion', function(event, discussion) {
+    
+    Socket.socket().on('newDiscussion', function(discussion) {
+     // var location = $location.path();
       
-      if (/children/.exec(location) != null && discussion.children.indexOf($scope.child._id) != -1) {
+    //  if (/children/.exec(location) != null && discussion.children.indexOf($scope.child._id) != -1) {
          $scope.$apply($scope.discussions.unshift(discussion));
-      }
-      if (/home/.exec(location) != null) {
-         $scope.$apply($scope.discussions.unshift(discussion));
-      }
-      if (/question/.exec(location) != null && discussion.type == 'question' ) {
-         $scope.$apply($scope.discussions.unshift(discussion));
-      }
+    //  }
+    //  if (/home/.exec(location) != null) {
+     //    $scope.$apply($scope.discussions.unshift(discussion));
+    //  }
+    //  if (/question/.exec(location) != null && discussion.type == 'question' ) {
+      //   $scope.$apply($scope.discussions.unshift(discussion));
+    //  }
     });
     
     
-     $scope.$on('event:discussionSavedSuccess', function(event, discussion) {
+    // $scope.$on('event:discussionSavedSuccess', function(event, discussion) {
+    Socket.socket().on('discussionSavedSuccess', function(discussion) {
       $scope.$apply($scope.discussions[0] = discussion);
     });
     
-    $scope.$on('event:commentAdded', function(event, index, comment) {
+    $scope.$on('event:commentAdded', function(event, index, comment, id) {
       $scope.discussions[index].comments.push(comment);
+      Socket.socket().emit('commentAdded', { 'comment': comment, 'discussionId': id});
     });
 
 }
-DiscussionCtrl.$inject = ['$scope', '$location'];
+DiscussionCtrl.$inject = ['$scope', '$location', 'Socket'];
 
 function newCommentCtrl($scope) {
   $scope.newComment = {};
@@ -379,7 +415,82 @@ function newCommentCtrl($scope) {
 }
 newCommentCtrl.$inject = ['$scope'];
 
+function MessageCtrl($scope, $location, Message, Socket) {
+    $scope.messages = Message.query();
+    $scope.newMessage = {};
+    
+    $scope.$watch('currentUser', function(currentUser) {
+      if (currentUser != null) {
+        $scope.newMessage._creator = { '_id': currentUser._id, 'name': currentUser.name, 'picture': currentUser.picture } ;
+        Socket.subscribe('messages_' +  currentUser._id );
+      }
+    });
+    
+    $scope.newMessage.receiver = [];
+  
+    $scope.setCurrentMessage = function(index) {
+      $scope.currentMessage = $scope.messages[index];  
+    }
+  
+    $scope.createMessage = function() {
+      Socket.socket().emit('messageCreated', $scope.newMessage);
+      $scope.messages.unshift(angular.copy($scope.newMessage));
+      $scope.newMessage.content = '';
+      $scope.newMessage.receivers = ''; 
+    }   
+    
+ // $scope.$on('event:createMessage', function(){
+ //     $scope.createMessage(); 
+ // });
+    
+   Socket.socket().on('newReply', function(reply) {
+      console.log(reply);  
+      for(var i = 0; i < $scope.messages.length; i ++) {
+        console.log($scope.messages[i]._id);
+        console.log(reply.messageId);
+        if ( $scope.messages[i]._id == reply.messageId) {
+           $scope.$apply($scope.messages[i].replies.push(reply.reply));
+          break;     
+        }
+      }
+    });
+    
+    
+    Socket.socket().on('newMessage', function(message) {
+         $scope.$apply($scope.messages.unshift(message));
+    });
+    
+    
+    // $scope.$on('event:discussionSavedSuccess', function(event, discussion) {
+    Socket.socket().on('messageSavedSuccess', function(message) {
+      $scope.$apply($scope.messages[0] = message);
+    });
+    
+    $scope.$on('event:replyAdded', function(event, reply, id) {
+      $scope.currentMessage.replies.push(reply);
+      Socket.socket().emit('replyAdded', { 'reply': reply, 'messageId': id});
+    });
 
+}
+MessageCtrl.$inject = ['$scope', '$location', 'Message', 'Socket'];
+
+function newReplyCtrl($scope) {
+  $scope.newReply = {};
+  
+  $scope.$watch('currentUser', function(currentUser) {
+      $scope.$watch('newReply', function(newReply) {
+        $scope.newReply._creator = {_id: currentUser._id, name: currentUser.name, picture: currentUser.picture};
+      });
+  });
+    
+  $scope.createReply = function() {
+      //var messageId = $scope.$parent.messages[index]._id;
+      $scope.$emit('event:replyAdded', $scope.newReply, $scope.currentMessage._id );
+      $scope.newReply = '';
+  }
+  
+}
+newReplyCtrl.$inject = ['$scope'];
 /*
  *  Views controller.
  * 
@@ -400,7 +511,8 @@ newCommentCtrl.$inject = ['$scope'];
 function ChildrenCtrl($scope, Child, Alert, User) {
   //setting up some default values
   $scope.notFollowing = true;
-  
+
+    
   $scope.$watch('currentUser', function(currentUser) {
     if (angular.isDefined(currentUser)) {
       $scope.optOut = currentUser.settings.createChildOptOut;
@@ -463,32 +575,40 @@ function ChildrenCtrl($scope, Child, Alert, User) {
 }
 ChildrenCtrl.$inject = ['$scope', 'Child', 'Alert', 'User'];
 
-function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child) {
+function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $location, Socket) {
   
    // setting up default values for discussions on the page. Logic is in Discussion controller.
-
+    
     $scope.newDiscussion = {};
     $scope.newDiscussion.type ='update';
     $scope.$watch('currentUser', function(user) {
-      $scope.newDiscussion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
+      if (user != null) {
+        $scope.newDiscussion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
+      }
     });
     $scope.children = [];
-    
+    $scope.discussions = [];
     
    // querying discussions on the server.
-    $scope.discussions = Discussion.query({'children':  $routeParams.childId, 'page': 1});
+    
 
     $scope.child = Child.get({childId:  $routeParams.childId }, function(child){
       child.send = true;
       $scope.children.push(child);
       $scope.newDiscussion.tags = child.superpowers;
+      
+      $scope.discussions = Discussion.query({'children':  child._id, 'page': 1});
+      Socket.subscribe('child_' +  child._id );
     });
     
 
    $scope.updateChild = function() {
+     //$scope.child.pageTitle
      Child.update({childId: $scope.child._id}, $scope.child, 
       function(child){
         $scope.child = child;
+        $location.url('/children/' + $scope.child.pageTitle);
+        
       }, 
       function(err){ 
         Alert.error('A system error while saving the page. Could you try again?' );
@@ -550,33 +670,41 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child) {
   
   
 }
-ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams', 'Discussion', 'Child'];
+ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams', 'Discussion', 'Child','$location', 'Socket'];
 
 
-function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child) {
+function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
+    Socket.subscribe('discussions');
     
     $scope.newDiscussion = {};
     //$scope.page = 1;
     
     // loading the data
     $scope.discussions = Discussion.query({'page': 1});
-
-    $scope.children = Child.query({'post': true}, function(children){
-      if (children.length > 0) {
+    $scope.children = [];
+    
+    $scope.children = Child.query({'post': 'true'}, function() {
+      if ($scope.children.length > 0) {
         $scope.newDiscussion.type = 'update' ;
         $scope.initializeChildren();
+        //$scope.children = children;
       } else {
         $scope.newDiscussion.type = 'question' ;
         
-      }
+      } 
     });
 
     // setting up watchers
     $scope.$watch('currentUser', function(user) {
-      $scope.newDiscussion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
+      if (user != null) {
+        $scope.newDiscussion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
+      }
     });
     
     $scope.$watch('children', function(children) {
+      
+
+      
       console.log('Change in chuldren');
       if ($scope.newDiscussion.type == 'update') {
         var count =  $scope.children.filter(function(child) { return child.send == true }).length;
@@ -621,17 +749,47 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child) {
     
     
 }
-HomeCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert', 'Child'];
+HomeCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert', 'Child', 'Socket'];
 
 
-function QuestionsCtrl($scope, $rootScope, Discussion, $http, Alert) {
+function MessagesCtrl($scope, $rootScope, Message, $http, Alert, Child, Socket) {
+    Socket.subscribe('discussions');
     
+    $scope.newMessage = {};
+    //$scope.page = 1;
+    
+    // loading the data
+    $scope.discussions = Message.query({'page': 1});
+    
+    // setting up watchers
+    $scope.$watch('currentUser', function(user) {
+      if (user != null) {
+        $scope.newMessage._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
+      }
+    });
+    
+    $scope.
+    
+   
+    $scope.selected = function(type) {
+
+    }
+      
+    
+    
+}
+HomeCtrl.$
+
+function QuestionsCtrl($scope, $rootScope, Discussion, $http, Alert, Socket) {
+   // Socket.subscribe('Questions');
     // setting default values for new discussions.
     $scope.newDiscussion = {};
      
     $scope.newDiscussion = {};
     $scope.$watch('currentUser', function(user) {
-      $scope.newDiscussion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
+      if (user != null ) {
+        $scope.newDiscussion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
+      }  
     });
     $scope.newDiscussion.type ='question';
     
@@ -641,7 +799,7 @@ function QuestionsCtrl($scope, $rootScope, Discussion, $http, Alert) {
     $scope.children = [];
 
 }
-QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert'];
+QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert', 'Socket'];
 
 /*
  * 
@@ -653,13 +811,9 @@ QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert']
  
 function FindCtrl($scope, User, Alert, $http) {
   
-  // declaring the search object and reseting some defaults.
   $scope.search = {} ;
   $scope.superpowers = [];
-  $scope.search.lng = $scope.currentUser.location.loc[0];
-  $scope.search.lat = $scope.currentUser.location.loc[1];
-  $scope.search.distance = 10000;
-  
+    
   $scope.distances = [
     {'label': '10 km', 'value': 10},
     {'label': '25 km', 'value': 25},
@@ -667,6 +821,20 @@ function FindCtrl($scope, User, Alert, $http) {
     {'label': '100 km', 'value': 100},
     {'label': 'All', 'value': 10000},
   ];
+  
+  
+  
+  // declaring the search object and reseting some defaults.
+  $scope.$watch('currentUser', function(user) {
+    if (user != null && angular.isDefined(user.location)) {
+      $scope.search.lng = user.location.loc[0];
+      $scope.search.lat = user.location.loc[1];
+    }
+  });
+  
+  $scope.search.distance = 10000;
+  
+
    
   //$scope.homeLocation = $scope.currentUser.location;
    

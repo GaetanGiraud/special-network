@@ -26,6 +26,11 @@ angular.module('CareKids.services', ['ngResource']).
                       {update: {method: "PUT"}}
                       );
   }]).
+  factory('Message', ['$resource', function($resource){
+    return $resource('api/messages/:messageId', {messageId: '@id'},
+                      {update: {method: "PUT"}}
+                      );
+  }]).
   factory('Alert', ['$rootScope', function($rootScope) {
 
      // refreshing the alert messages on page change

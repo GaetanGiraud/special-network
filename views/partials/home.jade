@@ -45,7 +45,7 @@ div(ng-controller = 'DiscussionCtrl')
           ul.unstyled
             li(ng-repeat = "child in discussion.children")
               img(ng-src = '{{ child.picture | iconPicture }}')
-              | {{child.name}}
+              a(ng-href="/children/{{ child.pageTitle }}") {{child.name}}
           h5 Tags
           ul.unstyled
             li(ng-repeat = "tag in discussion.tags")

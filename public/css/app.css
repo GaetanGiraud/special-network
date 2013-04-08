@@ -1,8 +1,29 @@
 body {
   background-color: grey; }
 
-header {
+header.menu {
   height: 10%; }
+
+header {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 100%;
+  /* height: 200px;*/
+  background-color: #B3DFF2; }
+
+#banner {
+  margin: auto;
+  width: 806px;
+  height: 200px;
+  background-image: url("../images/banner-h200.png");
+  background-repeat: no-repeat; }
+
+#tagline {
+  display: block;
+  text-align: center;
+  /*background: black;*/
+  color: white;
+  padding: 10px; }
 
 #partial {
   padding: 5px 0px 5px 5px;
@@ -76,7 +97,8 @@ header {
       background-color: black; }
 
 .editable {
-  border: 1px solid grey; }
+  border: 1px solid grey;
+  min-height: 20px; }
 
 #new-discussion {
   width: 30%; }

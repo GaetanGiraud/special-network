@@ -37,6 +37,13 @@ var db = require('../config/database').connection
 };*/
 
 exports.add = function (discussion, callback) {
+  if (Array.isArray(discussion.children)) {
+    for(var i =0; i < discussion.children.length; i++) { 
+      discussion.children[i] = discussion.children[i]._id ; 
+    }
+  } 
+  discussion._creator = discussion._creator._id;
+      
   Discussion.create(discussion, function(err, discussion) {
     if (err)  return callback(err, null);
     console.log(('Discussion: ' + discussion._id + ' created.'));
@@ -91,20 +98,20 @@ exports.addComment = function (id, comment, callback) {
 
 // First identify the discussion
    Discussion.findById(id, function(err, discussion) {
-    if (err)  return callback(err, null);
+    if (err)  return callback(err, null, null);
 
     // add the comment to the discussion comments and save the index for further referencing of the comment.
     var index = discussion.comments.push(comment);
     discussion.updatedAt = Date.now();
     
     discussion.save(function(err) {
-      if (err) return callback(err, null);
+      if (err) return callback(err, null, null);
       
     //  var comment =  ;
       
       discussion.populate({path: 'comments._creator', select: '_id name picture'}, function(err, discussion) {
-          if (err) return callback(err, null);
-          return callback(null, {discussionId: discussion._id, comment: discussion.comments[index-1]});
+          if (err) return callback(err, null, null);
+          return callback(null, discussion, discussion.comments[index-1]);
       });
     });
   });
@@ -202,7 +209,7 @@ exports.search = function (req, res) {
         Discussion.aggregate(
           { $project: { tags : "$tags"  }},
           {$unwind: "$tags"},
-          { $match : { tags : re } }, 
+          { $match : { tags : {$regex: cleanQuery, $options: 'i'} } }, 
           function(err, results) {
             if (err) return res.send(400, err);
               results.forEach(function(element, index) {

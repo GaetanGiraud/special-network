@@ -1,1 +1,23 @@
-h1 Welcome!
+div.row
+  div.span4.offset4(ng-controller='LoginCtrl')
+    h3(ng-show = "!isNotRegistered") Login
+    h3(ng-show = "isNotRegistered") Register
+  
+    div(ng-show = "!isNotRegistered")
+      input(type='text', placeholder='Your email', ng-model='user.email', name='email', class = 'span3')
+      br
+      input(type='password', placeholder='Your password', ng-model='user.password', name='password', class = 'span3')
+    div(ng-show = "isNotRegistered")
+      input(type='text', placeholder='Enter your name', ng-model='newUser.name', name='name', class = 'span3' )
+      br
+      input(type='text', placeholder='Enter an email address', ng-model='newUser.email', name='email', class = 'span3')
+      br
+      input(type='password', placeholder='Enter a password', ng-model='newUser.password', name='password', class = 'span3')
+  
+    div
+      button(type='button', ng-click='login()', class='btn btn-primary', ng-show = "!isNotRegistered") Login
+      button(type='button', ng-click='register()', class='btn btn-primary', ng-show = "isNotRegistered") Register
+      br
+      a(ng-click = 'isNotRegistered = true', ng-show = "!isNotRegistered") Not registered yet?
+      a(ng-click = 'isNotRegistered = false', ng-show = "isNotRegistered") Already have an account?
+  

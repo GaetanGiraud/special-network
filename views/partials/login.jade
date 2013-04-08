@@ -20,8 +20,8 @@ div(ng-controller='LoginCtrl')
       input(type='password', placeholder='Enter a password', ng-model='newUser.password', name='password', class = 'span3')
   
   div(class="modal-footer")
-    button(type='button', ng-click='login()', class='btn btn-primary', ng-show = "!isNotRegistered") Login
-    button(type='button', ng-click='register()', class='btn btn-primary', ng-show = "isNotRegistered") Register
+    button(type='button', ng-click='modalLogin()', class='btn btn-primary', ng-show = "!isNotRegistered") Login
+    button(type='button', ng-click='modalRegister()', class='btn btn-primary', ng-show = "isNotRegistered") Register
     button(ng-click="close()", class="btn") Close
     br
     a(ng-click = 'isNotRegistered = true', ng-show = "!isNotRegistered") Not registered yet?

@@ -16,7 +16,8 @@ var albumSchema = mongoose.Schema({
 
 
 var childSchema = mongoose.Schema({
-  name: String, 
+  name: {type: String, required: true},
+  pageTitle: {type: String, unique: true, sparse: true, trim: true},
   dob: Date,
   gender: { type: String, match: /(boy|girl)/ },
   picture: {_creatorId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User' } , picture: String},
@@ -28,7 +29,7 @@ var childSchema = mongoose.Schema({
   permissions: [
    {
     _user: {type: mongoose.Schema.Types.ObjectId, ref: 'User' },// _id of an individual user or of a group
-    rigth: {type: String, match: /(read|write)/}, // read - write
+    rigths: {type: String, match: /(read|write)/}, // read - write
     relationship: String
     }]
   });

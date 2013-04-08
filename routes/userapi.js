@@ -148,13 +148,26 @@ exports.findAll = function (req, res) {
   //     { $match : { }},
        function (err, results) {
           if (err) return res.send(400, err);
+          // console.log(results);
           return res.json(results);
           //console.log(res); // [ { maxAge: 98 } ]
-        }
-    );
+    });
+  } else {
   
-} else {
-  
+/*  if (req.query.contacts) {
+    Child.aggregate(
+      // { $project: { lat: "location.loc[1]", lng: "location.loc[]" }},
+     //  { $match : { locationType : "userhome" } },
+       { $project: { users : { permissions: 1 }  }},
+       { $match: { permissions: req.session.user }},
+       { $unwind: "$permissions"},
+  //     { $match : { }},
+       function (err, results) {
+          if (err) return res.send(400, err);
+         
+          return res.json(results);
+          ; // [ { maxAge: 98 } ]
+    });*/
   
   
   User.find(function (err, users) {
@@ -162,8 +175,9 @@ exports.findAll = function (req, res) {
     users.forEach(function(user){ delete user.hash }); // don't send hash
     return res.json(users);
   });  
-  
+
 }
+
 };
 
 exports.update = function (req, res) {

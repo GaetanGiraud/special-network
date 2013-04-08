@@ -1,0 +1,56 @@
+div.row
+  div.span3
+    button.btn(type='button', ng-click = 'HideCreateDialog = !HideCreateDialog', ng-show = '!HideCreateDialog') Create Message
+    article(ng-show = 'HideCreateDialog')
+      h5 Create a new Message
+      h6 Send to:
+      tags(tags = 'newMessage.receivers', url = '/api/users?contacts=true')
+
+      div.content
+        div.editable(contenteditable = 'true', ng-model = "newMessage.content")
+        div.btn-group.fileupload-buttonbar.footer
+          span.fileinput-button 
+            button.btn(type = "button", ng-click = "createMessage()") Post
+            button.btn(type = "button", ng-click = "HideCreateDialog = !HideCreateDialog") Cancel
+            
+    div#discussions(ng-repeat = "message in messages")
+      article.message(ng-click = 'setCurrentMessage($index)')
+        h4 From
+        img(ng-src = '{{ message._creator | iconPicture }}')
+        | {{message._creator.name}} 
+        | {{ $index }}
+        //h4 To
+        //ul.unstyled
+        //  li(ng-repeat = "user in message.receivers")
+        //    img(ng-src = '{{ user | userIconPic }}')
+        //    | {{ user.name }}
+        p(ng-bind-html = 'message.content')      
+      
+      
+      
+  div.span7
+    article.discussion(ng-show= 'currentMessage')
+       h4 
+         img(ng-src = '{{ currentMessage._creator | iconPicture }}')
+         | {{currentMessage._creator.name}} 
+         | {{ $index }}
+       h5 to: 
+       ul.unstyled
+         li(ng-repeat = "user in currentMessage.receivers")
+           img(ng-src = '{{ user | userIconPic }}')
+           | {{ user.name }}
+       p
+         | {{ currentMessage.createdAt | fromNow }} 
+       p(ng-bind-html = 'currentMessage.content')
+            
+        div.replies(ng-repeat =  'reply in currentMessage.replies')
+          h6 {{reply._creator.name}} - {{ reply.createdAt | fromNow }}
+          p(ng-bind-html = 'reply.content')
+          
+        div(ng-controller = 'newReplyCtrl')
+          a(ng-show = "!reply", ng-click="reply = true") Reply
+          div.footer(ng-show = "reply")
+            textarea(ng-model = "newReply.content") 
+            br
+            button.btn.btn-primary(ng-click="createReply($index)") Post 
+            button.btn(ng-click="reply = false") Cancel

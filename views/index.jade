@@ -1,9 +1,9 @@
 extends layout
 
 block body
-  div(class='container', ng-controller='AppCtrl')
-    include includes/header
-    
+  include includes/header
+  div(class='container')
+
     div(class='wrapper row')
       div(id="partial", class="span10")
         //alert<type="alert.type", close="alert = null", ng-cloak, class="ng-cloak">{{alert.msg}}</alert>
@@ -40,4 +40,4 @@ block body
   script(src='js/directives.js')
   script(src='js/auth-service.js')
   script(src='js/geoservice.js')
-
+  script(src='js/socket-service.js')

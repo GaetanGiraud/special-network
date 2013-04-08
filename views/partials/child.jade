@@ -1,47 +1,56 @@
-div(class= 'row')
-  div(class="span5")
-    legend {{child.name}}
-    
-    div.row
-      div.span3
-        img#picture.well(width="200", ng-src="{{ child.picture | picture }}")
-      div.span2
-        small
-          | <strong>Drag & Drop</strong> the file onto the existing picture or
-          br
-          | Use the <strong>button</strong> to change your profile picture.
-        br
-        span.btn.btn-success.fileinput-button
-          i.icon-plus.icon-white
-          span 
-            | New picture
-            input(type="file", uploader, done='setProfilePicture(file)', data-url="/upload")
-    div
-    //  
-      h5 My Specialties
-      ul.unstyled
-        li(ng-repeat = 'specialty in child.specialties')
-          | {{ specialty }}
-          button(ng-click = 'removeSpecialty($index)') &times
-        li
-          autocomplete(results = 'child.newSpecialty', url = '/api/discussions/search?type=groups', create = 'addSpecialty(string, newObject)')
-          button.btn(ng-click = 'addSpecialty()') Add
-          button.btn(ng-click = 'child.newSpecialty = ""') Cancel
+div.row
+  div.span5
+    form(name='childForm')
+      legend {{child.name}}
       
-    div
-      h5 My Superpowers
-      ul.unstyled
-        li(ng-repeat = 'superpower in child.superpowers')
-           | {{ superpower }}
-           button(ng-click = 'removeSuperpower($index)') &times
-        li 
-          | Search
-          autocomplete(results = 'child.newSuperpower', url = '/api/discussions/search?type=tags', create = 'addSuperpower(string, newObject)')
-          //button.btn(ng-click = 'addSuperpower()') Add
-          //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
-    
-    //button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
-    //button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
+      div.row
+        div.span3
+          img#picture.well(width="200", ng-src="{{ child.picture | picture }}")
+        div.span2
+          small
+            | <strong>Drag & Drop</strong> the file onto the existing picture or
+            br
+            | Use the <strong>button</strong> to change your profile picture.
+          br
+          span.btn.btn-success.fileinput-button
+            i.icon-plus.icon-white
+            span 
+              | New picture
+              input(type="file", uploader, done='setProfilePicture(file)', data-url="/upload")
+      div
+      //  
+        h5 My Specialties
+        ul.unstyled
+          li(ng-repeat = 'specialty in child.specialties')
+            | {{ specialty }}
+            button(ng-click = 'removeSpecialty($index)') &times
+          li
+            autocomplete(results = 'child.newSpecialty', url = '/api/discussions/search?type=groups', create = 'addSpecialty(string, newObject)')
+            button.btn(ng-click = 'addSpecialty()') Add
+            button.btn(ng-click = 'child.newSpecialty = ""') Cancel
+      
+      div.form-inline
+        h5 Customize the page title
+        input(type='text', ng-model = 'child.pageTitle', name='pageTitle', ng-pattern = "/^[a-zA-Z0-9_-]+$/") 
+        button.btn.btn-success(type = 'text', ng-click = 'updateChild()') Ok
+        br
+        span.error(ng-show="childForm.pageTitle.$error.pattern") 
+          | Should contain only letters and numbers!
+        
+      div
+        h5 My Superpowers
+        ul.unstyled
+          li(ng-repeat = 'superpower in child.superpowers')
+             | {{ superpower }}
+             button(ng-click = 'removeSuperpower($index)') &times
+          li 
+            | Search
+            autocomplete(results = 'child.newSuperpower', url = '/api/discussions/search?type=tags', create = 'addSuperpower(string, newObject)')
+            //button.btn(ng-click = 'addSuperpower()') Add
+            //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
+      
+      //button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
+      //button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
 
   div.span5(ng-controller = 'DiscussionCtrl')
     article#new-question

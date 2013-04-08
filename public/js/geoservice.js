@@ -192,7 +192,7 @@ angular.module('geoService', []).
       
         var userLocations = User.query({'count': true}, function(locations) {
           angular.forEach(locations, function(location) {
-           //console.log(location);
+           console.log(location);
            var coordinates = new google.maps.LatLng(location._id.loc[1], location._id.loc[0]);
            var newMarker = new google.maps.Marker({
              map: myMap,

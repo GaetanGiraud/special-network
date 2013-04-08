@@ -4,7 +4,7 @@
 
 
 angular.module('CareKids.directives', []).
-  directive('paginate', function($http, $window) {
+  directive('paginate', function($http, $window, $rootScope) {
     var page = 2;
     
        return {
@@ -17,6 +17,12 @@ angular.module('CareKids.directives', []).
          link: function(scope, elem, attrs) {
         
          scope.status = 'Loading';
+         
+         // unbind event on page change
+         $rootScope.$on('$routeChangeSuccess', function() {
+           $(window).unbind('scroll');
+          });
+      
          $(window).bind('scroll', function(event) {
            if ($(window).scrollTop() > ($(document).height() - $(window).height() - 50)) {
              console.log('near the bottom');
@@ -483,6 +489,46 @@ angular.module('CareKids.directives', []).
         });
       }
   })
+.directive('contact', ['Socket', '$rootScope', function(Socket, $rootScope) {
+
+          
+    return {
+        
+      restrict: 'E', 
+      scope:  { 
+        user: '=',
+        child: '@'
+     //   templatename: '=',
+     //   action: '&'
+      },
+      template: ' <a ng-click = "showDialog = !showDialog">{{ user._user.name }} </a>' +
+                 '<div ng-show = "showDialog">' +
+                    '<textarea ng-model = "newMessage.content">I want to follow</textarea>' +
+                    '<br />' +
+                    '<button type="button" ng-click = "sendMessage()" class = "btn btn-success">ok</button>' + 
+                    '<button type="button" ng-click = "showDialog = false" class = "btn">Cancel</button>' +
+                 '</div>',
+      link: function(scope, elm, attrs) {
+         scope.showDialog = false;
+         scope.newMessage = {};
+         scope.newMessage.action = { type = 'follow', target = child };
+         
+         $rootScope.$watch('currentUser', function(currentUser) {
+           if (currentUser != null ) {
+             scope.newMessage._creator = { '_id': currentUser._id, 'name': currentUser.name, 'picture': currentUser.picture } ;
+           }
+        });
+         
+         scope.newMessage.receivers = [];
+         scope.newMessage.receivers.push(scope.user._user);
+         
+         scope.sendMessage = function () {
+            Socket.socket().emit('messageCreated', scope.newMessage);
+         }
+   
+      }
+    }
+  }])
   .directive('help', ['$compile', '$http', function($compile, $http) {
 
           
@@ -495,7 +541,7 @@ angular.module('CareKids.directives', []).
         action: '&'
       },
       link: function(scope, elm, attrs) {
-        
+
         var templateUrl = '/templates/'+ attrs.templatename;
         
         var html;

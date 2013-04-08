@@ -3,12 +3,12 @@ div(ng-cloak, class="ng-cloak")
     h5 My Children:
       ul(class="unstyled") 
         li(ng-repeat = 'child in myChildren')
-          a(ng-href = '/children/{{child._id}}') {{child.name}}
+          a(ng-href = '/children/{{child.pageTitle}}') {{child.name}}
   div
     h5 Following:
     ul.unstyled
       li(ng-repeat = 'child in followed')
-        {{child.name}}
+         a(ng-href = '/children/{{child.pageTitle}}') {{child.name}}
   
   div
     h5 What's happening right now
