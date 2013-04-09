@@ -5,6 +5,7 @@
  */
  
 var users = require('./userapi');
+var children = require('./childrenapi');
 
 
 // Create new session
@@ -24,7 +25,7 @@ exports.new = function(req, res){
                   "name": user.name, 
                   "_id": user._id, 
                   'picture': user.picture, 
-                  '_location': user._location, 
+                  'location': user.location, 
                   'settings': user.settings});
       });
     } else {
@@ -54,3 +55,46 @@ exports.ping = function(req, res){
     res.send(401);  // User not logged in. Client logic (Showing login page) handled by Angularjs.
   }
 };
+
+exports.restrict = function (req, res, next) {
+  var exeptions = ['login', 'logout', 'index']; // define exceptions to the restriction
+  var name = req.params.name;
+  
+  if (exeptions.indexOf(name) != -1) { // check for exception to the restriction
+    next(); 
+  } else {
+    if (req.session.user) {
+    
+      next();
+    } else {
+       req.session.error = 'Access denied!';
+       console.log(('Unauthorized access from ip adress: ' + req.ip).red);
+       res.send(401);          
+    }
+  }
+};
+
+exports.restrictChildren = function (req, res, next) {
+  var id = req.params.id;
+
+  if (req.session.user) { 
+      api.children.isAuthorized(id, req.session.user, function(err, result) {
+        if (err) res.send(401, err);     
+        
+        if (result) {     
+          next();
+        } else {
+         req.session.error = 'Access denied!';
+         console.log(('Unauthorized access from ip adress: ' + req.ip).red);
+         res.send(401);    
+        }
+      })
+      
+    } else {
+       req.session.error = 'Access denied!';
+       console.log(('Unauthorized access from ip adress: ' + req.ip).red);
+       res.send(401);          
+  
+  }
+
+}

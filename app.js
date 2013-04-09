@@ -85,28 +85,13 @@ app.configure('production', function(){
  * Function for Restricting access to logged in users
  */
  
-restrict = function (req, res, next) {
-  var exeptions = ['login', 'logout', 'index']; // define exceptions to the restriction
-  var name = req.params.name;
-  
-  if (exeptions.indexOf(name) != -1) { // check for exception to the restriction
-    next(); 
-  } else {
-    if (req.session.user) {
-    //  console.log(('User with id ' + req.session.user+ ' authorized to view this page').green);
-      next();
-    } else {
-       req.session.error = 'Access denied!';
-       console.log(('Unauthorized access from ip adress: ' + req.ip).red);
-       res.send(401);          
-    }
-  }
-}
 
 
 /* 
  * Routes
  */
+
+var restrict = routes.sessions.restrict;
 
 // Angular Templates routes
 app.get('/', routes.index);
@@ -134,6 +119,7 @@ app.post('/api/users', api.users.add);
 // user API
 app.get('/api/users', restrict, api.users.findAll);
 app.get('/api/users/search', restrict, api.users.search)
+app.get('/api/users/contacts', restrict, api.users.findContacts)
 app.get('/api/users/:id',restrict, api.users.findById);
 app.put('/api/users/:id', restrict, api.users.update);
 app.delete('/api/users/:id', restrict, api.users.delete);
@@ -141,7 +127,7 @@ app.delete('/api/users/:id', restrict, api.users.delete);
 
 // children API.
 app.get('/api/children', restrict, api.children.findAll);
-app.get('/api/children/:id',restrict, api.children.findById);
+app.get('/api/children/:id',routes.sessions.restrictChildren, api.children.findById);
 app.post('/api/children', restrict, api.children.add);
 app.put('/api/children/:id', restrict, api.children.update);
 app.delete('/api/children/:id', restrict, api.children.delete);
@@ -164,6 +150,7 @@ app.delete('/api/locations/:id', restrict, api.locations.delete);
 
 // messages API
 app.get('/api/messages', restrict, api.messages.findAll);
+app.put('/api/messages/:id', restrict, api.messages.update);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);
@@ -196,7 +183,7 @@ app.get('*', routes.index);
  // return accept(null, true);
 //});
 
-
+io.set('log level', 1);
 
 var SessionSockets = require('session.socket.io')
   , sessionSockets = new SessionSockets(io, sessionStore, cookieParser);
@@ -242,7 +229,7 @@ sessionSockets.on('connection', function(err, socket, session){
       api.discussions.addComment(data.discussionId, data.comment, function(err, discussion, comment) {
         if (err) socket.emit('error', err);
         if (discussion.type == 'update') {
-            discussion.children.forEach(function(index, element, array) {
+            discussion.children.forEach(function(element, index, array) {
               console.log('brodcasting to child_' + element._id);
               socket.broadcast.to('child_' + element._id).emit('newComment', {'discussionId': discussion._id, 'comment': comment});
             });
@@ -261,7 +248,7 @@ sessionSockets.on('connection', function(err, socket, session){
         
         if (discussion.type == 'update') {
           
-            discussion.children.forEach(function(index, element, array) {
+            discussion.children.forEach(function(element, index, array) {
               console.log('brodcasting to child_' + element._id);
               socket.broadcast.to('child_' + element._id).emit('newDiscussion', discussion);
             });
@@ -283,9 +270,10 @@ sessionSockets.on('connection', function(err, socket, session){
       console.log(data);
       api.messages.add(data, function(err, message) {    
         if (err) return socket.emit('error', err);
+          console.log(message);
           socket.emit('messageSavedSuccess', message);
           
-          message.receivers.forEach(function(index, element, array) {
+          message.receivers.forEach(function(element, index, array) {
               console.log('brodcasting to user_' + element._id);
               socket.broadcast.to('messages_' + element._id).emit('newMessage', message);
             });

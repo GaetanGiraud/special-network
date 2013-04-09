@@ -35,14 +35,16 @@ angular.module('CareKids.filters', []).
     return function(object) {
     if (angular.isDefined(object)) {
       if (angular.isUndefined(object.picture)) { 
-           return 'images/defaults/user-default.png';  
+           return 'images/defaults/user-default-icon.png';  
         } else {
           if ( angular.isUndefined(object._creatorId)) {
             return 'uploads/' + object._id + '/icon/' + object.picture;
           }
           return 'uploads/' + object._creatorId + '/icon/' + object.picture;
         }
-      } 
+      } else { 
+        return 'images/defaults/user-default-icon.png';  
+      }
     }
   }).
   filter('picture', function() {

@@ -177,7 +177,7 @@ exports.delete = function (req, res) {
 
 
 exports.search = function (req, res) {
-   var cleanQuery = req.query.q.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
+   var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
    var type = req.query.type;
    
    if (cleanQuery.length > 0) { 

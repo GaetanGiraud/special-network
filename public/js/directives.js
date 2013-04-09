@@ -17,31 +17,51 @@ angular.module('CareKids.directives', []).
          link: function(scope, elem, attrs) {
         
          scope.status = 'Loading';
-         
-         // unbind event on page change
+         console.log('paginate');
+         // unbind event on page change and reset page counter
          $rootScope.$on('$routeChangeSuccess', function() {
            $(window).unbind('scroll');
+           page = 2;
           });
-      
-         $(window).bind('scroll', function(event) {
-           if ($(window).scrollTop() > ($(document).height() - $(window).height() - 50)) {
-             console.log('near the bottom');
-             
-             scope.loadNewPage();
-             page++;
-           }
-           
-          });
-        
+         
+         // bind the scroll object to the window only if scope.url is defined.
+        /*  scope.$watch('newPageTarget', function(newPageTarget) {
+            if (newPageTarget.length == 0) {
+               scope.status = 'End of page'; 
+                          
+                    // remove the spinner if present
+              if (angular.isDefined(elem.children()[0])) {
+                 elem.children()[0].remove();
+              }  
+              
+              
+            }
+            
+          })*/
+            $(window).bind('scroll', function(event) {
+              if ($(window).scrollTop() > ($(document).height() - $(window).height() - 50)) {
+                scope.loadNewPage();
+                page++;
+               }
+             });
+         
+          
+          // load new page function
             scope.loadNewPage = function() {
+              console.log(scope.url);
+              if (angular.isUndefined(scope.url) || scope.url == null || scope.url == '') return; // do nothing if the url has not been loaded.
               $http({method: 'GET', url: scope.url, params: {'page': page} })
                 .success(function(data) {
                   
-                  
+                  // if not result, unbind the scroll event.
                   if (data.length == 0) {
                     scope.status = 'End of page'; 
                     $(window).unbind('scroll');
-                    elem.children()[0].remove();
+                    
+                    // remove the spinner if present
+                    if (angular.isDefined(elem.children()[0])) {
+                      elem.children()[0].remove();
+                    }
                     
                   }
                   scope.newPageTarget = scope.newPageTarget.concat(data);
@@ -49,7 +69,7 @@ angular.module('CareKids.directives', []).
             }
           
           }
-          
+        
       }
   })
 .directive('uploader', function($rootScope) {
@@ -245,7 +265,7 @@ angular.module('CareKids.directives', []).
          if (angular.isDefined(html)) html.remove(); 
       } else {
        
-        $http({method: 'GET', url: attrs.url, params: {'q': scope.newTag }})
+        $http({method: 'GET', url: attrs.url, params: {'term': scope.newTag }})
          .success(function(data) {
           if (html) html.remove();
           console.log(data);
@@ -356,8 +376,7 @@ angular.module('CareKids.directives', []).
    return {
      restrict: 'E',
      scope: {
-       results: '=',
-       create: '&'
+       results: '='
        },
      template: '<input id = "autocomplete" "type ="text" ng-change="complete()" ng-model="results">',
      link: function(scope, elm, attrs) {
@@ -368,9 +387,9 @@ angular.module('CareKids.directives', []).
                                    "<li ng-click='select($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
                                    '{{suggestion}}'+
                                    '</li></ul>';
-    var noresultTemplate = '<ul class = "autocomplete">' +
-                                   "<li ng-click='select()'>" +
-                                   'Do you want to create a new occurence?' +
+       var noresultTemplate = '<ul class = "autocomplete">' +
+                                   "<li>" +
+                                   'No results matching your request' +
                                    '</li></ul>';
     var html;                          
 
@@ -464,6 +483,14 @@ angular.module('CareKids.directives', []).
             scope.$apply(scope.results);
           }
         });
+        
+      $('html').bind('mousedown', function(event) {
+      //if(!$(event.target).is('#foo')) && !$(event.target).parents("#foo").is("#foo")
+        if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
+          scope.$apply(scope.results = '');
+          html.remove();
+        }
+       });
       
       scope.toggleClass = function($index) {
        scope.selected =  $index;
@@ -496,14 +523,14 @@ angular.module('CareKids.directives', []).
         
       restrict: 'E', 
       scope:  { 
-        user: '=',
+        user: '@',
         child: '@'
      //   templatename: '=',
      //   action: '&'
       },
-      template: ' <a ng-click = "showDialog = !showDialog">{{ user._user.name }} </a>' +
+      template: ' <a ng-click = "showDialog = !showDialog">Contact me </a>' +
                  '<div ng-show = "showDialog">' +
-                    '<textarea ng-model = "newMessage.content">I want to follow</textarea>' +
+                    '<textarea ng-model = "newMessage.content"></textarea>' +
                     '<br />' +
                     '<button type="button" ng-click = "sendMessage()" class = "btn btn-success">ok</button>' + 
                     '<button type="button" ng-click = "showDialog = false" class = "btn">Cancel</button>' +
@@ -511,8 +538,13 @@ angular.module('CareKids.directives', []).
       link: function(scope, elm, attrs) {
          scope.showDialog = false;
          scope.newMessage = {};
-         scope.newMessage.action = { type = 'follow', target = child };
          
+         scope.$watch('child', function(child) {
+           if (angular.isDefined(child) ) {
+            scope.newMessage.action = { type: 'follow', target: child };
+          }
+         });
+       
          $rootScope.$watch('currentUser', function(currentUser) {
            if (currentUser != null ) {
              scope.newMessage._creator = { '_id': currentUser._id, 'name': currentUser.name, 'picture': currentUser.picture } ;
@@ -520,10 +552,15 @@ angular.module('CareKids.directives', []).
         });
          
          scope.newMessage.receivers = [];
-         scope.newMessage.receivers.push(scope.user._user);
-         
+    
+         scope.$watch('user', function(user) {
+         scope.newMessage.receivers.push({ '_id': user});
+              console.log(scope.user);
+       });
          scope.sendMessage = function () {
             Socket.socket().emit('messageCreated', scope.newMessage);
+            scope.showDialog = false;
+            scope.newMessage.content = '';
          }
    
       }

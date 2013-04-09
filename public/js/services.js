@@ -26,19 +26,42 @@ angular.module('CareKids.services', ['ngResource']).
                       {update: {method: "PUT"}}
                       );
   }]).
-  factory('Message', ['$resource', function($resource){
-    return $resource('api/messages/:messageId', {messageId: '@id'},
-                      {update: {method: "PUT"}}
-                      );
+  factory('Message', ['Socket', '$http', function(Socket, $http){
+    return { 
+       query: function(callback) {
+         $http.get('api/messages').success(function(data) {
+            console.log(data);
+            return callback(null, data);
+         }).error(function(err) {
+           return callback(err, null);
+         })
+       },
+       send: function(newMessage) {
+          Socket.socket().emit('messageCreated', newMessage);
+          return;
+       },
+       update: function(message, data, callback) {
+         $http.put('api/messages/' + message._id, data).
+         success(function(data) {
+            return callback(null, data);
+         }).error(function(err) {
+           return callback(err, null);
+         })
+       },
+       reply: function(reply, messageId) {
+         Socket.socket().emit('replyAdded', { 'reply': reply, 'messageId': messageId});
+         return;
+       }
+    }
   }]).
   factory('Alert', ['$rootScope', function($rootScope) {
 
      // refreshing the alert messages on page change
-     $rootScope.$on('$routeChangeSuccess', function() {
+    /* $rootScope.$on('$routeChangeSuccess', function() {
        $rootScope.alert = '';
        $rootScope.modalAlert = '';
       });
-
+    */
 
     // Types are linked to twitter bootstrap alert classes. Possible message types: 'success', 'error', 'info'. Others defaulft to standard alert.
     return {

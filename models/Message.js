@@ -3,11 +3,12 @@ var mongoose = require('mongoose');
 
 var messageSchema = mongoose.Schema({
   content: String, 
-  action: {type: String, target: { type: mongoose.Schema.Types.ObjectId, ref: 'Child' },
+  action: {actionType: String, target: { type: mongoose.Schema.Types.ObjectId, ref: 'Child' }, executed: {type: Boolean, default: false } }, // todo or done
+  read: {type: Boolean, default: false }, // read - unread
   createdAt: { type: Date, default: Date.now},
   updatedAt: { type: Date, default: Date.now},
   _creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  receivers: [ {type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
+  receivers: [ {_user: { type: mongoose.Schema.Types.ObjectId, ref: 'User'}, read: {type: Boolean, default: false } } ],
   replies : [{
     _creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     content: String,

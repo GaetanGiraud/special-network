@@ -5,7 +5,7 @@ block body
   div(class='container')
 
     div(class='wrapper row')
-      div(id="partial", class="span10")
+      div(id="partial", class="span9")
         //alert<type="alert.type", close="alert = null", ng-cloak, class="ng-cloak">{{alert.msg}}</alert>
         div(ng-class="alert.type", ng-show="alert.msg.length > 0", ng-cloak, class="ng-cloak")
           button(class = "close", ng-click="alert.msg = ''")&times;
@@ -13,7 +13,7 @@ block body
         
         div(ng-view)
       
-      div(id='sidebar', ng-show = "loggedIn", class='span2')
+      div(id='sidebar', ng-show = "loggedIn", class='span3')
         include includes/menu  
 
     include includes/footer
@@ -21,6 +21,7 @@ block body
   // loading external libraries
   script(src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDksAsTFgEvILZgCSUXLTGGfQf2zWdeAx0&sensor=false")
   script(src='js/lib/moment.min.js')
+  script(src='js/lib/underscore-min.js')
   
      
   // loading angular external modules
@@ -29,7 +30,7 @@ block body
   script(src='js/lib/angular-ui/angular-ui.min.js')
   script(src='js/lib/angular/angular-resource.min.js')
   script(src='js/lib/angular/angular-sanitize.min.js')
-
+  script(src="js/lib/angular-underscore.js")
   
   
   // loading the app

@@ -1,8 +1,28 @@
-h3 {{currentUser.name}} 
-
 div.row(ng-show = "!optOut")
-  div(class='span10')
-    legend Your kids 
+  div(class='span9')
+    legend The kids page you are managing
+    // Creating a new kid's page
+    a(ng-click='newKid = !newKid', ng-show = "!newKid") 
+      i.icon-plus.icon
+      | Add a page
+    div(ng-show = "newKid")
+      a(ng-click='newKid = !newKid') 
+        i.icon-minus.icon
+        | Cancel
+      div
+        label Enter a name for the child
+        input(type='text', placeholder='name', ng-model = "newChild.name")
+        label What is your relationship to the child?
+        select(placeholder='Who is he/her to you', ng-options = "r.name as r.name for r in relationships", ng-model = "newChild.creator.relationship")
+        p(ng-show = '(newChild.creator.relationship != "Father" && newChild.creator.relationship != "Mother")' )
+          | Have you asked their parents ? 
+          br
+          | Always good to check before posting personal information on the web, especially concerning a child!
+        br
+        div.btn-group
+          button(type='button', ng-click="addChild()", class='btn btn-primary' ) Add
+          button(type='button', ng-click="newKid = false", class='btn btn', title = 'All changes will be lost!') Cancel
+    
     div(ng-show='children.length < 1')
       p
         | You do have created any children page, create a page using the right menu
@@ -17,16 +37,15 @@ div.row(ng-show = "!optOut")
     table.table(ng-show = "children.length > 0")
       tr
         th
-        th
         th 
           | You are
         th 
           | latest update
         th
       tr(ng-repeat="child in children")
-        th
+        td
           a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
-        td 
+          br
           img(ng-src="{{ child.picture | thumbPicture }}")
         td
           | {{child.creator.relationship | pronomize }} 
@@ -35,48 +54,57 @@ div.row(ng-show = "!optOut")
         td
           button(type='button', ng-click="deleteChild($index)", class='btn' ) Remove Page
    
-    a(ng-click='newKid = !newKid', ng-show = "!newKid") 
-      i.icon-plus.icon-2x
-      | Add a page
-  div(class = 'span5', ng-show = "newKid")
-    a(ng-click='newKid = !newKid') 
-      i.icon-minus.icon-2x
-      | Cancel
-    Legend Create a new kid page.
-    div
-      label Enter a name for the child
-      input(type='text', placeholder='name', ng-model = "newChild.name")
-      label What is your relationship to the child?
-      select(placeholder='Who is he/her to you', ng-options = "r.name as r.name for r in relationships", ng-model = "newChild.creator.relationship")
-      p(ng-show = '(newChild.creator.relationship != "Father" && newChild.creator.relationship != "Mother")' )
-        | Have you asked their parents ? 
-        br
-        | Always good to check before posting personal information on the web, especially concerning a child!
-      br
-      div.btn-group
-        button(type='button', ng-click="addChild()", class='btn btn-primary' ) Add
-        button(type='button', ng-click="newKid = false", class='btn btn', title = 'All changes will be lost!') Cancel
+
+  
         
 div.row
-  div.span5
-    legend The kids you are following
-    p(ng-show='notFollowing')
-      | You are not following any children yet. 
-    div(ng-show = "!notFollowing")
-      div(ng-repeat="child in followedChildren")
-        a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}'s page
+  div.span9
+    legend The kids in your familly
+    p(ng-show='famillyChildren.length == 0')
+      | You are not following any children in you familly yet. 
+      | Go to the 
+      a(href = "/find") Find
+      | page to look out people and follow children
+    table.table(ng-show = "famillyChildren.length > 0")
+      tr
+        th
+        th 
+          | You are
+        th 
+          | latest update
+        th
+      tr(ng-repeat="child in famillyChildren")
+        td
+          a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
+          br
+          img(ng-src="{{ child.picture | thumbPicture }}")
+        td
+          | {{ getRelationship(child) }} 
+        td
+          | {{ child.lastUpdate.updatedAt | fromNow }}
 
-  div.span5
-    legend Look up someone you know
-    p(ng-show='followedChildren.length < 1')
-     | Look up the parents of the child you want to follow and ask them to add you !
-    
-    <autocomplete results = 'user' url = '/api/users/search'></autocomplete>
-    
-    div(ng-show = 'user.name.length > 0')
-      h5 Contact request 
-      img(ng-src = "{{user | userThumbPic}}")
-      button(class = 'btn') Can I follow {{ user.name }}?
+div.row
+  div.span9
+    legend The kids you are following
+    p(ng-show='followedChildren.length == 0')
+      | You are not following any children yet. 
+      | Go to the 
+      a(href = "/find") Find 
+      | page to look out people and follow children
+    table.table(ng-show = "followedChildren.length > 0")
+      tr
+        th
+        th
+        th 
+          | latest update
+        th
+      tr(ng-repeat="child in followedChildren")
+        th
+          a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
+        td 
+          img(ng-src="{{ child.picture | iconPicture }}")
+        td
+          | {{ child.lastUpdate.updatedAt | fromNow }}
    
 
 

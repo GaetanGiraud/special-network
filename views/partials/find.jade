@@ -10,7 +10,7 @@ div.row
     //button(ng-click = 'getResults()') Search
       
       
-  div.span5
+  div.span4
     h4 Refine your search
     
     h5 How far from 
@@ -27,44 +27,49 @@ div.row
     //superpowers(results = 'superpower', url = '/api/discussions/search?type=tags', create = 'add(string, newObject)')
 
 div.row(ng-show = "!searchResults")
-  div.span10
+  div.span9
     p
       | No results yet.
 
 div.row(ng-show = "searchResults.length > 0")
-  div.span10
+  div.span9
     table.table
       tr
         th
         th Where I live
-        th My Super Powers
-        th People following me 
-        th Latest Update
-        th  Do you want to follow me?
+        th My Children
+        th The children I am following
         th
-      tr(ng-repeat = 'child in searchResults' )
+      tr(ng-repeat = 'result in searchResults' )
         td
           h6 
-            a(ng-href = '/children/{{ child.pageTitle }}'){{ child.name }}
-          img(ng-src="{{ child.picture | thumbPicture }}")
+            | {{ result._id.name }}
+          img(ng-src="{{ result._id | userThumbPic }}")
         td
-          | {{ child.creator._user.location.formattedAddress }}
+          | {{ result._id.location.formattedAddress }}
         td
-          ul.unstyled(ng-show = 'child.superpowers.length > 0')
-            li(ng-repeat = 'superp in child.superpowers')
-              | {{ superp | inflector:humanize }}
-          span(ng-show = 'child.superpowers.length == 0')
-            | No superpower registered
+          ul.unstyled(ng-show = 'myChildren(result).length > 0')
+            li(ng-repeat = "child in myChildren(result)")
+              img( ng-src = " {{ child.picture | iconPicture}} ")
+              | {{ child.name }}
+              | I am his {{ child.relationship }}
+              ul
+                li(ng-repeat = 'superp in child.superpowers')
+                  | {{ superp | inflector:humanize }}
+                span(ng-show = 'child.superpowers.length == 0')
+                  | No superpower registerd
+                button.btn(type='button', ng-click = "followMe(child)") Follow me
         td
-          ul.unstyled(ng-show = 'child.permissions.length > 0')
-            li(ng-repeat = "adult in child.permissions")
-              | {{ adult._user | userIconPic}} {{ adult._user.name }}, is my {{ adult.relationship }}
-          span(ng-show = 'child.permissions.length == 0')
-            | I don't have any followers yet. 
-            br
-            | Become the first one!
-        td 
-          | {{ child.lastUpdate.updatedAt | fromNow }}
+          | I am following:
+          br
+          | {{ result.childrenCount }}
+          | Children 
+          br 
+          | with the following superpowers:
+          ul
+            li(ng-repeat = "superb in getSuperpowers(result)")
+              | {{ superb }}
+          
         td
-          | Contact my {{ child.creator.relationship }} : 
-          contact( user = "child.creator", child = "{{  child._id }}")
+          | Contact me
+          contact( user = "{{ result._id._id }}")

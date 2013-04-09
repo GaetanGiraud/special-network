@@ -4,7 +4,11 @@ div.row
     article(ng-show = 'HideCreateDialog')
       h5 Create a new Message
       h6 Send to:
-      tags(tags = 'newMessage.receivers', url = '/api/users?contacts=true')
+      ul.unstyled
+        li(ng-repeat = "user in newMessage.receivers")
+          img(ng-src = "user | userIconPic")
+          | {{ user.name }}
+      autocomplete(results = 'newMessage.receivers', url = '/api/users/contacts')
 
       div.content
         div.editable(contenteditable = 'true', ng-model = "newMessage.content")
@@ -13,12 +17,15 @@ div.row
             button.btn(type = "button", ng-click = "createMessage()") Post
             button.btn(type = "button", ng-click = "HideCreateDialog = !HideCreateDialog") Cancel
             
-    div#discussions(ng-repeat = "message in messages")
-      article.message(ng-click = 'setCurrentMessage($index)')
+    div#discussions(ng-repeat = "message in messages | orderBy:updatedAt:reverse")
+      article.message(ng-click = 'setCurrentMessage(message)')
+        div(ng-show = "message.read")
+          p
+            | Message read!
         h4 From
         img(ng-src = '{{ message._creator | iconPicture }}')
         | {{message._creator.name}} 
-        | {{ $index }}
+        | {{ message.createdAt | fromNow }}
         //h4 To
         //ul.unstyled
         //  li(ng-repeat = "user in message.receivers")
@@ -28,7 +35,7 @@ div.row
       
       
       
-  div.span7
+  div.span6
     article.discussion(ng-show= 'currentMessage')
        h4 
          img(ng-src = '{{ currentMessage._creator | iconPicture }}')
@@ -37,20 +44,31 @@ div.row
        h5 to: 
        ul.unstyled
          li(ng-repeat = "user in currentMessage.receivers")
-           img(ng-src = '{{ user | userIconPic }}')
-           | {{ user.name }}
+           img(ng-src = '{{ user._user | userIconPic }}')
+           | {{ user._user.name }}
        p
          | {{ currentMessage.createdAt | fromNow }} 
        p(ng-bind-html = 'currentMessage.content')
-            
-        div.replies(ng-repeat =  'reply in currentMessage.replies')
-          h6 {{reply._creator.name}} - {{ reply.createdAt | fromNow }}
-          p(ng-bind-html = 'reply.content')
+
+       div(ng-show = "showAction")
+         div(ng-show = "!currentMessage.action.executed")
+           //select(placeholder='Can this person post on {{ currentMessage.action.target.name }}'s profile?', ng-options = "r for r in ['Yes', 'No']", ng-model = "relationship")
+           select(placeholder='Who is he/her to you', ng-options = "r.name as r.name for r in relationships", ng-model = "relationship")
+           button.btn.btn-success(type = 'button', ng-click = "respondToFollowingRequest(true)") Ok
+           button.btn(type = 'button', ng-click = "espondToFollowingRequest(false)") Ignore
+        
+         div(ng-show = "currentMessage.action.executed")
+           p
+             | You have already responded to the following request.
+       
+       div.replies(ng-repeat =  'reply in currentMessage.replies')
+         h6 {{reply._creator.name}} - {{ reply.createdAt | fromNow }}
+         p(ng-bind-html = 'reply.content')
           
-        div(ng-controller = 'newReplyCtrl')
-          a(ng-show = "!reply", ng-click="reply = true") Reply
-          div.footer(ng-show = "reply")
-            textarea(ng-model = "newReply.content") 
-            br
-            button.btn.btn-primary(ng-click="createReply($index)") Post 
-            button.btn(ng-click="reply = false") Cancel
+       div(ng-controller = 'newReplyCtrl', ng-show = "!showAction")
+         a(ng-show = "!reply", ng-click="reply = true") Reply
+         div.footer(ng-show = "reply")
+           textarea(ng-model = "newReply.content") 
+           br
+           button.btn.btn-primary(ng-click="createReply($index)") Post 
+           button.btn(ng-click="reply = false") Cancel

@@ -10,6 +10,8 @@ var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , Location = require('../models/Location')(db)
   , Child = require('../models/Child')(db)
+  , _ = require("underscore")
+  , mongoose = require('mongoose')
   , bcrypt = require('bcrypt');
   
   
@@ -207,6 +209,48 @@ exports.delete = function (req, res) {
   });
 }; 
 
+exports.findContacts = function(req, res) {
+  if (typeof req.query.term == "undefined" || req.query.term == "") {
+     var cleanedTerm = ".";
+   } else {
+      var cleanedTerm = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
+  }
+  
+  var id = mongoose.Types.ObjectId(req.session.user);
+  
+  Child.aggregate( 
+            { $project : 
+              { permissions: 1 }
+            }, 
+            { $match: {'permissions._user': id }},
+           
+            { $unwind: "$permissions"},
+            { $group: 
+              { _id: "$permissions._user"} 
+             },
+          
+          function (err, results) {
+            console.log(results);
+            if (err) return res.send(400, err);
+            
+            User.populate(results, { 
+                path: '_id', 
+                match: { 'name': {$regex: cleanedTerm, $options: 'i'}, '_id': { $ne: req.session.user }},
+                select: '_id name picture',
+                options: { limit: 5 }
+                },  function(err, results) {
+                 // console.log(results);
+                  var filteredResult = _.filter(results, function(result) { 
+                    return result._id != null;
+                     });
+                 console.log( filteredResult);
+                 if (err) return res.send(400, err);
+                 res.json(filteredResult);
+            });
+    });
+  
+};
+
 exports.search = function (req, res) {
    var distance = req.query.distance;
    var querySuperpowers = req.query.superpowers;
@@ -214,14 +258,14 @@ exports.search = function (req, res) {
    
   // console.log(req.query.superpowers);
    
-   if (typeof req.query.term == "undefined") {
+   if (typeof req.query.term == "undefined" || req.query.term == "") {
          var cleanedTerm = ".";
          
    } else {
       var cleanedTerm = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
 
     }
-   console.log( querySuperpowers )
+   //console.log( querySuperpowers )
     
     if (typeof querySuperpowers != 'undefined') {
       querySuperpowers = req.query.superpowers.replace(/[\[\]{}|&;$%@"<>()+]/g, "").split(',');
@@ -241,7 +285,61 @@ exports.search = function (req, res) {
       
     }*/
     
-      Child.find(opts).populate({ 
+    User.find({'name': {$regex: cleanedTerm, $options: 'i'}, // search term
+             'location.loc': {$nearSphere: centerlocation, $maxDistance: distance/6371}}, // distance criteria
+             {'_id': { $ne: req.session.user }}) // exlude the current user from the search results
+     .limit(50) // limit to a reasonable number of requests for performance purposes.
+     .select('_id')
+     .exec(function(err, users) { 
+        if (err) return res.send(400, err);
+        // Extract the user ids into an array
+        var userIds =  _.map(users, function(user) { return user._id } );
+      
+        Child.aggregate( 
+          { $match: {'permissions._user': { $in: userIds }}},
+          { $match: opts },
+          { $project : 
+            { name: 1, picture: 1, pageTitle: 1, creator: 1, permissions: 1, superpowers: 1 }
+            }, 
+          { $unwind: "$permissions"}, 
+          { $group: 
+            { _id: "$permissions._user", childrenCount: { $sum : 1 }, children: { $addToSet: {_id: "$_id", relationship: "$permissions.relationship", superpowers: "$superpowers", creator: "$creator", pageTitle: "$pageTitle", name: "$name", picture: "$picture"}} 
+            }
+          },
+         // { $match: { 'children.creator._user': req.session.user }},
+          
+          function (err, results) {
+              if (err) return res.send(400, err);
+              console.log(results);
+              User.populate(results, { 
+                path: '_id', 
+               // match: {'name': {$regex: cleanedTerm, $options: 'i'}},
+                match: { 'name': {$regex: cleanedTerm, $options: 'i'}, 'location.loc': {$nearSphere: centerlocation, $maxDistance: distance/6371},
+                '_id': { $ne: req.session.user }},
+              //  match: {'_id': { $ne: req.session.user }},
+                select: '_id name picture location'
+                },
+                function(err, results) {
+                 // console.log(results);
+                  var filteredResult = _.filter(results, function(result) { 
+                    return result._id != null;
+                     });
+                  console.log( filteredResult);
+                 if (err) return res.send(400, err);
+                 res.json(filteredResult);
+              });
+          });
+    });
+    
+    
+    
+    
+    
+   
+
+    
+    
+ /*     Child.find(opts).populate({ 
         path: 'creator._user',
         match: {'location.loc': {$nearSphere: centerlocation, $maxDistance: distance/6371} , 'name': {$regex: cleanedTerm, $options: 'i'} },
         select: '_id name picture location'
@@ -281,7 +379,7 @@ exports.search = function (req, res) {
        res.json(results);
       
       
-     })
+     })*/
    
    
    //Child.populate

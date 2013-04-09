@@ -2,7 +2,7 @@
 
 
 // Declare app level module which depends on filters, and services
-var app = angular.module('CareKids', ['ngSanitize', 'CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service', 'geoService', 'SocketServices']).
+var app = angular.module('CareKids', ['ngSanitize', 'angular-underscore', 'CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service', 'geoService', 'SocketServices']).
   config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.when('/', {templateUrl: 'partials/index', controller: AppCtrl});
     $routeProvider.when('/logout', {templateUrl: 'partials/home', controller: LogoutCtrl});
@@ -43,7 +43,9 @@ app.run(['$rootScope', '$location', 'AuthService', 'requests401',  function ($ro
       if(['/', '/login', '/logout'].indexOf($location.path()) == -1 ) { // exepting for the root and the login-logout pages
         AuthService.loginModal(function(result) {
           if(result) { return requests401.retryAll(); }
-          $location.path('/home');
+          
+          if ( $rootScope.loggedIn ) return $location.path('/home');
+          $location.path('/');
           return false;
         });
       }

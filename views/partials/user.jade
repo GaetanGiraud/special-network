@@ -2,21 +2,21 @@
 h3 Welcome {{currentUser.name}} 
 
 div.row 
-  div.span5
+  div.span4
     legend Yourself
     label
       | Your Name
     div.input-prepend
       span.add-on
         i.icon-user
-      input(type='text', ng-model = "currentUser.name", class = 'span4' )
+      input(type='text', ng-model = "currentUser.name", class = 'span3' )
     br
     label
       | Your email
     div.input-prepend
       span.add-on
         i.icon-envelope
-      input(type='text', ng-model = "currentUser.email", class = 'span4')
+      input(type='text', ng-model = "currentUser.email", class = 'span3')
     br
 
       
@@ -29,7 +29,7 @@ div.row
       div.input-prepend
         span.add-on
           i.icon-globe
-        input(type='text', ng-model = "currentUser.location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span4')
+        input(type='text', ng-model = "currentUser.location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span3')
       button(type = 'button', ng-click="undoLocation()", class="btn btn-danger", ng-show = "undoLocUpdate") undo
     br
     div(ng-show='currentUser.location.country')
@@ -49,19 +49,11 @@ div.row
         li
           button(ng-click="validateAdress($index)", class="btn btn-success") Ok
           {{ loc.formatted_address }}
-    
-    legend Settings
-    div
-     label.checkbox
-       input(type="checkbox", ng-model="researchAgreement")
-       | Do you agree to have your data used for research purposes?
-     label.checkbox
-       input(type="checkbox", ng-model="currentUser.settings.createChildOptOut")
-       | Until further notice, I do not want to create pages.
+  
 
   div.span5
     legend Your profile picture
-    div.row()
+    div.row
       div.span3
         img#picture.well(width="200", ng-src="{{ currentUser | userPic }}")
       div.span2
@@ -79,6 +71,15 @@ div.row
 
 div.row
   div.span7
+    legend Settings
+      div
+       label.checkbox
+         input(type="checkbox", ng-model="researchAgreement")
+         | Do you agree to have your data used for research purposes?
+       label.checkbox
+         input(type="checkbox", ng-model="currentUser.settings.createChildOptOut")
+         | Until further notice, I do not want to create pages.
+         
     button(type='button', ng-click="updateUser(false)", class='btn btn-primary') Update
     button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
 

@@ -6,16 +6,17 @@
 var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , Message = require('../models/Message')(db)
+  , _ = require("underscore")
   , extend = require('node.extend');
   
   
 exports.add = function (message, callback) {
-  if (Array.isArray(message.receivers)) {
-    for(var i =0; i < message.receivers.length; i++) { 
-     message.receivers[i] = message.receivers[i]._id ; 
-     }
-   } 
-  message._creator = message._creator._id;
+  //if (Array.isArray(message.receivers)) {
+ //   for(var i =0; i < message.receivers.length; i++) { 
+ //    message.receivers[i] = message.receivers[i]._id ; 
+  //   }
+ //  } 
+ // message._creator = message._creator._id;
       
   Message.create(message, function(err, message) {
     if (err)  return callback(err, null);
@@ -82,8 +83,8 @@ exports.findAll = function (req, res) {
     .limit(10)
     .populate('_creator', '_id name picture')
     .populate('replies._creator', '_id name picture')
-    .populate('receivers')
-    .populate('action.target', model)
+    .populate('receivers._user')
+    .populate('action.target')
     .exec(function (err, messages) {
       if (err)  return res.send(400, err);
       return res.json(messages);
@@ -91,19 +92,50 @@ exports.findAll = function (req, res) {
  // }    
 };
 
-/*exports.update = function (req, res) {
+exports.update = function (req, res) {
   var id = req.params.id;
+  console.log(req.params.id);
+  console.log(req.body);
   var messageData = req.body;
-  if (messageData._id) delete userData._id; // stripping the id for mongoDB if it is present in the request body.
-  extend(messageData, {'updatedAt': Date.now})
   
-  Message.findByIdAndUpdate(id, messageData, function(err, message) {
+  Message.findOne({'_id': id}, function(err, message) {
     if (err) return res.send(400, err);
-    console.log('message: ' + message._id + ' updated'.green);
-    return res.json(message);
+   
+    if (!_.isUndefined(messageData.read) && (req.session.user != message._creator )) {
+      var receiverId = _.findWhere(message.receivers, {'_user': req.session.user })._id;
+      console.log(receiverId);
+      
+    } else {
+      message.read = true; 
+    }
+    
+    if (!_.isUndefined(messageData.action)) message.action.executed = true;
+    message.updatedAt = Date.now();
+    
+    
+    message.save(function(err, message){
+      if (err) return res.send(400, err);
+      console.log(('message: ' + message._id + ' updated').green);
+      return res.json(message);
+    });
+    
+    
+    
   });
-};
+  
+};  
+  
+  
+  //if (messageData._id) delete messageData._id; // stripping the id for mongoDB if it is present in the request body.
+ // extend(messageData, {'updatedAt': Date.now()})
+ // console.log(messageData);
+  
+//  Message.findByIdAndUpdate(id, messageData, function(err, message) {
 
+ // });
+
+
+/*
 exports.delete = function (req, res) {
   Message.findByIdAndRemove(req.params.id, function(err) {
     if (err) return res.send(400, err);
