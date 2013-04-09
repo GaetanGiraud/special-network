@@ -354,10 +354,27 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
     $scope.setCurrentMessage = function(message) {
       $scope.currentMessage = message; 
       
-  //    if (($scope.currentMessage._creator._id == $scope.currentUser._id) && (!$scope.currentMessage.read)) {
-         $scope.currentMessage.read = true;
-         Message.update($scope.currentMessage, {read: true});
-    //   } 
+      if (!$scope.messageStatus(message)) {
+         if ($scope.currentMessage._creator._id == $scope.currentUser._id)  { 
+             $scope.currentMessage.read = true
+          } else {
+           for(var i =0; $scope.currentMessage.receivers.length; i++) {
+            if ($scope.currentMessage.receivers[i]._user._id == $scope.currentUser._id) {
+                $scope.currentMessage.receivers[i].read = true;
+              break; 
+            }
+            }
+         }
+       
+         Message.update($scope.currentMessage, {read: true}, function(err, message) {
+         //  if (message._creat
+         //   $scope.currentMessage.read = true;
+           
+          //  var receiverId = _.find(message.receivers, function(receiver) { return receiver._user ==  req.session.user })._id;
+            //$scope.currentMessage = message; 
+           // $scope.$apply($scope.messages);
+          });
+       } 
       
       if (angular.isDefined(message.action) && (message._creator._id != $scope.currentUser._id) )
        {

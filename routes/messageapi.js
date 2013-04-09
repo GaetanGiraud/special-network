@@ -106,7 +106,7 @@ exports.update = function (req, res) {
     // to determine of the current user is the send or receiver of the message.
     if (!_.isUndefined(messageData.read)) { 
       // Check first if the current user is the creator
-      if (req.session.user == message._creator )) {
+      if (req.session.user == message._creator ) {
          message.read = true; 
       } else {
         // if it is not, retreive the id of the receiver object inside the message.receivers array.
@@ -121,7 +121,13 @@ exports.update = function (req, res) {
     message.save(function(err, message){
       if (err) return res.send(400, err);
       console.log(('message: ' + message._id + ' updated').green);
-      return res.json(message);
+      message.populate('_creator', '_id name picture')
+        .populate('replies._creator', '_id name picture')
+        .populate('receivers._user')
+        .populate('action.target', 
+        function(err, message) { 
+          return res.json(message);
+        });
     });
     
     
