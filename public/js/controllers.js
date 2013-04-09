@@ -322,7 +322,7 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
   ];
   
     $scope.newMessage = {};
-    $scope.newMessage.receiver = [];
+    $scope.newMessage.receivers = [];
     
     Message.query(function(err, data) {
        $scope.messages = data;  
@@ -346,6 +346,10 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
       }
     });
     
+    $scope.messageStatus = function(message) {
+      if (message._creator._id == $scope.currentUser._id) return message.read;  
+      return _.find(message.receivers, function(receiver) { return receiver._user._id == $scope.currentUser._id  }).read;
+    }
     
     $scope.setCurrentMessage = function(message) {
       $scope.currentMessage = message; 
@@ -362,10 +366,16 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
     }
   
     $scope.createMessage = function() {
-      Socket.socket().emit('messageCreated', $scope.newMessage);
+      var message = angular.copy($scope.newMessage);
+      _.each(message.receivers, function(element, index, list) {
+        message.receivers[index] = { '_user': element._id._id };
+      })
+      console.log(message.receivers);
+      
+      Socket.socket().emit('messageCreated', message);
       $scope.messages.unshift(angular.copy($scope.newMessage));
       $scope.newMessage.content = '';
-      $scope.newMessage.receivers = ''; 
+      $scope.newMessage.receivers = []; 
     }   
     
     $scope.respondtoFollowingRequest = function(acceptance) {
@@ -422,9 +432,11 @@ function newReplyCtrl($scope) {
   $scope.newReply = {};
   
   $scope.$watch('currentUser', function(currentUser) {
-      $scope.$watch('newReply', function(newReply) {
-        $scope.newReply._creator = {_id: currentUser._id, name: currentUser.name, picture: currentUser.picture};
-      });
+      if (currentUser != null) {
+        $scope.$watch('newReply', function(newReply) {
+          $scope.newReply._creator = {_id: currentUser._id, name: currentUser.name, picture: currentUser.picture};
+        });
+      }
   });
     
   $scope.createReply = function() {

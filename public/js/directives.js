@@ -378,28 +378,43 @@ angular.module('CareKids.directives', []).
      scope: {
        results: '='
        },
-     template: '<input id = "autocomplete" "type ="text" ng-change="complete()" ng-model="results">',
+     template:  '<div class = "input-prepend">' +
+                 '<span class= "add-on">' +
+                    '<i class = "icon-user"></i>'+ 
+                  '</span>' +
+                  ' <input id = "autocomplete" type ="text" ng-change="complete()" ng-model="term">' + 
+                '</div>' +
+                '<ul class = "unstyled">' + 
+                  '<li ng-repeat = "user in results">' +
+                    '<img ng-src = "{{ user._id | userIconPic }}"/> {{ user._id.name  }} <button type = "button" ng-click = "remove($index)"> &times</button>' + 
+                  '</li>' +
+                '</ul>',
      link: function(scope, elm, attrs) {
      
      // setting these templates outside of the directive template allow to dynamically 
-     var ElmWidth = elm[0].offsetWidth;
+     //var ElmWidth = elm[0].offsetWidth;
+     var inputElm =  elm.children().children()[1];
+     var ElmWidth =  inputElm.offsetWidth;
      var suggestionTemplate = '<ul class = "autocomplete">' +
                                    "<li ng-click='select($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
-                                   '{{suggestion}}'+
+                                   '<img ng-src="{{ suggestion._id | userIconPic }}"> {{suggestion._id.name}}'+
                                    '</li></ul>';
        var noresultTemplate = '<ul class = "autocomplete">' +
                                    "<li>" +
                                    'No results matching your request' +
                                    '</li></ul>';
-    var html;                          
 
+    var html;
     
+      
     // watching the bindings to set up some smart defaults
       scope.$watch('results', function(results) {
         if (angular.isDefined(scope.results)) {
           if (scope.results.length == 0) { 
             if (angular.isDefined(html)) html.remove(); 
           }
+        } else {
+        
         }
       });
       
@@ -416,11 +431,11 @@ angular.module('CareKids.directives', []).
      scope.complete = function() {
        
        // if no data entered do not show anything (Handling backspace )
-       if (scope.results.length == 0) { 
+       if (scope.term.length == 0) { 
          if (angular.isDefined(html)) html.remove(); 
       } else {
        
-        $http({method: 'GET', url: attrs.url, params: {'q': scope.results }})
+        $http({method: 'GET', url: attrs.url, params: {'term': scope.term }})
          .success(function(data) {
           if (html) html.remove();
           console.log(data);
@@ -447,17 +462,17 @@ angular.module('CareKids.directives', []).
       // on click function
       scope.select = function($index, $event) {
         html.remove();
-        if (angular.isDefined($index)) {
-          //scope.results.createNew = false;
-          scope.results = scope.suggestions[$index];
-          scope.create({string: scope.results, newObject: false });
-        } else {
-          //scope.results.createNew = true;
-          scope.create({string: scope.results, newObject: true});
-        } 
-    
-        
+        scope.term = '';
+        scope.results.push(scope.suggestions[$index]);    
       }
+      
+      scope.remove = function (index) {
+        scope.results.splice(index,1);
+        scope.term = '';
+       // if (angular.isDefined(scope.select)) scope.select();
+      }
+      
+
       
       /*
        * 
@@ -479,7 +494,7 @@ angular.module('CareKids.directives', []).
           }
           if ( event.keyCode == '27' ) {
             html.remove();
-            scope.results = '';
+            scope.term = '';
             scope.$apply(scope.results);
           }
         });
@@ -487,7 +502,7 @@ angular.module('CareKids.directives', []).
       $('html').bind('mousedown', function(event) {
       //if(!$(event.target).is('#foo')) && !$(event.target).parents("#foo").is("#foo")
         if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
-          scope.$apply(scope.results = '');
+          scope.$apply(scope.term = '');
           html.remove();
         }
        });

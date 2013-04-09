@@ -7,6 +7,7 @@ var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , Message = require('../models/Message')(db)
   , _ = require("underscore")
+  , mongoose = require('mongoose')
   , extend = require('node.extend');
   
   
@@ -16,8 +17,10 @@ exports.add = function (message, callback) {
  //    message.receivers[i] = message.receivers[i]._id ; 
   //   }
  //  } 
- // message._creator = message._creator._id;
-      
+  message._creator = message._creator._id;
+  console.log(message.receivers);
+  //if (!_.isUndefined(message.receivers)
+  
   Message.create(message, function(err, message) {
     if (err)  return callback(err, null);
     console.log(('Message: ' + message._id + ' created.'));
@@ -28,7 +31,7 @@ exports.add = function (message, callback) {
     
     message
     .populate({path: '_creator', select: '_id name picture'})
-    .populate('receivers', function(err, message) {
+    .populate('receivers._user', function(err, message) {
       if (err) return callback(err, null);
       return callback(null, message);
     })
@@ -77,7 +80,7 @@ exports.findAll = function (req, res) {
   var id = req.session.user;
   
   Message.find()
-  .or([{'_creator': id}, {'receivers': id}])
+  .or([{'_creator': id}, {'receivers._user': id}])
   .sort({updatedAt: 'desc'})
     //.skip(skipIndex*10)
     .limit(10)
@@ -94,24 +97,26 @@ exports.findAll = function (req, res) {
 
 exports.update = function (req, res) {
   var id = req.params.id;
-  console.log(req.params.id);
-  console.log(req.body);
   var messageData = req.body;
   
   Message.findOne({'_id': id}, function(err, message) {
     if (err) return res.send(400, err);
-   
-    if (!_.isUndefined(messageData.read) && (req.session.user != message._creator )) {
-      var receiverId = _.findWhere(message.receivers, {'_user': req.session.user })._id;
-      console.log(receiverId);
-      
-    } else {
-      message.read = true; 
+    
+    // In case of an update of the read property, some logic has to be performed
+    // to determine of the current user is the send or receiver of the message.
+    if (!_.isUndefined(messageData.read)) { 
+      // Check first if the current user is the creator
+      if (req.session.user == message._creator )) {
+         message.read = true; 
+      } else {
+        // if it is not, retreive the id of the receiver object inside the message.receivers array.
+        var receiverId = _.find(message.receivers, function(receiver) { return receiver._user ==  req.session.user })._id;
+        message.receivers.id(receiverId).read = true;
+      }
     }
     
     if (!_.isUndefined(messageData.action)) message.action.executed = true;
     message.updatedAt = Date.now();
-    
     
     message.save(function(err, message){
       if (err) return res.send(400, err);

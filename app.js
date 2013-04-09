@@ -270,12 +270,11 @@ sessionSockets.on('connection', function(err, socket, session){
       console.log(data);
       api.messages.add(data, function(err, message) {    
         if (err) return socket.emit('error', err);
-          console.log(message);
           socket.emit('messageSavedSuccess', message);
           
           message.receivers.forEach(function(element, index, array) {
-              console.log('brodcasting to user_' + element._id);
-              socket.broadcast.to('messages_' + element._id).emit('newMessage', message);
+              console.log('brodcasting to user_' + element._user._id);
+              socket.broadcast.to('messages_' + element._user._id).emit('newMessage', message);
             });
           //socket.broadcast.to('messages_' + ).emit('newMessage', message);
           console.log((message._id + ' created').green);

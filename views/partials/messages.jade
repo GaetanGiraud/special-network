@@ -4,10 +4,7 @@ div.row
     article(ng-show = 'HideCreateDialog')
       h5 Create a new Message
       h6 Send to:
-      ul.unstyled
-        li(ng-repeat = "user in newMessage.receivers")
-          img(ng-src = "user | userIconPic")
-          | {{ user.name }}
+
       autocomplete(results = 'newMessage.receivers', url = '/api/users/contacts')
 
       div.content
@@ -19,7 +16,7 @@ div.row
             
     div#discussions(ng-repeat = "message in messages | orderBy:updatedAt:reverse")
       article.message(ng-click = 'setCurrentMessage(message)')
-        div(ng-show = "message.read")
+        div(ng-show = "messageStatus(message)")
           p
             | Message read!
         h4 From

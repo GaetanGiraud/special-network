@@ -29,6 +29,8 @@ angular.module('CareKids.services', ['ngResource']).
   factory('Message', ['Socket', '$http', function(Socket, $http){
     return { 
        query: function(callback) {
+         if (angular.isUndefined(callback)) var callback = function(err, data) {} ;
+         
          $http.get('api/messages').success(function(data) {
             console.log(data);
             return callback(null, data);
@@ -41,6 +43,8 @@ angular.module('CareKids.services', ['ngResource']).
           return;
        },
        update: function(message, data, callback) {
+         if (angular.isUndefined(callback)) var callback = function(err, data) {} ;
+         
          $http.put('api/messages/' + message._id, data).
          success(function(data) {
             return callback(null, data);
