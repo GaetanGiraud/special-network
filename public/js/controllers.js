@@ -310,24 +310,33 @@ function newCommentCtrl($scope) {
 newCommentCtrl.$inject = ['$scope'];
 
 function MessageCtrl($scope, $location, Message, Socket, Child) {
-    
-     
-  $scope.relationships = [
-    {name:'Mother'},
-    {name:'Father'},
-    {name:'Grandpa'},
-    {name:'Grandma'},
-    {name:'Family'},
-    {name:'Friend'}
-  ];
   
+  // setting up defaults
+    $scope.relationships = [
+      {name:'Mother'},
+      {name:'Father'},
+      {name:'Grandpa'},
+      {name:'Grandma'},
+      {name:'Family'},
+      {name:'Friend'}
+    ];
+    
     $scope.newMessage = {};
     $scope.newMessage.receivers = [];
-    
+  
+  // querying the messages in the database
     Message.query(function(err, data) {
        $scope.messages = data;  
     });
-    
+  
+  /*
+   * 
+   * Watchers
+   * 
+   */
+  
+  
+  // When currentUser is loaded, subscribe to the socket and set the creator value of new messages
     $scope.$watch('currentUser', function(currentUser) {
       if (currentUser != null) {
         $scope.newMessage._creator = { '_id': currentUser._id, 'name': currentUser.name, 'picture': currentUser.picture } ;
@@ -335,9 +344,9 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
       }
     });
     
+    // Set the action value parameter on change of messages
     $scope.$watch('currentMessage', function(currentMessage) { 
       if ( angular.isDefined($scope.currentMessage)) {  
-        console.log(currentMessage);
         if( angular.isDefined($scope.currentMessage.action) && ($scope.currentMessage._creator._id != $scope.currentUser._id) ) {
           $scope.showAction = true;
         } else {
@@ -346,14 +355,22 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
       }
     });
     
-    $scope.messageStatus = function(message) {
-      if (message._creator._id == $scope.currentUser._id) return message.read;  
-      return _.find(message.receivers, function(receiver) { return receiver._user._id == $scope.currentUser._id  }).read;
-    }
-    
+    // sort the messages using underscore upon changes.
+    $scope.$watch('messages', function(messages){
+       var sortedMessages = _.sortBy($scope.messages, function(message) { return message.updatedAt }).reverse();    
+       $scope.$safeApply($scope, function() { $scope.sortedMessages = sortedMessages; });
+      }, true);
+      
+    /* 
+     * 
+     * set the currentMessage. 
+     * 
+     */
+     
     $scope.setCurrentMessage = function(message) {
       $scope.currentMessage = message; 
       
+      // Toggle the read status if not already set to true.
       if (!$scope.messageStatus(message)) {
          if ($scope.currentMessage._creator._id == $scope.currentUser._id)  { 
              $scope.currentMessage.read = true
@@ -365,16 +382,10 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
             }
             }
          }
-       
-         Message.update($scope.currentMessage, {read: true}, function(err, message) {
-         //  if (message._creat
-         //   $scope.currentMessage.read = true;
-           
-          //  var receiverId = _.find(message.receivers, function(receiver) { return receiver._user ==  req.session.user })._id;
-            //$scope.currentMessage = message; 
-           // $scope.$apply($scope.messages);
-          });
+         Message.update($scope.currentMessage, {read: true});
        } 
+      // toggle the actionMessage status. 
+      // The Creator of the message is the requestor and do not get to see the message.
       
       if (angular.isDefined(message.action) && (message._creator._id != $scope.currentUser._id) )
        {
@@ -382,20 +393,52 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
         }
     }
   
+   /*
+    *  Download more messages
+    */
+  
+  $scope.moreMessages = function() { 
+     Message.query(function(err, data) {
+       $scope.messages = $scope.messages.concat(data);
+    });
+    
+  }
+  
+  
+  
+   /*
+    *  create a new message
+    */
+    
     $scope.createMessage = function() {
+      
+      // deep copy the message to allow manipulation on the data before sending it to the server.
       var message = angular.copy($scope.newMessage);
+      // replace the receivers by their _id.
       _.each(message.receivers, function(element, index, list) {
         message.receivers[index] = { '_user': element._id._id };
       })
-      console.log(message.receivers);
       
       Socket.socket().emit('messageCreated', message);
+      
+      // add the message to the message array and reset the newMessage values;
       $scope.messages.unshift(angular.copy($scope.newMessage));
       $scope.newMessage.content = '';
       $scope.newMessage.receivers = []; 
     }   
+          
+   // extract the read / unread status of a message for the currentUser
+    $scope.messageStatus = function(message) {
+      if (message._creator._id == $scope.currentUser._id) return message.read;  
+      return _.find(message.receivers, function(receiver) { return receiver._user._id == $scope.currentUser._id  }).read;
+    }
+    
+    /*
+     * handle the following requests logic
+     */
     
     $scope.respondtoFollowingRequest = function(acceptance) {
+      
       if(acceptance) {
       Child.update({'childId': $scope.currentMessage.action.target._id },
          { permission: { _user: $scope.currentMessage._creator._id,
@@ -403,44 +446,66 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
            relationship: $scope.relationship}
           });
        }   
-      Message.update($scope.currentMessage, {'action.executed': true});
+      Message.update($scope.currentMessage, { action : { executed: true }});
+      $scope.$safeApply($scope, function() { $scope.currentMessage.action.executed = true });
     };
     
- // $scope.$on('event:createMessage', function(){
- //     $scope.createMessage(); 
- // });
+    /*
+     * Receive angular events from reply Controller.
+     */
     
-   Socket.socket().on('newReply', function(reply) {
-      console.log(reply);  
+    $scope.$on('event:replyAdded', function(event, reply, id) {
+      Socket.socket().emit('replyAdded', { 'reply': reply, 'messageId': id});
+      reply.createdAt = moment().utc().format();
+      $scope.currentMessage.replies.push(reply);
+      $scope.currentMessage.updatedAt = moment().utc().format();
+    });
+
+   /*
+    * 
+    * Receiving and processing sockets on the open socket.
+    * 
+    */
+  
+  // adding a reply to a discussion
+   Socket.socket().on('newReply', function(message) {
+      // To check if a message has been found
+      var messageFound = false;
+      
+      // loop through all messages until the message has been found
       for(var i = 0; i < $scope.messages.length; i ++) {
-        console.log($scope.messages[i]._id);
-        console.log(reply.messageId);
-        if ( updatedAt[i]._id == reply.messageId) {
-           $scope.$apply($scope.messages[i].replies.push(reply.reply));
-           $scope.$apply($scope.messages[i].updatedAt = reply.reply.createdAt);
+        if ( $scope.messages[i]._id == message._id) {
+           var reply = _.last(message.replies);
+           
+           // add the reply message to the scope.
+           // Change the updated date of the message.
+           $scope.$apply(function() { 
+             $scope.messages[i].replies.push(reply);
+             $scope.messages[i].updatedAt = reply.createdAt;
+             });
+           messageFound = true;
           break;     
         }
       }
+      // not message found, push it at the top of the message list.
+      if (!messageFound) { 
+       $scope.$apply(function() {
+          $scope.messages.push(message);
+        });
+      }
     });
     
-    
+    // receiving new message
     Socket.socket().on('newMessage', function(message) {
          $scope.$apply($scope.messages.unshift(message));
     });
     
+    // update message with database information after successful broadcast.
     Socket.socket().on('messageSavedSuccess', function(message) {
       $scope.$apply($scope.messages[0] = message);
+      $scope.setCurrentMessage($scope.messages[0]);
     });
     
-    $scope.$on('event:replyAdded', function(event, reply, id) {
-      Socket.socket().emit('replyAdded', { 'reply': reply, 'messageId': id});
-      //reply.createdAt =  Date.now();
-      $scope.currentMessage.replies.push(reply);
-      //$scope.currentMessage.updatedAt = reply.createdAt;
-      //$scope.$digest($scope.messages);
-      
-      //console.log($scope.currentMessage.updatedAt);
-    });
 
 }
 MessageCtrl.$inject = ['$scope', '$location', 'Message', 'Socket', 'Child'];
@@ -833,8 +898,8 @@ function FindCtrl($scope, User, Alert, $http, Message) {
         actionType: "following",
         target: child._id
         },
-      _creator: $scope.currentUser._id,
-      receivers: [ child.creator._user ]
+      _creator: $scope.currentUser,
+      receivers: [ { '_user': child.creator._user } ]
       });
     
   }

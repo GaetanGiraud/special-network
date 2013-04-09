@@ -50,6 +50,20 @@ app.run(['$rootScope', '$location', 'AuthService', 'requests401',  function ($ro
         });
       }
     });
+    
+    $rootScope.$safeApply = function($scope, fn) {
+      fn = fn || function() {};
+      if($scope.$$phase) {
+        //don't worry, the value gets set and AngularJS picks up on it...
+        fn();
+      }
+      else {
+        //this will fire to tell angularjs to notice that a change has happened
+        //if it is outside of it's own behaviour...
+        $scope.$apply(fn); 
+       }
+    };
+
 
 }]);
     

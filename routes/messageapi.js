@@ -52,17 +52,27 @@ exports.addReply = function (id, reply, callback) {
     var index = message.replies.push(reply);
     message.updatedAt = Date.now();
     
+    // setting the read flags to false.
+    message.read = false;
+    _.each(message.receivers, function(element, index, list) {
+        message.receivers[index].read = false;
+    });
+    
     message.save(function(err) {
       if (err) return callback(err, null);
       
     //  var comment =  ;
-      
-      message.populate({path: 'replies._creator', select: '_id name picture'}, function(err, message) {
+      console.log(message.updatedAt);
+      message.populate('_creator', '_id name picture')
+        .populate('replies._creator', '_id name picture')
+        .populate('receivers._user')
+        .populate('action.target', function(err, message) {
+          console.log(message);
           if (err) return callback(err, null);
-          return callback(null, {messageId: message._id, reply: message.replies[index-1]});
+          return callback(null, message) });
       });
     });
-  });
+  //});
 };
 
 exports.findById = function (req, res) {
@@ -76,20 +86,21 @@ exports.findById = function (req, res) {
 
 exports.findAll = function (req, res) {
   // setting up the default query parameter 
-  
+  var skipIndex = req.query.page -1;
   var id = req.session.user;
   
   Message.find()
   .or([{'_creator': id}, {'receivers._user': id}])
   .sort({updatedAt: 'desc'})
-    //.skip(skipIndex*10)
-    .limit(10)
+    .skip(skipIndex*5)
+    .limit(5)
     .populate('_creator', '_id name picture')
     .populate('replies._creator', '_id name picture')
     .populate('receivers._user')
     .populate('action.target')
     .exec(function (err, messages) {
       if (err)  return res.send(400, err);
+      console.log(_.first(messages))
       return res.json(messages);
     });  
  // }    
@@ -98,7 +109,7 @@ exports.findAll = function (req, res) {
 exports.update = function (req, res) {
   var id = req.params.id;
   var messageData = req.body;
-  
+
   Message.findOne({'_id': id}, function(err, message) {
     if (err) return res.send(400, err);
     
@@ -115,8 +126,12 @@ exports.update = function (req, res) {
       }
     }
     
-    if (!_.isUndefined(messageData.action)) message.action.executed = true;
-    message.updatedAt = Date.now();
+    if (!_.isUndefined(messageData.action)) { 
+        console.log('ok');
+      message.action.executed = true;
+      message.updatedAt = Date.now();
+    }
+    
     
     message.save(function(err, message){
       if (err) return res.send(400, err);

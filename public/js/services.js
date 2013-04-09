@@ -27,11 +27,14 @@ angular.module('CareKids.services', ['ngResource']).
                       );
   }]).
   factory('Message', ['Socket', '$http', function(Socket, $http){
+    var page = 1;
+    
     return { 
        query: function(callback) {
          if (angular.isUndefined(callback)) var callback = function(err, data) {} ;
          
-         $http.get('api/messages').success(function(data) {
+         $http.get('api/messages', { params: {page: page}}).success(function(data) {
+            page ++;
             console.log(data);
             return callback(null, data);
          }).error(function(err) {

@@ -14,7 +14,7 @@ div.row
             button.btn(type = "button", ng-click = "createMessage()") Post
             button.btn(type = "button", ng-click = "HideCreateDialog = !HideCreateDialog") Cancel
             
-    div#discussions(ng-repeat = "message in messages | orderBy:updatedAt:reverse")
+    div#discussions(ng-repeat = "message in sortedMessages")
       article.message(ng-click = 'setCurrentMessage(message)')
         div(ng-show = "messageStatus(message)")
           p
@@ -22,13 +22,16 @@ div.row
         h4 From
         img(ng-src = '{{ message._creator | iconPicture }}')
         | {{message._creator.name}} 
-        | {{ message.createdAt | fromNow }}
+        | {{ message.updatedAt | fromNow }}
         //h4 To
         //ul.unstyled
         //  li(ng-repeat = "user in message.receivers")
         //    img(ng-src = '{{ user | userIconPic }}')
         //    | {{ user.name }}
-        p(ng-bind-html = 'message.content')      
+        p(ng-bind-html = 'message.content')  
+    div
+      i.icon-caret-down.icon-2x(ng-click="moreMessages()")
+      
       
       
       
@@ -51,8 +54,8 @@ div.row
          div(ng-show = "!currentMessage.action.executed")
            //select(placeholder='Can this person post on {{ currentMessage.action.target.name }}'s profile?', ng-options = "r for r in ['Yes', 'No']", ng-model = "relationship")
            select(placeholder='Who is he/her to you', ng-options = "r.name as r.name for r in relationships", ng-model = "relationship")
-           button.btn.btn-success(type = 'button', ng-click = "respondToFollowingRequest(true)") Ok
-           button.btn(type = 'button', ng-click = "espondToFollowingRequest(false)") Ignore
+           button.btn.btn-success(type = 'button', ng-click = "respondtoFollowingRequest(true)") Ok
+           button.btn(type = 'button', ng-click = "respondtoFollowingRequest(false)") Ignore
         
          div(ng-show = "currentMessage.action.executed")
            p

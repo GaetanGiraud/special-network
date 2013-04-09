@@ -260,9 +260,14 @@ sessionSockets.on('connection', function(err, socket, session){
     });
     
     socket.on('replyAdded', function(data) {
-      api.messages.addReply(data.messageId, data.reply, function(err, reply) {
+      api.messages.addReply(data.messageId, data.reply, function(err, message) {
         if (err) socket.emit('error', err);
-        socket.broadcast.emit('newReply', reply);
+         message.receivers.forEach(function(element, index, array) {
+              console.log('brodcasting to messages_' + element._user);
+              socket.broadcast.to('messages_' + element._user._id).emit('newReply', message);
+          });
+         socket.broadcast.to('messages_' + message._creator._id).emit('newReply', message);
+         console.log('brodcasting to messages_' + message._creator);
       });
     });
     
