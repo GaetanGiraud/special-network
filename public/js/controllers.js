@@ -370,8 +370,9 @@ function VideoCtrl($scope) {
    $scope.addVideo = function(file) {
       // if pictures array inside the newDiscussion object has not been instantiated, do it.
       if (angular.isUndefined($scope.newDiscussion.video)) $scope.newDiscussion.video = {};
-      $scope.newDiscussion.video = { _creatorId:  $scope.currentUser._id,
-                                      video: file.name };
+      $scope.newDiscussion.video =  { _creatorId:  $scope.currentUser._id,
+                                      title: file.title,
+                                      name: file.name };
       $scope.$apply($scope.newDiscussion.video);
       //var myPlayer = _V_("example_video_1");
    }
@@ -736,15 +737,11 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
       //console.log($scope.discussions);
       $scope.paginationUrl = '/api/discussions?children=' + $scope.child._id;
       
-      console.log($scope.currentUser._id );
-      console.log(child.creator._user);
-      
       if ($scope.currentUser._id == child.creator._user) $scope.authorize.edit = true;
       
       for(var i = 0; child.permissions.length; i++) {
         if (child.permissions[i]._user == $scope.currentUser._id) {
           var permission = child.permissions[i];
-          console.log(permission);
           if (permission.rights == 'write') $scope.authorize.post = true;
           break;
         }   

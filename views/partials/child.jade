@@ -5,7 +5,7 @@ div.row
       
       div.row
         div.span3
-          img#picture.img-rounded.well(width="200", id = "profile-picture", ng-src="{{ child.picture | picture }}")
+          img#picture.img-rounded.well(width="200", id = "profile-picture", ng-src="{{ child | userPic }}")
         div.span2(ng-show = 'authorize.edit' )
           small
             | <strong>Drag & Drop</strong> the file onto the existing picture or

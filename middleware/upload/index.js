@@ -13,10 +13,9 @@ var EventEmitter = require('events').EventEmitter,
   _.str.include('Underscore.string', 'string')
 
 
-module.exports = function(middleware, options) { 
+module.exports = function(options) { 
   
   return function(req, res, next) {
-    
     var UploadHandler= require('./uploadHandler')(options);
     
     var handler = new UploadHandler(req, res, function(results, err) {
@@ -25,9 +24,9 @@ module.exports = function(middleware, options) {
                           ? 'application/json'
                           : 'text/plain'
         });
-      
-        if (err) res.send(400, err);
-        res.json(200, results);
+       
+       if (err) res.send(400, err);
+       res.json(200, results);
       });    
     
     if (req.method == 'POST' && req.session.user) { 

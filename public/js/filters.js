@@ -61,7 +61,6 @@ angular.module('CareKids.filters', []).
         if (angular.isUndefined(user.picture)) {
           return 'images/defaults/user-default.png'; 
         } else {
-          var userId = ;
           return 'uploads/images/' + user.picture;
         }
       }

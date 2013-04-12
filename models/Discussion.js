@@ -12,11 +12,12 @@ var discussionSchema = mongoose.Schema({
   tags: [ String ],
   video: {
     _creatorId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    video: String
+    title: String,
+    name: String
   },
   pictures: [ { 
     _creatorId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    path: String,
+    name: String,
     title: String
      } ],
   comments : [{

@@ -3,7 +3,7 @@ EventEmitter = require('events').EventEmitter,
     fs = require('fs'),
     formidable = require('formidable'),
     imageMagick = require('imagemagick'),
-     mkdirp = require('mkdirp'),
+    mkdirp = require('mkdirp'),
     avconv = require('avconv'),
     util = require('util'),
     _ = require('underscore');
@@ -19,105 +19,92 @@ module.exports = function(options) {
         this.req = req;
         this.res = res;
         this.callback = callback;
+        this.uploadDir = options.directory + '/public/uploads';
+        // a counter counting the number of actions to be processed before calling the callback.
+        this.counter = 1;
     };
     
-    UploadHandler.prototype.test = function() {
-      this.counter = 3;
-    }
-        
-      // post method, check if the client is logged in
+    // post method, check if the client is logged in
     UploadHandler.prototype.post = function() {
-        
-      var uploadDir = options.directory + '/public/uploads';
-
-     console.log(process.env.TMPDIR);
-      //console.log(req)
-      
-      // create the temp directory if id does not exist
-      //if (!fs.existsSync(uploadDir + '/tmp')) mkdirp.sync(uploadDir + '/tmp');
-      
-      // instantiate the form
-      var form = new formidable.IncomingForm(),
-      //  tmpFiles = [],
+    
+      var 
+        self = this,
+        form = new formidable.IncomingForm(),    // instantiate formidable
+        tmpFiles = [],
         files = [],
-        fields = [],
-        counter = 1,
         finish = function() { 
-                 // sending the response back once everything has been processed.
-                  if (!--counter) {
+                 // when called, decrement the action counter. 
+                 // if equal to 0, not action left to process, process the callback.
+                  if (!--self.counter) {
                     console.log('sending the response');
-                    res.json(200, files);
+                    self.callback(files);
                   } else {
                    console.log('not sending') 
                   }
         };
       
-      // set some values
+      // set some values for the form
       form.uploadDir = process.env.TMPDIR;
       form.keepExtensions = true;
       
-      // handling events
+      // handling form events
       form
-       .on('fileBegin', function(field, file) {
-          
+        .on('fileBegin', function(name, file) {
+          // store the path of the temporary files. Needed to erase tmp files in case of use aborting upload.
+          tmpFiles.push(file.path);
        })
        .on('error', function(err) {
-            console.log(err); 
-          })
-         .on('field', function(field, value) {
-          //console.log(value);
-          //fields[field] = value;
+          // emit error event.
+          //self.emit('begin', fileInfo);
+          console.log(err); 
         })
-         .on('file', function(field, file) {
-          
-          /*
-           * 
-           * handle fileInfo and  renaming of files
-           * 
-           */
-          // check if file exists
-          
-          
-         // titleize()
+        .on('file', function(field, file) {
           
           // check if the file exists
           if (fs.existsSync(file.path)) {
            
           // make the name look nice
-            file.title = _(path.basename(file.name, path.extname(file.name))).titleize();
+            file = _.extend(file, { 'title':  _(path.basename(file.name, path.extname(file.name))).titleize()});
             file.name = path.basename(file.path);
             
             // 2 use cases, one for images, one for videos
             if (/image/.test(file.type)) { 
               // create the images directory if not presnet
-              if (!fs.existsSync(uploadDir + '/images')) mkdirp.sync(uploadDir + '/images');
+              if (!fs.existsSync(self.uploadDir + '/images')) mkdirp.sync(self.uploadDir + '/images');
               
-              targetPath = uploadDir + '/images/' + path.basename(file.path);
-                
-              counter++;
-              console.log(counter);
-              fileMove(file.path, targetPath, function(err) {
+              targetPath = self.uploadDir + '/images/' + path.basename(file.path);
+   
+              self.fileMove(file.path, targetPath, function(err) {
                 file.path = targetPath;
-                files.push( file );
-                console.log(counter);
+                files.push( { 
+                    'name': file.name,
+                    'title': file.title
+                    });
                
                 if(!err) { 
-                  generatePreviews(file, uploadDir, counter, function(counter) {
-                     console.log('previews generated');
-                     counter = counter;
-                     finish();
+                  self.generatePreviews(file, function() {
+                    finish();
                   });
-                 
-                finish();   
-                  
-                
+                } else {
+                  finish();   
                 }
+                
+                finish();
                   
               });
             }
             else if (/video/.test(file.type)) { 
-               if (!fs.existsSync(uploadDir + '/videos')) mkdirp.sync(uploadDir + '/videos');
-             
+               if (!fs.existsSync(self.uploadDir + '/videos')) mkdirp.sync(self.uploadDir + '/videos');
+               
+               self.processVideos(file, function(exitCode) {
+                 //file.path = self.uploadDir + '/videos/' + path.basename(file.name, path.extname(file.name) ) + '.mp4' ;
+                 file.name = path.basename(file.name, path.extname(file.name) ) + '.mp4' ;
+                 files.push( { 
+                    'name': file.name,
+                    'title': file.title
+                    });
+                 finish();
+               });
              }
              else {
                // Only images and videos are accepted. All other types will be destroyed.
@@ -126,34 +113,40 @@ module.exports = function(options) {
              }
             
             
-            //finish();
+            
           }
     
           //console.log(files);
         })
-       .on('end', function() {
-         
-        res.set({
-          'Content-Type': (req.headers.accept || '').indexOf('application/json') !== -1
-                          ? 'application/json'
-                          : 'text/plain'
-         });
-         //finish();
+       .on('aborted', function () {
+          _.each(tmpFiles, function (file) {
+              fs.unlink(file);
+            });
         })
+        .on('progress', function (bytesReceived, bytesExpected) {
+            //    if (bytesReceived > options.maxPostSize)
+            //        self.req.connection.destroy();
+        })
+       .on('end', function() {
+          // file upload finished
+          finish();
+        })
+ 
     
-        form.parse(req);
+        form.parse(this.req);
     }
 
 
 
 
-  UploadHandler.prototype.fileMove = function() {
+  UploadHandler.prototype.fileMove = function(path, newPath, callback) {
+     self.counter++;
+     
     fs.rename(path, newPath, function (err) {
       if (!err) {
         // rename successfull, call the callback
         console.log('rename success');
         callback(null);
-        //finish();
       } else {
         // can' t rename file. Try using streams.
         var is = fs.createReadStream(path);
@@ -171,8 +164,8 @@ module.exports = function(options) {
   } 
 
 // Generate thumbnails and icons versions of the files
-  UploadHandler.prototype.generatePreviews = function () {
- 
+  UploadHandler.prototype.generatePreviews = function (file, callback) {
+    var self = this;
  //var imageTypes = /\.(gif|jpe?g|png)$/i,
      imageVersions = { thumbnail: {
                   width: 100,
@@ -188,32 +181,34 @@ module.exports = function(options) {
   //if (imageTypes.test(fileInfo.name)) {
     _.each(imageVersions, function (value, version) {
        // creating directory recursive
-      if (!fs.existsSync(uploadDir + '/images/' + version + '/'))
-        mkdirp.sync(uploadDir + '/images/' + version + '/');
-        counter++;
+      if (!fs.existsSync(self.uploadDir + '/images/' + version + '/'))
+        mkdirp.sync(self.uploadDir + '/images/' + version + '/');
+        self.counter++;
+        console.log(file.path);
         var opts = imageVersions[version];
            imageMagick.resize({
              width: opts.width,
              height: opts.height,
              srcPath: file.path,
-             dstPath: uploadDir + '/images/' + version + '/' + file.name,
+             dstPath: self.uploadDir + '/images/' + version + '/' + file.name,
              customArgs: opts.imageArgs || ['-auto-orient']
              }, 
-             callback(counter));
+             callback);
           });
         }
  //  }
        
 // process videos into mp4 if needed
                     
- UploadHandler.prototype.processVideos = function(fileInfo) {
+ UploadHandler.prototype.processVideos = function(file, callback) {
    // match video/mp4
-   counter ++;
-   var source = uploadDir + '/' + fileInfo.name;
-   var destinationDir = uploadDir + '/videos';
-   var newFileName = path.basename(fileInfo.name, path.extname(fileInfo.name) ) + '.mp4' ;
+   var self = this;
+   this.counter ++;
+   var source = file.path;
+   var destinationDir = this.uploadDir + '/videos/';
+   var newFileName = path.basename(file.name, path.extname(file.name) ) + '.mp4' ;
          
-   if (!fs.existsSync(destinationDir)) mkdir.sync(destinationDir);
+   //if (!fs.existsSync(destinationDir)) mkdir.sync(destinationDir);
    if (!fs.existsSync(source)) { console.log('source do not exist') }
           
    var params = [
@@ -222,20 +217,19 @@ module.exports = function(options) {
      '-vcodec', 'libx264',
      '-acodec', 'libmp3lame',
      '-ar', '44100',
-      destinationDir + '/' + newFileName
+      destinationDir + newFileName
      ];
 
     var stream = avconv(params);
           
           
     stream.on('data', function(data) {
-
+    console.log(data);
     });
          
      stream.on('end', function(exitCode) {
-       finish();
-       //callback(exitCode); 
-           
+       fs.unlink(source);
+       callback(exitCode); 
      })
    
  }  

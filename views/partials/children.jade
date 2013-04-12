@@ -46,7 +46,7 @@ div.row(ng-show = "!optOut")
         td
           a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
           br
-          img(ng-src="{{ child.picture | thumbPicture }}")
+          img(ng-src="{{ child | userThumbPic }}")
         td
           | {{child.creator.relationship | pronomize }} 
         td
@@ -77,7 +77,7 @@ div.row
         td
           a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
           br
-          img(ng-src="{{ child.picture | thumbPicture }}")
+          img(ng-src="{{ child | userThumbPic }}")
         td
           | {{ getRelationship(child) }} 
         td
@@ -102,7 +102,7 @@ div.row
         th
           a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
         td 
-          img(ng-src="{{ child.picture | iconPicture }}")
+          img(ng-src="{{ child | userIconPic }}")
         td
           | {{ child.lastUpdate.updatedAt | fromNow }}
    

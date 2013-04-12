@@ -72,7 +72,7 @@ angular.module('CareKids.directives', []).
         
       }
   })
-.directive('uploader', function($rootScope) {
+.directive('uploader', ['$compile', function($compile) {
        return {
          restrict: 'A',
          scope: {
@@ -81,6 +81,21 @@ angular.module('CareKids.directives', []).
         //   progress: '&'
            },
          link: function(scope, elem, attrs) {
+            
+           var template = '<div class = "bar" ng-style="width: {{ progress }} %"></div>' +
+                '<br />' +
+                '<button ng-show = "inProgress" type = "button" class= "btn" ng-click =  "abort()"> Abort</button>' +
+                '<div ng-show = "!inProgress"><i class = "icon-spinner icon-spin"></i> We are processing the video ...</div>';
+            var html;
+            
+            
+            scope.$watch('progress', function(progress) {
+              if (progress == 100) {
+                 scope.inProgress = false; 
+              }
+              
+            });
+            
             scope.$watch('opts', function(opts) {
             
             if (angular.isUndefined(opts)) opts = {};
@@ -90,29 +105,60 @@ angular.module('CareKids.directives', []).
             
             opts = angular.extend(opts, {
               dataType: 'json', 
+              add: function (e, data) {
+                var jqXHR = data.submit()
+                   // .success(function (result, textStatus, jqXHR) {/* ... */})
+                    .error(function (jqXHR, textStatus, errorThrown) {
+                      if (errorThrown === 'abort') {
+                        alert('File Upload has been canceled');
+                      }  
+                    });
+                  
+                  opts.dropZone.text('Downloading');
+                  scope.$apply(function(){
+                    html = $compile(template)(scope);
+                    scope.progress = 0;
+                    scope.inProgress = true;
+                    opts.dropZone.append(html);
+                    
+                 });
+                   // .complete(function (result, textStatus, jqXHR) {/* ... */});
+              },
               progressall: function (e, data) {
                 var progress = parseInt(data.loaded / data.total * 100, 10);
-                console.log(progress);
-                 $('#progress .bar').css('width', progress + '%');
+                scope.$apply(scope.progress = progress);
+                 //$('#progress .bar').css('width', progress + '%');
               },
               done:  function (e, data) {
                 console.log(data);
+               
                 $.each(data.result, function (index, file) {
                   scope.done({file: file});
                  });
+                html.remove();
+                opts.dropZone.text('Drop files here!');
               }
             });
             console.log(opts);
-            
+          
            $(document).bind('drop dragover', function (e) {
               e.preventDefault();
            });
             
             elem.fileupload(opts);
+
+            scope.abort = function() {
+              alert('bindings work');
+              //jqXHR.abort();
+            };
+            
+            
+            
+            
           });
          }
       }
-  })
+  }])
 .directive('newdiscussion', function($rootScope) {
    var editableHtml = angular.element('<div class = "editable" contenteditable ng-model = "newDiscussion.content"> </div>');
        
@@ -653,7 +699,7 @@ angular.module('CareKids.directives', []).
         scope.$watch('video', function(isInitiated) {
           if (isInitiated) {
             console.log('loading the video');
-            source = 'http://localhost:3000/uploads/' + scope.video._creatorId + '/videos/' + scope.video.video;
+            source = 'http://localhost:3000/uploads/videos/' + scope.video.name;
             console.log(source);
             console.log(template);
             

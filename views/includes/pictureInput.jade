@@ -6,10 +6,8 @@ div(ng-controller = 'PictureCtrl')
         img(ng-src = "{{ pic | thumbPicture}}", alt = 'picture {{ picture.file }}')
         input.span2(type = "text", ng-model = "pic.title", placeholder = "Tell more about this picture")
         button.btn(type = "button", ng-click= 'removePictureFromDiscussion($index)') &times
-       
-  div#progress
-    div.bar(style="width: 0%;")
       
+    
   div.well(id = 'input-picture')
     | Drop files here
   
