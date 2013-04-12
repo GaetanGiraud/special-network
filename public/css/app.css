@@ -127,3 +127,11 @@ a.question {
 
 #discussions {
   overflow: auto; }
+
+#input-picture {
+  width: 100 px;
+  height: 100px; }
+
+.bar {
+  height: 18px;
+  background: green; }

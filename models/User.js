@@ -7,6 +7,10 @@ var userSchema = mongoose.Schema({
       hash: String,
       picture: String,
       gender: String,
+      tokens: { 
+        access_token : String,
+        refresh_token : String
+      },
       location: {      
         country: {short: String, long: String},
         state: {short: String, long: String},

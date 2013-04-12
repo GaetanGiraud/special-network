@@ -248,3 +248,21 @@ a.question {
 
 }
 
+#input-picture {
+  width: 100 px;
+  height: 100px;
+ // background: grey;
+ // padding: 10px;
+ // margin: 10px;
+  //@include rounded-corners;
+  
+  //&:after {
+ //   padding: 10px;
+ //   content: "Drag & Drop picture or use button.";
+ //   text-align: center;
+ // }
+}
+.bar {
+    height: 18px;
+    background: green;
+}

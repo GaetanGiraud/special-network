@@ -5,7 +5,7 @@ div.row
       
       div.row
         div.span3
-          img#picture.well(width="200", ng-src="{{ child.picture | picture }}")
+          img#picture.img-rounded.well(width="200", id = "profile-picture", ng-src="{{ child.picture | picture }}")
         div.span2(ng-show = 'authorize.edit' )
           small
             | <strong>Drag & Drop</strong> the file onto the existing picture or
@@ -16,18 +16,8 @@ div.row
             i.icon-plus.icon-white
             span 
               | New picture
-              input(type="file", uploader, done='setProfilePicture(file)', data-url="/upload")
-      div
-      //  
-        h5 My Specialties
-        ul.unstyled
-          li(ng-repeat = 'specialty in child.specialties')
-            | {{ specialty }}
-            button(ng-click = 'removeSpecialty($index)', ng-show = 'authorize.edit') &times
-          li(ng-show = 'edit')
-            autocomplete(results = 'child.newSpecialty', url = '/api/discussions/search?type=groups', create = 'addSpecialty(string, newObject)')
-            button.btn(ng-click = 'addSpecialty()') Add
-            button.btn(ng-click = 'child.newSpecialty = ""') Cancel
+              input(type="file", uploader, opts = "childProfileUpload" , done='setProfilePicture(file)', data-url="/upload")
+
       
       div.form-inline(ng-show = 'authorize.edit')
         h5 Customize the page title
@@ -53,21 +43,24 @@ div.row
       //button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
 
   div.span4(ng-controller = 'DiscussionCtrl')
-    article#new-question(ng-show = 'authorize.post')
-      h5 Publish an update
-      div.content
-        div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
-        tags(tags = 'newDiscussion.tags', url = '/api/discussions/search?type=tags')
-        br
-        div.btn-group.fileupload-buttonbar.footer
-          span.fileinput-button 
-            button.btn(type = "button", ng-click = "createDiscussion()") Post
-          span.btn.fileinput-button 
-            i.icon-picture.icon-white
-              input(type = "file", uploader, done = "", data-url="/upload", name="file")
-          span.btn.fileinput-button 
-            i.icon-film.icon-white
-              input(type = "file", uploader, done = "", data-url="/upload", name="file")
+    article#new-question(ng-show = 'authorize.post', ng-switch on = "inputType")
+      div(ng-switch-when="text")
+        include ../includes/textInput
+      div(ng-switch-when="picture")
+        include ../includes/pictureInput
+      div(ng-switch-when="video")
+        include ../includes/videoInput
+      
+    div.btn-group.fileupload-buttonbar.footer
+      button.btn(type = "button", ng-click = "createDiscussion()") Post
+      button.btn(type = "button", ng-click = "setInputType('text')", ng-disabled="inputType == 'text'", title = 'Publish a text update.' )
+        i.icon-quote-left.icon-white
+      button.btn(type = "button", ng-click = "setInputType('picture')", ng-disabled="inputType == 'picture'", title = "Publish a picture." )   
+        i.icon-picture.icon-white
+      button.btn(type = "button", ng-click = "setInputType('video')", ng-disabled="inputType == 'video'", title = "Publish a video."  ) 
+        i.icon-film.icon-white
+      
+        
        
     //Existing discussions
     
@@ -80,10 +73,20 @@ div.row
       ul
         li(ng-repeat = "child in discussion.children")
           | {{child.name}}
-      h5 Tags
-      ul.unstyled
-        li(ng-repeat = "tag in discussion.tags")
-          | {{ tag }}
+      div(ng-show = "discussion.tags.length > 0")
+        h5 Tags
+        ul.unstyled
+          li(ng-repeat = "tag in discussion.tags")
+            | {{ tag }}
+      div(ng-show = "discussion.pictures.length > 0")
+        ul.thumbnails
+          li.span3(ng-repeat = "pic in discussion.pictures ")
+            a(class="thumbnail")
+              img(ng-src = "{{ pic | picture}}", alt = 'picture {{ picture.file }}')
+            | {{ pic.title }}
+      div(ng-show = "discussion.video")
+        div(video = "discussion.video") 
+            
       p(ng-bind-html = 'discussion.content')
         
       div.comment(ng-repeat =  'comment in discussion.comments')

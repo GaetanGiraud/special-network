@@ -1,0 +1,25 @@
+div(ng-controller = 'PictureCtrl')
+  h5 Publish a picture
+  ul.thumbnails
+    li.span2(ng-repeat = "pic in newDiscussion.pictures ")
+      div.thumbnail
+        img(ng-src = "{{ pic | thumbPicture}}", alt = 'picture {{ picture.file }}')
+        input.span2(type = "text", ng-model = "pic.title", placeholder = "Tell more about this picture")
+        button.btn(type = "button", ng-click= 'removePictureFromDiscussion($index)') &times
+       
+  div#progress
+    div.bar(style="width: 0%;")
+      
+  div.well(id = 'input-picture')
+    | Drop files here
+  
+  div
+    span.btn.btn-success.fileinput-button
+      i.icon-picture.icon-white
+      span 
+        | Add picture(s) 
+        input(type="file", uploader, opts = "pictureUploadOptions" , done='addPicture(file)', data-url="/upload", multiple)
+  br
+  br
+  div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
+  

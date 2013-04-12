@@ -20,7 +20,7 @@ var childSchema = mongoose.Schema({
   pageTitle: {type: String, unique: true, sparse: true, trim: true},
   dob: Date,
   gender: { type: String, match: /(boy|girl)/ },
-  picture: {_creatorId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User' } , picture: String},
+  picture: String,
   creator: { _user: {type: mongoose.Schema.Types.ObjectId, ref: 'User' }, relationship: String },
   specialties: [String],
   superpowers: [String],

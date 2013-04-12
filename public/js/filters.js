@@ -19,15 +19,14 @@ angular.module('CareKids.filters', []).
   filter('thumbPicture', function() {
     return function(object) {
     if (angular.isDefined(object)) {
-      if (angular.isUndefined(object.picture)) { 
-           return 'images/defaults/user-default.png';  
+      if (angular.isUndefined(object.name)) { 
+           return 'images/defaults/user-thumbnail-default.png';  
         } else {
-          if ( angular.isUndefined(object._creatorId)) {
-            return 'uploads/' + object._id + '/thumbnail/' + object.picture;
-          }
-          return 'uploads/' + object._creatorId + '/thumbnail/' + object.picture;
+          return 'uploads/images/thumbnail/' + object.name;
         }
-      } 
+      } else {
+         return 'images/defaults/user-thumbnail-default.png';   
+      }
     }
   }).
   filter('iconPicture', function() {
@@ -36,10 +35,7 @@ angular.module('CareKids.filters', []).
       if (angular.isUndefined(object.picture)) { 
            return 'images/defaults/user-default-icon.png';  
         } else {
-          if ( angular.isUndefined(object._creatorId)) {
-            return 'uploads/' + object._id + '/icon/' + object.picture;
-          }
-          return 'uploads/' + object._creatorId + '/icon/' + object.picture;
+          return 'uploads/images/icon/' + object.name;
         }
       } else { 
         return 'images/defaults/user-default-icon.png';  
@@ -52,10 +48,7 @@ angular.module('CareKids.filters', []).
       if (angular.isUndefined(object.picture)) { 
            return 'images/defaults/user-default.png';  
         } else {
-          if ( angular.isUndefined(object._creatorId)) {
-            return 'uploads/' + object._id + '/' + object.picture;
-          }
-          return 'uploads/' + object._creatorId + '/' + object.picture;
+          return 'uploads/images/' + object.name;
         }
       } else {
         return 'images/defaults/user-default.png';   
@@ -68,8 +61,8 @@ angular.module('CareKids.filters', []).
         if (angular.isUndefined(user.picture)) {
           return 'images/defaults/user-default.png'; 
         } else {
-          var userId = user._id;
-          return 'uploads/' + userId + '/' + user.picture;
+          var userId = ;
+          return 'uploads/images/' + user.picture;
         }
       }
     }
@@ -80,8 +73,7 @@ angular.module('CareKids.filters', []).
         if (angular.isUndefined(user.picture)) {
           return 'images/defaults/user-thumbnail-default.png'; 
         } else {
-          var userId = user._id;
-          return 'uploads/' + userId + '/thumbnail/' + user.picture;
+          return 'uploads/images/thumbnail/' + user.picture;
         }
      } 
     }
@@ -92,8 +84,7 @@ angular.module('CareKids.filters', []).
         if (angular.isUndefined(user.picture)) {
           return 'images/defaults/user-icon-default.png'; 
         } else {
-          var userId = user._id;
-          return 'uploads/' + userId + '/icon/' + user.picture;
+          return 'uploads/images/icon/' + user.picture;
         }
      } 
     }

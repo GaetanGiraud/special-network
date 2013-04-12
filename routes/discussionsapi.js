@@ -7,6 +7,7 @@ var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , Discussion = require('../models/Discussion')(db)
   , Child = require('../models/Child')(db)
+  , path = require('path')
   , extend = require('node.extend');
   
   
@@ -43,6 +44,13 @@ exports.add = function (discussion, callback) {
     }
   } 
   discussion._creator = discussion._creator._id;
+  
+  
+ //if (!_.isUndefined(discussion.video)) {
+//    if ((!_.isUndefined(discussion.video.video) ) {
+      
+ //   }
+ // }
       
   Discussion.create(discussion, function(err, discussion) {
     if (err)  return callback(err, null);
@@ -59,6 +67,7 @@ exports.add = function (discussion, callback) {
        });
       });
     }
+    
     
     discussion.populate({path: '_creator', select: '_id name picture'}).populate('children', function(err, discussion) {
       if (err) return callback(err, null);
@@ -232,6 +241,8 @@ exports.search = function (req, res) {
     }
       
 }
+
+
 
 
 

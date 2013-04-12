@@ -90,6 +90,33 @@ angular.module('CareKids.services', ['ngResource']).
       }
     };
   }]).
+  factory('GoogleApi', ['$window', function($window) {
+    var clientId = '724910639732.apps.googleusercontent.com';
+    var apiKey = 'AIzaSyDksAsTFgEvILZgCSUXLTGGfQf2zWdeAx0';
+    var scopes = 'https://www.googleapis.com/auth/youtube';
+    var oauthCallback = 'http://localhost:3000/user';
+    var clientSecret = 'OEnZehcGWe77xt6IbJoXwoT0';
+    var token;
+    
+    return {
+      load: function() {
+        gapi.client.setApiKey(apiKey);
+        //gapi.client.load('youtube', 'v3', makeRequest);
+     },
+     checkAuth: function(callback) {
+       gapi.auth.authorize({client_id: clientId, scope: scopes}, callback)
+      /*var query = 'https://accounts.google.com/o/oauth2/auth?' +
+                    'client_id=' + clientId + '&' +
+                    'redirect_uri=' + oauthCallback + '&' +
+                    'scope=' + scopes + '&' +
+                    'response_type=code&' +
+                    'access_type=offline';
+      $window.location = authQuery;*/
+     }
+
+    
+  }
+  }]).
   value('version', '0.1');
   
  

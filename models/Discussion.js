@@ -10,6 +10,15 @@ var discussionSchema = mongoose.Schema({
   children: [ {type: mongoose.Schema.Types.ObjectId, ref: 'Child'}],
   groups: [ String ],
   tags: [ String ],
+  video: {
+    _creatorId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    video: String
+  },
+  pictures: [ { 
+    _creatorId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    path: String,
+    title: String
+     } ],
   comments : [{
     _creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     content: String,

@@ -76,27 +76,41 @@ angular.module('CareKids.directives', []).
        return {
          restrict: 'A',
          scope: {
-           done: '&'
+           done: '&',
+           opts: '='
         //   progress: '&'
            },
          link: function(scope, elem, attrs) {
-             
-            elem.fileupload({
+            scope.$watch('opts', function(opts) {
+            
+            if (angular.isUndefined(opts)) opts = {};
+            
+            // replace the selector with the DOM element 
+            opts.dropZone = $(opts.dropZone);
+            
+            opts = angular.extend(opts, {
               dataType: 'json', 
-     //         progress: function (e, data) {
-      //            if(angular.isDefined(scope.progress)) { 
-     //              var progressStatus = parseInt(data.loaded / data.total * 100, 10);
-     //               scope.progress({progress: progressStatus });
-     //             }
-       //       },
+              progressall: function (e, data) {
+                var progress = parseInt(data.loaded / data.total * 100, 10);
+                console.log(progress);
+                 $('#progress .bar').css('width', progress + '%');
+              },
               done:  function (e, data) {
                 console.log(data);
-                $.each(data.files, function (index, file) {
+                $.each(data.result, function (index, file) {
                   scope.done({file: file});
                  });
               }
             });
-          }
+            console.log(opts);
+            
+           $(document).bind('drop dragover', function (e) {
+              e.preventDefault();
+           });
+            
+            elem.fileupload(opts);
+          });
+         }
       }
   })
 .directive('newdiscussion', function($rootScope) {
@@ -623,6 +637,36 @@ angular.module('CareKids.directives', []).
         }
        });
       
+      }
+    }
+  }])
+  .directive('video', ['$compile',  function($compile) {
+    return {
+      restrict: 'A', 
+        scope:  { 
+          video: '='
+        },
+      link: function(scope, elm, attrs) {
+        var source = '';
+        console.log('finding the directive');
+    
+        scope.$watch('video', function(isInitiated) {
+          if (isInitiated) {
+            console.log('loading the video');
+            source = 'http://localhost:3000/uploads/' + scope.video._creatorId + '/videos/' + scope.video.video;
+            console.log(source);
+            console.log(template);
+            
+            var template =  '<video id="my_video_1" class="video-js vjs-default-skin" controls ' + 
+                         'preload="auto">' +
+                          '<source src="' + source + '" type="video/mp4">' +
+                          '</video>' ; 
+                          
+             var html = $compile(template)(scope);
+             elm.prepend(html);
+             var myPlayer = _V_(html[0]);
+          }
+        });
       }
     }
   }])

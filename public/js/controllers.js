@@ -129,7 +129,7 @@ LogoutCtrl.$inject = ['$scope', 'AuthService', 'Alert','$location'];
  * 
  */
 
-function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
+function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder, $routeParams) {
   
   // Setting up some default values
   $scope.undoLocUpdate = "false";
@@ -223,8 +223,19 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder) {
     $scope.currentUser.location = previousLocation[0];
     $scope.updateUser("false");
   }
+  
+  
+  
+  /*
+   * 
+   * Google APi
+   * 
+   */
+
+   
+  
 }
-UserCtrl.$inject = ['$scope', 'User', '$rootScope', 'Alert', 'Location', 'GeoCoder'];
+UserCtrl.$inject = ['$scope', 'User', '$rootScope', 'Alert', 'Location', 'GeoCoder', '$routeParams'];
 
 /*
  * 
@@ -235,7 +246,15 @@ UserCtrl.$inject = ['$scope', 'User', '$rootScope', 'Alert', 'Location', 'GeoCod
  */
  
 function DiscussionCtrl($scope, $location, Socket) {
+    
+    $scope.inputType = 'text';
+    
+   
+    $scope.setInputType = function(input) {
+      $scope.inputType = input;
 
+    }
+  
     $scope.createDiscussion = function() {
       $scope.newDiscussion.children = [];
     // linking chosen children to the discussion
@@ -256,7 +275,12 @@ function DiscussionCtrl($scope, $location, Socket) {
       
     }   
    
+    
+   $scope.albums = {};
    
+   $scope.removeVideoFromDiscussion = function() {
+      $scope.newDiscussion.video = '';
+    }
    $scope.$on('event:createDiscussion', function(){
       $scope.createDiscussion(); 
     });
@@ -308,6 +332,57 @@ function newCommentCtrl($scope) {
   
 }
 newCommentCtrl.$inject = ['$scope'];
+   
+function PictureCtrl($scope) {
+    $scope.pictureUploadOptions = { 
+      dropZone: '#input-picture'
+     // dropZone: $('#profile-picture') 
+    };
+   
+   
+   $scope.addPicture = function(file) {
+      // if pictures array inside the newDiscussion object has not been instantiated, do it.
+      if (angular.isUndefined($scope.newDiscussion.pictures)) $scope.newDiscussion.pictures = [];
+      console.log(file);
+      console.log('adding picture to the array '+ file.name)
+      $scope.newDiscussion.pictures.push({ _creatorId:  $scope.currentUser._id,
+                                      title: file.title,
+                                      name: file.name });
+      $scope.$apply($scope.newDiscussion.pictures);
+   }
+   
+   $scope.removePictureFromDiscussion = function($index) {
+      $scope.newDiscussion.pictures.splice($index, 1);
+    }
+}
+PictureCtrl.$inject = ['$scope'];
+
+function VideoCtrl($scope) {
+  
+       
+    
+    $scope.videoUploadOptions = {
+     dropZone: '#input-video'
+     // dropZone: $('#profile-picture') 
+     }
+     
+   
+   $scope.addVideo = function(file) {
+      // if pictures array inside the newDiscussion object has not been instantiated, do it.
+      if (angular.isUndefined($scope.newDiscussion.video)) $scope.newDiscussion.video = {};
+      $scope.newDiscussion.video = { _creatorId:  $scope.currentUser._id,
+                                      video: file.name };
+      $scope.$apply($scope.newDiscussion.video);
+      //var myPlayer = _V_("example_video_1");
+   }
+   
+   $scope.removeVideoFromDiscussion = function() {
+      $scope.newDiscussion.video = '';
+    }
+
+  
+}
+VideoCtrl.$inject = ['$scope'];
 
 function MessageCtrl($scope, $location, Message, Socket, Child) {
   
@@ -626,7 +701,14 @@ ChildrenCtrl.$inject = ['$scope', 'Child', 'Alert', 'User'];
 function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $location, Socket) {
   
    // setting up default values for discussions on the page. Logic is in Discussion controller.
+   
+    $scope.childProfileUpload = { 
+      dropZone: '#profile-picture'
+    };
     
+    
+    
+
     $scope.newDiscussion = {};
     $scope.newDiscussion.type ='update';
     $scope.$watch('currentUser', function(currentUser) {
@@ -687,9 +769,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
   }
     
   $scope.setProfilePicture = function(file) {
-    $scope.child.picture = 
-     { '_creatorId': $rootScope.currentUser._id, // creator of the photo need to be recorded to recover the photos location
-       'picture': file.name } ;
+    $scope.child.picture = file.name ;
     $scope.updateChild();
   };
   
@@ -715,6 +795,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
     $scope.child.superpowers.splice(index, 1);
     $scope.updateChild();
   }
+
 
 
 
@@ -788,7 +869,8 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
      
     $scope.addPicture = function(file) {
       $scope.$apply(function() {
-        $scope.newDiscussion.picture = file.name; 
+        $scope.newDiscussion.picture.path = file.path;
+        $scope.newDiscussion.picture.title = file.name;  
       });
     }
     

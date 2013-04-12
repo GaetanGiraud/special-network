@@ -8,9 +8,10 @@ var express = require('express'),
   routes = require('./routes'),
   api = require('./routes/api'),
   colors = require('colors'),
+  upload = require('./middleware/upload'),
   RedisStore = require('connect-redis')(express),
-  SessionSockets = require('session.socket.io'),
-  upload = require('jquery-file-upload-middleware');
+  SessionSockets = require('session.socket.io');
+//  upload = require('jquery-file-upload-middleware');
 
 
 var app = express();
@@ -24,9 +25,9 @@ var io = require("socket.io").listen(server);
 /* 
  * Express server configuration
  */
-upload.configure({
+/* upload.configure({
   /*uploadDir: __dirname + '/public/uploads',
-    uploadUrl: '/uploads',*/
+    uploadUrl: '/uploads',
     imageTypes: /\.(gif|jpe?g|png)$/i,
     imageVersions: {
        thumbnail: {
@@ -38,7 +39,7 @@ upload.configure({
             height: 24
             }
     }
-});
+});*/
     
 app.configure(function(){
   // views
@@ -52,19 +53,22 @@ app.configure(function(){
   app.use(express.methodOverride());
   
   // file upload middleware
-  app.use('/upload', function (req, res, next) { 
-    upload.fileHandler({
-      uploadDir: function () {
-        console.log(req.session);
-        return __dirname + '/public/uploads/' + req.session.user
-      },
-      uploadUrl: function () {
-        return '/uploads/' + req.session.user
-      }
+  app.use('/upload', upload({ directory: __dirname}));
+  
+    //{ 
+   
+   
+   // upload.fileHandler({
+   //   uploadDir: function () {
+   //     return __dirname + '/public/uploads/' + req.session.user
+  //    },
+  //    uploadUrl: function () {
+  //     return '/uploads/' + req.session.user
+  //    }
+  //  
+  //  })(req, res, next);
     
-    })(req, res, next);
-    
-  });
+//  });
   
   // some standard settings
   app.use(express.bodyParser());
@@ -85,7 +89,10 @@ app.configure('production', function(){
  * Function for Restricting access to logged in users
  */
  
-
+ 
+ 
+ 
+ 
 
 /* 
  * Routes
@@ -272,13 +279,11 @@ sessionSockets.on('connection', function(err, socket, session){
     });
     
     socket.on('messageCreated', function(data) {
-      console.log(data);
       api.messages.add(data, function(err, message) {    
         if (err) return socket.emit('error', err);
           socket.emit('messageSavedSuccess', message);
           
           message.receivers.forEach(function(element, index, array) {
-              console.log('brodcasting to user_' + element._user._id);
               socket.broadcast.to('messages_' + element._user._id).emit('newMessage', message);
             });
           //socket.broadcast.to('messages_' + ).emit('newMessage', message);
