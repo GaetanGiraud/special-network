@@ -82,6 +82,7 @@ app.configure('development', function(){
 });
 
 app.configure('production', function(){
+  // uglify js files !
   app.use(express.errorHandler());
 });
 

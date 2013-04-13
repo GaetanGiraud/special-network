@@ -140,7 +140,7 @@ module.exports = function(options) {
 
 
   UploadHandler.prototype.fileMove = function(path, newPath, callback) {
-     self.counter++;
+     this.counter++;
      
     fs.rename(path, newPath, function (err) {
       if (!err) {
