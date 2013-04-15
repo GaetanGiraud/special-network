@@ -4,6 +4,30 @@
 
 
 angular.module('CareKids.directives', []).
+  directive('content', ['$compile', function($compile) {
+    
+    return {
+      restrict: 'A',
+      scope: {
+        item: '='  
+      },
+    link: function(scope, elem, attrs) {
+      var templateImage = '<img ng-src = "{{ item | thumbPicture }}" alt = "{{ item.title }}">';
+      var templateVideo = '<div video = "{{ item.name }}" >';
+      var html;
+      
+      scope.$watch('item', function(item) {
+        if (angular.isDefined(item)) {
+          console.log('logging item')
+          console.log(item);
+          if (item.type == "picture") html = $compile(templateImage)(scope);
+          if (item.type == "video") html = $compile(templateVideo)(scope);
+          elem.append(html);
+        }
+      });
+    }
+   }
+  }]).
   directive('paginate', function($http, $window, $rootScope) {
     var page = 2;
     
@@ -690,25 +714,25 @@ angular.module('CareKids.directives', []).
     return {
       restrict: 'A', 
         scope:  { 
-          video: '='
+          video: '@'
         },
         template:  '<video id="my_video_1" class="video-js vjs-default-skin" controls ' + 
-                         'preload="auto">' +
+                         'preload="none">' +
                           '<source src="{{ source }}" type="video/mp4">' +
                           '</video>' ,
         replace: true,
       link: function(scope, elm, attrs) {
          scope.$watch('source', function(source) {
             if (angular.isDefined(source)) {
-              var plyer = _V_(elm[0]);
+              var player = _V_(elm[0]);
             }
            
           });
         
         scope.$watch('video', function(isInitiated) {
           if (isInitiated && !scope.$$phase) {
-             scope.source = 'http://localhost:3000/uploads/videos/' + scope.video.name
-          //  (scope.source);
+             scope.source = 'http://localhost:3000/uploads/videos/' + scope.video;
+          console.log(scope.source);
              
           } else {
             // remove the video is no input is provided

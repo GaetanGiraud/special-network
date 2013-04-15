@@ -1,0 +1,21 @@
+div(ng-controller = "AlbumsCtrl")
+  h3 Browse through {{ child.name }}'s albums
+        
+  ul.thumbnails
+    li
+      button(type='button', ng-click='decrement(page)', ng-show = "page > 1", class='btn btn-primary') < 
+    li(ng-repeat = "album in albums|paginate:page ", ng-class = "{{ isSelected($index) }}", ng-click = "selectAlbum($index)")
+      div.thumbnail
+        img(ng-src="{{ thumbnail(album) | thumbPicture  }}", alt="{{ thumbnail(album).title }}", ng-show = "thumbnail(album)")
+        h3 {{ album.title }}
+    li
+      button(type='button', ng-click='imcrement(page)', ng-show = "(albums.length - page*3) > 0 ", class='btn btn-primary') >
+      
+  ul.thumbnails.photos
+    li.span4(ng-repeat = "item in album.content ")
+      div.thumbnail
+        div(content, item = "item")
+        h6 {{ item.title }}
+
+  
+

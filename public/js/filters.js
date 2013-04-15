@@ -84,6 +84,13 @@ angular.module('CareKids.filters', []).
      } 
     }
   }).
+  filter('paginate', function() {
+    return function(input, page) {
+      var out = input.slice(page-1,3);
+      console.log(out);
+      return out;
+    }
+  }).
   filter('pronomize', function() {
     return function(relationship) {
       if (['Father', 'Mother'].indexOf(relationship) != -1) return 'the ' + relationship; 

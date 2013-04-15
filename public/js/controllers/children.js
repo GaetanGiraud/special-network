@@ -78,9 +78,10 @@ function ChildrenCtrl($scope, Child, Alert, User) {
 }
 ChildrenCtrl.$inject = ['$scope', 'Child', 'Alert', 'User'];
 
-function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $location, Socket) {
+function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $location, Socket, $dialog) {
   
    // setting up default values for discussions on the page. Logic is in Discussion controller.
+    $scope.overviewType = 'discussions';
     
     $scope.newDiscussion = {};
     $scope.newDiscussion.type ='update';
@@ -110,7 +111,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
       $scope.paginationUrl = '/api/discussions?children=' + $scope.child._id;
       
       if ($scope.currentUser._id == child.creator._user) {
-         $scope.authorize.edit = true;
+         $scope.authorize.show = true;
          // enable drag & drop of profile picture
          $scope.childProfileUpload = { dropZone: '#profile-picture' };  
        } else {
@@ -180,9 +181,73 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
      } 
      return '';
   }
+  
+  // opening the albums dialog
+  
+  
+  var opts = {
+          backdrop: true,
+          keyboard: true,
+          backdropClick: true,
+          dialogClass: 'album',
+          templateUrl:  'templates/albums',
+          resolve: {child: function() { return angular.copy( $scope.child) }},
+          controller: 'AlbumsCtrl'
+   };
+  
+  $scope.openAlbumDialog = function() { 
+      $dialog.dialog(opts).open().then(function(result){
 
+      });
+    }  
+    
+    $scope.createAlbum = function(title) {
+//      $http.post('/api/children/' + $scope.child._id + '/albums', { title: title})
+  //      .success(function(data) {
+  //        $scope.album = data;
+    //  });
+      
+    }
+    
+        $scope.setOverviewType = function(overviewType) {
+      $scope.overviewType = 'discussions';
+     // $scope.overviewType = 'discussions';
+      console.log('switch')
+      //$scope.overviewType = overviewType;  
+    }
 
   
   
 }
-ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams', 'Discussion', 'Child','$location', 'Socket'];
+ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams', 'Discussion', 'Child','$location', 'Socket', '$dialog'];
+
+function AlbumsCtrl($scope) {
+    $scope.albums = $scope.child.albums;
+    $scope.page = 1;
+    
+    $scope.$watch('albums', function(albums) {
+      $scope.album = $scope.albums[0];
+      console.log('album selected');
+      console.log($scope.album);
+    });
+    
+
+    
+    $scope.increment = function(page) {
+     $scope.page = $scope.page +1; 
+    }
+    
+    $scope.decrement = function(page) {
+     $scope.page = $scope.page - 1; 
+    }
+    
+   $scope.thumbnail = function(album) {
+     if (album != null) {
+       console.log()
+       return _.find(album.content, function(item){ return item.type == 'picture' });
+     } 
+     return '';
+   }
+  
+}
+AlbumsCtrl.$inject = ['$scope']

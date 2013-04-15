@@ -1,0 +1,63 @@
+div(ng-controller = 'DiscussionCtrl')
+  article#new-question(ng-show = 'authorize.post', ng-switch on = "inputType")
+    div(ng-switch-when="text")
+      include ../includes/textInput
+    div(ng-switch-when="picture")
+      include ../includes/pictureInput
+    div(ng-switch-when="video")
+      include ../includes/videoInput
+      
+  div.btn-group.fileupload-buttonbar.footer
+    button.btn(type = "button", ng-click = "createDiscussion()") Post
+    button.btn(type = "button", ng-click = "setInputType('text')", ng-disabled="inputType == 'text'", title = 'Publish a text update.' )
+      i.icon-quote-left.icon-white
+    button.btn(type = "button", ng-click = "setInputType('picture')", ng-disabled="inputType == 'picture'", title = "Publish a picture." )   
+      i.icon-picture.icon-white
+    button.btn(type = "button", ng-click = "setInputType('video')", ng-disabled="inputType == 'video'", title = "Publish a video."  ) 
+      i.icon-film.icon-white
+      
+        
+       
+  //Existing discussions
+    
+  div(ng-repeat = "discussion in discussions")
+    h4
+      img(ng-src = '{{ discussion._creator | iconPicture }}')
+      | {{discussion._creator.name}} 
+      | {{ $index }}
+    h5 {{discussion.type}} 
+    ul
+      li(ng-repeat = "child in discussion.children")
+        | {{child.name}}
+    div(ng-show = "discussion.tags.length > 0")
+      h5 Tags
+      ul.unstyled
+        li(ng-repeat = "tag in discussion.tags")
+          | {{ tag }}
+    div(ng-show = "discussion.pictures.length > 0")
+      ul.thumbnails
+        li.span3(ng-repeat = "pic in discussion.pictures ")
+          a(class="thumbnail")
+            img(ng-src = "{{ pic | picture}}", alt = 'picture {{ picture.file }}')
+          | {{ pic.title }}
+
+    div(ng-show = "discussion.video")
+      div(video = "{{ discussion.video.name }}") 
+      p
+       | The title: {{ discussion.video.title }}
+          
+    p(ng-bind-html = 'discussion.content')
+        
+    div.comment(ng-repeat =  'comment in discussion.comments')
+      h5 {{comment._creator.name}}
+      p(ng-bind-html = 'comment.content')
+      
+    div(ng-controller = 'newCommentCtrl')
+      a(ng-show = "!reply", ng-click="reply = true") Reply
+      div.footer(ng-show = "reply")
+        textarea(ng-model = "newComment.content") 
+        br
+        button.btn.btn-primary(ng-click="createComment($index)") Post 
+        button.btn(ng-click="reply = false") Cancel
+          
+  div(paginate, new-page-target = "discussions", url = "{{ paginationUrl }}", ng-show = "discussions.length > 9")  

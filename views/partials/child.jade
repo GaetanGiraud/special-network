@@ -1,25 +1,36 @@
 div.row
-  div.span5
+  div.span10
+    button.btn(type = "button", ng-click = "authorize.edit = true", ng-show = "authorize.show", ng-disabled = "authorize.edit") Edit
+    button.btn(type = "button", ng-click = "authorize.edit = false", ng-show = "authorize.edit") End Editing
+    button.btn(type = "button", ng-click = "setOverviewType('discussions')", ng-show = "overviewType == 'albums'") Back to discussions
+
+div.row(ng-show = "authorize.edit")
+  div.span10
+    p
+      | You can now edit {{ child.name }}'s page. Click on "End editing" when you are done editing.
+
+div.row
+  div.span4
     form(name='childForm')
       legend {{child.name}}
       
       div.row
-        div.span3
+        div.span4
           img#picture.img-rounded.well(width="200", id = "profile-picture", ng-src="{{ child | userPic }}")
-        div.span2(ng-show = 'authorize.edit' )
-          small
-            | <strong>Drag & Drop</strong> the file onto the existing picture or
+          div(ng-show = 'authorize.edit' )
+            small
+              | <strong>Drag & Drop</strong> the file onto the existing picture or
+              br
+              | Use the <strong>button</strong> to change your profile picture.
             br
-            | Use the <strong>button</strong> to change your profile picture.
-          br
-          span.btn.btn-success.fileinput-button
-            i.icon-plus.icon-white
-            span 
-              | New picture
-              input(type="file", uploader, opts = "childProfileUpload" , done='setProfilePicture(file)', data-url="/upload")
+            span.btn.btn-success.fileinput-button
+              i.icon-plus.icon-white
+              span 
+                | New picture
+                input(type="file", uploader, opts = "childProfileUpload" , done='setProfilePicture(file)', data-url="/upload")
 
       div.row
-        div.span5.form-inline(ng-show = 'authorize.edit')
+        div.span4.form-inline(ng-show = 'authorize.edit')
           h5 Customize the page title
           input(type='text', ng-model = 'child.pageTitle', name='pageTitle', ng-pattern = "/^[a-zA-Z0-9_-]+$/") 
           button.btn.btn-success(type = 'text', ng-click = 'updateChild()') Ok
@@ -28,7 +39,7 @@ div.row
             | Should contain only letters and numbers!
         
       div.row
-        div.span5
+        div.span4
           h5 My Superpowers
           ul.unstyled
             li(ng-repeat = 'superpower in child.superpowers')
@@ -41,77 +52,22 @@ div.row
               //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
       
       div.row
-        div.span5
+        div.span4
           h5 Photos and Videos
-          ul.unstyled(ng-click = "openAlbumDialog()")
-            li(ng-repeat = 'album in child.albums | limitTi:9')
+          ul.thumbnails(ng-click = "overviewType = 'albums'")
+            li(ng-repeat = 'album in child.albums | limitTo:9')
+              a.thumbnail(href = "", ng-click = "overviewType = 'albums'")
+                img(ng-src = "{{ albumThumbnail(album) | thumbPicture }}")
             
 
         
       //button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
       //button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
 
-  div.span4(ng-controller = 'DiscussionCtrl')
-    article#new-question(ng-show = 'authorize.post', ng-switch on = "inputType")
-      div(ng-switch-when="text")
-        include ../includes/textInput
-      div(ng-switch-when="picture")
-        include ../includes/pictureInput
-      div(ng-switch-when="video")
-        include ../includes/videoInput
-      
-    div.btn-group.fileupload-buttonbar.footer
-      button.btn(type = "button", ng-click = "createDiscussion()") Post
-      button.btn(type = "button", ng-click = "setInputType('text')", ng-disabled="inputType == 'text'", title = 'Publish a text update.' )
-        i.icon-quote-left.icon-white
-      button.btn(type = "button", ng-click = "setInputType('picture')", ng-disabled="inputType == 'picture'", title = "Publish a picture." )   
-        i.icon-picture.icon-white
-      button.btn(type = "button", ng-click = "setInputType('video')", ng-disabled="inputType == 'video'", title = "Publish a video."  ) 
-        i.icon-film.icon-white
-      
-        
-       
-    //Existing discussions
+  div.span5(ng-switch on = "overviewType")
+    div(ng-switch-when="discussions")
+      include ../includes/discussions
+    div.row-fluid(ng-switch-when="albums")
+      include ../includes/albums
     
-    div(ng-repeat = "discussion in discussions")
-      h4
-        img(ng-src = '{{ discussion._creator | iconPicture }}')
-        | {{discussion._creator.name}} 
-        | {{ $index }}
-      h5 {{discussion.type}} 
-      ul
-        li(ng-repeat = "child in discussion.children")
-          | {{child.name}}
-      div(ng-show = "discussion.tags.length > 0")
-        h5 Tags
-        ul.unstyled
-          li(ng-repeat = "tag in discussion.tags")
-            | {{ tag }}
-      div(ng-show = "discussion.pictures.length > 0")
-        ul.thumbnails
-          li.span3(ng-repeat = "pic in discussion.pictures ")
-            a(class="thumbnail")
-              img(ng-src = "{{ pic | picture}}", alt = 'picture {{ picture.file }}')
-            | {{ pic.title }}
-
-      div(ng-show = "discussion.video")
-        div(video = "discussion.video") 
-        p
-         | The title: {{ discussion.video.title }}
-            
-      p(ng-bind-html = 'discussion.content')
-        
-      div.comment(ng-repeat =  'comment in discussion.comments')
-        h5 {{comment._creator.name}}
-        p(ng-bind-html = 'comment.content')
-      
-      div(ng-controller = 'newCommentCtrl')
-        a(ng-show = "!reply", ng-click="reply = true") Reply
-        div.footer(ng-show = "reply")
-          textarea(ng-model = "newComment.content") 
-          br
-          button.btn.btn-primary(ng-click="createComment($index)") Post 
-          button.btn(ng-click="reply = false") Cancel
-          
-    div(paginate, new-page-target = "discussions", url = "{{ paginationUrl }}", ng-show = "discussions.length > 9")  
 
