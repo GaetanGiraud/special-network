@@ -48,7 +48,7 @@ div.row(ng-show = "searchResults.length > 0")
         td
           ul.unstyled(ng-show = 'myChildren(result).length > 0')
             li(ng-repeat = "child in myChildren(result)")
-              img( ng-src = " {{ child.picture | iconPicture}} ")
+              img( ng-src = " {{ child | userIconPic }} ")
               | {{ child.name }}
               | I am his {{ child.relationship }}
               ul

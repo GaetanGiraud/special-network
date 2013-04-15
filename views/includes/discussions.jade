@@ -1,20 +1,21 @@
 div(ng-controller = 'DiscussionCtrl')
-  article#new-question(ng-show = 'authorize.post', ng-switch on = "inputType")
-    div(ng-switch-when="text")
-      include ../includes/textInput
-    div(ng-switch-when="picture")
-      include ../includes/pictureInput
-    div(ng-switch-when="video")
-      include ../includes/videoInput
+  article#new-question(ng-show = 'authorize.post')
+    div(ng-switch on = "inputType")
+      div(ng-switch-when="text")
+        include ../includes/textInput
+      div(ng-switch-when="picture")
+        include ../includes/pictureInput
+      div(ng-switch-when="video")
+        include ../includes/videoInput
       
-  div.btn-group.fileupload-buttonbar.footer
-    button.btn(type = "button", ng-click = "createDiscussion()") Post
-    button.btn(type = "button", ng-click = "setInputType('text')", ng-disabled="inputType == 'text'", title = 'Publish a text update.' )
-      i.icon-quote-left.icon-white
-    button.btn(type = "button", ng-click = "setInputType('picture')", ng-disabled="inputType == 'picture'", title = "Publish a picture." )   
-      i.icon-picture.icon-white
-    button.btn(type = "button", ng-click = "setInputType('video')", ng-disabled="inputType == 'video'", title = "Publish a video."  ) 
-      i.icon-film.icon-white
+    div.btn-group.fileupload-buttonbar.footer
+      button.btn(type = "button", ng-click = "createDiscussion()") Post
+      button.btn(type = "button", ng-click = "setInputType('text')", ng-disabled="inputType == 'text'", title = 'Publish a text update.' )
+        i.icon-quote-left.icon-white
+      button.btn(type = "button", ng-click = "setInputType('picture')", ng-disabled="inputType == 'picture'", title = "Publish a picture." )   
+        i.icon-picture.icon-white
+      button.btn(type = "button", ng-click = "setInputType('video')", ng-disabled="inputType == 'video'", title = "Publish a video."  ) 
+        i.icon-film.icon-white
       
         
        

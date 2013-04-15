@@ -156,11 +156,22 @@ exports.count = function (req, res) {
   var id = req.session.user;
   
   Message.find()
-  .or([{'_creator': id}, {'receivers._user': id}])
-  .or([{'read': false}, {'receivers.read': false}])
-  .count(function(err, count) {
+  .or(
+    [
+      { $and: [
+        {'_creator': id}, 
+        {'read': false}
+        ] 
+      },
+      { $and: [
+        {'receivers._id': id},
+        {'receivers.read': false}
+        ]  
+      }
+    ])
+  .count(function(err,count) {
     if(err) res.send(400, err);
-    res.json({ messageCount:  count});
+    res.json({ messageCount: count});
   });
  // }    
 };

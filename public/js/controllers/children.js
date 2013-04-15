@@ -16,17 +16,6 @@ function ChildrenCtrl($scope, Child, Alert, User) {
             relationship: "Mother"
             }
         };
-      
-      $scope.getRelationship = function(child) { 
-    for(var i=0; child.permissions.length; i++) {
-      if (child.permissions[i]._user == $scope.currentUser._id) {
-        return child.permissions[i].relationship;
-        break;  
-      }
-    }
-  }
-
-
     }
   });
  
@@ -40,12 +29,16 @@ function ChildrenCtrl($scope, Child, Alert, User) {
   ];
   
 
-  $scope.famillyChildren = Child.query({following: 'familly'});
-  
-  $scope.followedChildren = Child.query({following: 'others'});
+  $scope.getRelationship = function(child) { 
+    for(var i=0; child.permissions.length; i++) {
+      if (child.permissions[i]._user == $scope.currentUser._id) {
+        return child.permissions[i].relationship;
+        break;  
+       }
+      }
+  }
   
   // if the user has not opted to only follow children, show their children  
-  if (!$scope.optOut) { $scope.children = Child.query(); }
  
   $scope.deleteChild = function(index) {
     Child.delete({ childId: $scope.children[index]._id }, 

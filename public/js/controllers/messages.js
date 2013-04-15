@@ -127,12 +127,10 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
     }
     
     $scope.messageClass = function(message) {
-      $scope.$safeApply($scope, function() {
       if ($scope.messageStatus(message) && message === $scope.currentMessage) return 'read selected';
       if ($scope.messageStatus(message)) return 'read';
       return '';
-    });
-      
+
     }
     /*
      * handle the following requests logic

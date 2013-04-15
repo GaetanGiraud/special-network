@@ -27,9 +27,26 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socke
       $scope.followed = Child.query({following: true});
       Message.getUnreadMessagesCount(function(err, data) {
         $scope.unreadMessageCount = data.messageCount;
-      })
-      
-      if (!currentUser.settings.optOut) { $scope.myChildren = Child.query(); }
+      });
+    
+    
+    
+  /*  opts = 'creator._user': {$ne: currentUser._id }, 'permissions.relationship': { $ne: 'Friend' }};
+  } else if (req.query.following == "others") {
+    opts = {'permissions._user': currentUser._id, 'creator._user': {$ne: currentUser._id }, 'permissions.relationship': 'Friend' };
+  } else if(req.query.post) {
+     opts = {'permissions._user': currentUser._id, 'permissions.rights': 'write'};
+  } else {
+    opts = {'creator._user': req.session.user};
+  }*/
+    
+    
+    // _.where({'permissions._user': currentUser._id, 
+    
+     if (!$scope.optOut) { $scope.children = Child.query(); }
+     $scope.famillyChildren = Child.query({following: 'familly'});
+     $scope.followedChildren = Child.query({following: 'others'});
+     // if (!currentUser.settings.optOut) {  }
     } 
   });
   
