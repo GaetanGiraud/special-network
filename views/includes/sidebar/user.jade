@@ -1,0 +1,9 @@
+article
+  h4 
+    a(href="/user")
+      img(ng-src = "{{ currentUser | userIconPic }}") 
+      | {{currentUser.name}} 
+      a.btn(href="/user") Edit
+  p
+    | {{ currentUser.location.formattedAddress }}
+  

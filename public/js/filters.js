@@ -53,7 +53,7 @@ angular.module('CareKids.filters', []).
   }).
   filter('userPic', function() {
     return function(user) {
-      if (angular.isDefined(user)) { 
+      if (angular.isDefined(user) && user != null) { 
         if (angular.isUndefined(user.picture)) {
           return 'images/defaults/user-default.png'; 
         } else {
@@ -64,7 +64,7 @@ angular.module('CareKids.filters', []).
   }).
   filter('userThumbPic', function() {
     return function(user) {
-      if (angular.isDefined(user)) { 
+      if (angular.isDefined(user) && user != null) { 
         if (angular.isUndefined(user.picture)) {
           return 'images/defaults/user-thumbnail-default.png'; 
         } else {
@@ -75,7 +75,7 @@ angular.module('CareKids.filters', []).
   }).
   filter('userIconPic', function() {
     return function(user) {
-      if (angular.isDefined(user)) { 
+      if (angular.isDefined(user) && user != null) { 
         if (angular.isUndefined(user.picture)) {
           return 'images/defaults/user-icon-default.png'; 
         } else {

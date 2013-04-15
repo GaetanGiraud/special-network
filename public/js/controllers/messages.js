@@ -126,6 +126,14 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
       return _.find(message.receivers, function(receiver) { return receiver._user._id == $scope.currentUser._id  }).read;
     }
     
+    $scope.messageClass = function(message) {
+      $scope.$safeApply($scope, function() {
+      if ($scope.messageStatus(message) && message === $scope.currentMessage) return 'read selected';
+      if ($scope.messageStatus(message)) return 'read';
+      return '';
+    });
+      
+    }
     /*
      * handle the following requests logic
      */

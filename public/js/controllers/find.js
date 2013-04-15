@@ -2,8 +2,7 @@
 
 function FindCtrl($scope, User, Alert, $http, Message) {
   
-  $scope.search = {} ;
-  $scope.search.type = "Users";
+  //$scope.search = {} ;
   $scope.superpowers = [];
     
   $scope.distances = [
@@ -31,6 +30,10 @@ function FindCtrl($scope, User, Alert, $http, Message) {
   //$scope.homeLocation = $scope.currentUser.location;
    
   $scope.$watch('superpowers', function(superpowers) {
+    $scope.getResults();  
+  })
+   
+   $scope.$watch('search.term', function(superpowers) {
     $scope.getResults();  
   })
    

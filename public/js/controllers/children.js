@@ -7,8 +7,26 @@ function ChildrenCtrl($scope, Child, Alert, User) {
 
     
   $scope.$watch('currentUser', function(currentUser) {
-    if (angular.isDefined(currentUser)) {
+    if (angular.isDefined(currentUser) && currentUser != null ) {
       $scope.optOut = currentUser.settings.createChildOptOut;
+      
+      $scope.newChild = {
+          creator: {
+             _user: currentUser._id,
+            relationship: "Mother"
+            }
+        };
+      
+      $scope.getRelationship = function(child) { 
+    for(var i=0; child.permissions.length; i++) {
+      if (child.permissions[i]._user == $scope.currentUser._id) {
+        return child.permissions[i].relationship;
+        break;  
+      }
+    }
+  }
+
+
     }
   });
  
@@ -21,13 +39,6 @@ function ChildrenCtrl($scope, Child, Alert, User) {
     {name:'Friend'}
   ];
   
-  
-  $scope.newChild = {
-    creator: {
-       _user: $scope.currentUser._id,
-      relationship: "Mother"
-      }
-  };
 
   $scope.famillyChildren = Child.query({following: 'familly'});
   
@@ -67,14 +78,7 @@ function ChildrenCtrl($scope, Child, Alert, User) {
       });
   }
   
-  $scope.getRelationship = function(child) { 
-    for(var i=0; child.permissions.length; i++) {
-      if (child.permissions[i]._user == $scope.currentUser._id) {
-        return child.permissions[i].relationship;
-        break;  
-      }
-    }
-  }
+  
 }
 ChildrenCtrl.$inject = ['$scope', 'Child', 'Alert', 'User'];
 

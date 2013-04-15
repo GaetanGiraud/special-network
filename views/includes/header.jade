@@ -1,22 +1,6 @@
 header(ng-cloak, class="ng-cloak", ng-switch on="loggedIn")
-  div(class="navbar container", ng-switch-when="true" )
-    div(class="navbar-inner")
-      ul(class="nav")
-        li      
-          <a ng-href = "/home", title = "Home"><i class="icon-home icon-2x icon-border"></i></a>
-        li
-          <a ng-href = "/children", title="The Kids"><i class="icon-group icon-2x icon-border"></i></a>
-        li
-          <a ng-href = "/questions" title="Questions & Answers"><i class="icon-question-sign icon-2x icon-border"></i></a>
-        li
-          <a ng-href = "/find", title="find"><i class="icon-search icon-2x icon-border"></i></a>
-      ul(class="nav  pull-right")
-        li
-          <a ng-href = "/messages", title = "Messages"><i class="icon-envelope icon-2x icon-border"></i></a>
-        li
-          <a ng-href='/user', title = 'My profile'><i class="icon-cogs icon-2x icon-border"></i></a>
-        li
-          a(ng-href='/logout',title = 'Sign out') <i class="icon-signout icon-2x icon-border"></i>
+  div(ng-switch-when="true" )
+    div#banner
   div(ng-switch-when="false")
     div#banner
     div#tagline

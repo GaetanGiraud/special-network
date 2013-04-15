@@ -7,7 +7,7 @@
  * Handles views independant logic such as menubar, sibebar and socket connections
  * 
  */
-function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socket) {
+function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socket, Message) {
 
   // connect to the socket 
   Socket.connect();
@@ -25,9 +25,24 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socke
   $scope.$watch('currentUser', function(currentUser) {
     if(currentUser != null) {
       $scope.followed = Child.query({following: true});
+      Message.getUnreadMessagesCount(function(err, data) {
+        $scope.unreadMessageCount = data.messageCount;
+      })
+      
       if (!currentUser.settings.optOut) { $scope.myChildren = Child.query(); }
     } 
   });
+  
+  $scope.search = {};
+  $scope.search.type = "Users";
+  
+  $scope.search.term = '';
+  
+  $scope.openFindWindow = function() {
+    
+    $location.path('/find');  
+  }
+  
   
   /*
    * 
@@ -37,7 +52,7 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socke
    */
   
 }
-AppCtrl.$inject = ['$scope', 'AuthService', '$location', 'Child', '$rootScope', 'Alert', 'Socket'];
+AppCtrl.$inject = ['$scope', 'AuthService', '$location', 'Child', '$rootScope', 'Alert', 'Socket', 'Message'];
 
 // controller handling modal / dialog logic.
 function DialogCtrl($scope, dialog){
@@ -125,4 +140,3 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
     
 }
 HomeCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert', 'Child', 'Socket'];
-

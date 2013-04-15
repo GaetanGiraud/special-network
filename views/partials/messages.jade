@@ -14,13 +14,10 @@ div.row
             button.btn(type = "button", ng-click = "createMessage()") Post
             button.btn(type = "button", ng-click = "HideCreateDialog = !HideCreateDialog") Cancel
             
-    div#discussions(ng-repeat = "message in sortedMessages")
-      article.message(ng-click = 'setCurrentMessage(message)')
-        div(ng-show = "messageStatus(message)")
-          p
-            | Message read!
+    div#messages(ng-repeat = "message in sortedMessages")
+      article.message(ng-click = 'setCurrentMessage(message)', ng-class = "{{ messageClass(message) }}")
         h4 From
-        img(ng-src = '{{ message._creator | iconPicture }}')
+        img(ng-src = '{{ message._creator | userIconPic }}')
         | {{message._creator.name}} 
         | {{ message.updatedAt | fromNow }}
         //h4 To
@@ -38,7 +35,7 @@ div.row
   div.span6
     article.discussion(ng-show= 'currentMessage')
        h4 
-         img(ng-src = '{{ currentMessage._creator | iconPicture }}')
+         img(ng-src = '{{ currentMessage._creator | userIconPic }}')
          | {{currentMessage._creator.name}} 
          | {{ $index }}
        h5 to: 

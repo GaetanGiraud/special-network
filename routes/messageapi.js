@@ -151,7 +151,19 @@ exports.update = function (req, res) {
   
 };  
   
+exports.count = function (req, res) {
+  // setting up the default query parameter 
+  var id = req.session.user;
   
+  Message.find()
+  .or([{'_creator': id}, {'receivers._user': id}])
+  .or([{'read': false}, {'receivers.read': false}])
+  .count(function(err, count) {
+    if(err) res.send(400, err);
+    res.json({ messageCount:  count});
+  });
+ // }    
+};
   //if (messageData._id) delete messageData._id; // stripping the id for mongoDB if it is present in the request body.
  // extend(messageData, {'updatedAt': Date.now()})
  // console.log(messageData);

@@ -74,6 +74,9 @@ LogoutCtrl.$inject = ['$scope', 'AuthService', 'Alert','$location'];
 function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder, $routeParams) {
   
   // Setting up some default values
+  $scope.pictureUploadOptions = {
+    dropZone: "#picture"
+  };
   $scope.undoLocUpdate = "false";
   var previousLocation = [];
   
@@ -102,7 +105,8 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder, $routePar
   
   // Event triggered by the uploader directive. Actions to be performed after successfull upload of profile photo.
   $scope.setProfilePicture = function(file) {
-    $rootScope.currentUser.picture = file.name;  
+    $scope.currentUser.picture = file.name;  
+    
     $scope.updateUser(false);
   };
   

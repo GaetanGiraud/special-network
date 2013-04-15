@@ -25,22 +25,6 @@ var io = require("socket.io").listen(server);
 /* 
  * Express server configuration
  */
-/* upload.configure({
-  /*uploadDir: __dirname + '/public/uploads',
-    uploadUrl: '/uploads',
-    imageTypes: /\.(gif|jpe?g|png)$/i,
-    imageVersions: {
-       thumbnail: {
-            width: 100,
-            height: 100
-            },
-       icon: {
-            width: 24,
-            height: 24
-            }
-    }
-});*/
-    
 app.configure(function(){
   // views
   app.set('views', __dirname + '/views');
@@ -52,24 +36,9 @@ app.configure(function(){
   //app.use(express.session({secret: 'ourkidsarespecial'}));
   app.use(express.methodOverride());
   
-  // file upload middleware
+  // custom file upload middleware
   app.use('/upload', upload({ directory: __dirname}));
-  
-    //{ 
-   
-   
-   // upload.fileHandler({
-   //   uploadDir: function () {
-   //     return __dirname + '/public/uploads/' + req.session.user
-  //    },
-  //    uploadUrl: function () {
-  //     return '/uploads/' + req.session.user
-  //    }
-  //  
-  //  })(req, res, next);
-    
-//  });
-  
+
   // some standard settings
   app.use(express.bodyParser());
   app.use(express.static(__dirname + '/public'));
@@ -161,7 +130,9 @@ app.delete('/api/locations/:id', restrict, api.locations.delete);
 
 // messages API
 app.get('/api/messages', restrict, api.messages.findAll);
+app.get('/api/messages/count', restrict, api.messages.count);
 app.put('/api/messages/:id', restrict, api.messages.update);
+
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);

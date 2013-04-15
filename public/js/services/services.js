@@ -41,6 +41,14 @@ angular.module('CareKids.services', ['ngResource']).
            return callback(err, null);
          })
        },
+       getUnreadMessagesCount: function(callback) {
+         $http.get('api/messages/count').success(function(data) {
+           
+            return callback(null, data);
+         }).error(function(err) {
+           return callback(err, null);
+         })
+       },
        send: function(newMessage) {
           Socket.socket().emit('messageCreated', newMessage);
           return;

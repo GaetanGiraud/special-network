@@ -5,6 +5,22 @@ block body
   div(class='container')
 
     div(class='wrapper row')
+      div(id='sidebar', ng-show = "loggedIn", class='span3')
+        ul.nav.nav-pills
+          li 
+            a(href="/home")
+              i.icon-home.icon-2x
+              | Home
+          li 
+            a(href="/logout")
+              i.icon-signout.icon-2x
+              | Logout
+            
+        include includes/sidebar/user
+        include includes/sidebar/messages
+        include includes/sidebar/children
+        include includes/sidebar/questions
+        
       div(id="partial", class="span9")
         //alert<type="alert.type", close="alert = null", ng-cloak, class="ng-cloak">{{alert.msg}}</alert>
         div(ng-class="alert.type", ng-show="alert.msg.length > 0", ng-cloak, class="ng-cloak")
@@ -12,9 +28,6 @@ block body
           {{alert.msg}}
         
         div(ng-view)
-      
-      div(id='sidebar', ng-show = "loggedIn", class='span3')
-        include includes/menu  
 
     include includes/footer
   
