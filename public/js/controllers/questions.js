@@ -1,20 +1,25 @@
-function QuestionsCtrl($scope, $rootScope, Discussion, $http, Alert, Socket) {
+function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket) {
    // Socket.subscribe('Questions');
     // setting default values for new discussions.
-    $scope.newDiscussion = {};
-     
-    $scope.newDiscussion = {};
+    $scope.newQuestion = {};
+    $scope.showNewQuestion = false;
+    $scope.newQuestion.tags = [];
+    
     $scope.$watch('currentUser', function(user) {
       if (user != null ) {
-        $scope.newDiscussion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
+        $scope.newQuestion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
       }  
     });
-    $scope.newDiscussion.type ='question';
     
-    $scope.discussions = Discussion.query({type: 'question'});
+    $scope.questions = Question.query();
 
-    //$scope.children = Child.query({'post': true});
-    $scope.children = [];
+
+   $scope.createQuestion = function() {
+       Question.save($scope.newQuestion, function(question) {
+           $scope.questions.push(question);
+        });
+     
+     }
 
 }
-QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert', 'Socket'];
+QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Question', '$http', 'Alert', 'Socket'];

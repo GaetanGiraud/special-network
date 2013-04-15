@@ -120,6 +120,14 @@ app.post('/api/discussions', restrict, api.discussions.add);
 app.post('/api/discussions/:id/comments', restrict, api.discussions.addComment);
 
 
+app.get('/api/questions', restrict, api.questions.findAll);
+app.get('/api/questions/search', restrict, api.questions.search)
+app.get('/api/questions/:id',restrict, api.questions.findById);
+app.post('/api/questions', restrict, api.questions.add);
+app.post('/api/questions/:id/comments', restrict, api.questions.addComment);
+app.put('/api/questions/:id', restrict, api.questions.update);
+
+
 // location API
 app.get('/api/homelocation', restrict, api.locations.homeLocation);
 app.get('/api/locations', restrict, api.locations.findAll);

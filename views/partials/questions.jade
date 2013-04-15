@@ -1,35 +1,29 @@
-
-
-div(ng-controller = 'DiscussionCtrl')
-  div.row
-    div.span10
-      article#new-question
-        h5 Ask a new question
-        
-        div.content
-          div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
-          div.btn-group.fileupload-buttonbar.footer
-            span.fileinput-button 
-              button.btn(type = "button", ng-click = "createDiscussion()") Post
-            span.btn.fileinput-button 
-              i.icon-picture.icon-white
-                input(type = "file", uploader, done = "", data-url="/upload", name="file")
-            span.btn.fileinput-button 
-              i.icon-film.icon-white
-                input(type = "file", uploader, done = "", data-url="/upload", name="file")
-     
-  //Existing discussions
-  div.row
-    div.span10
-      div(ng-repeat = "discussion in discussions")
-        article.discussion
-          h5 {{discussion._creator.name}}
-          p(ng-bind-html = 'discussion.content')
-          
-          div.comment(ng-repeat =  'comment in discussion.comments | orderBy:"createdAt":false')
-            h5 {{comment._creator.name}}
-            p(ng-bind-html = 'comment.content')
-         
+div.row
+  div.span9
+    //h6 Add a question
+    button.btn(type="button", ng-click = "showNewQuestion = true", ng-show = "!showNewQuestion") Add a question
+    div(ng-show = "showNewQuestion")
+      tags(tags = 'newQuestion.tags', url = '/api/discussions/search?type=tags')
+      br
+      textarea(ng-model = "newQuestion.content")
+      br
+      div.btn-group
+        button.btn.btn-primary(type="button", ng-click = "createQuestion()") Add Question
+        button.btn(type="button", ng-click = "showNewQuestion = false", ng-show = "showNewQuestion") cancel
+      
+div.row
+  div.span9
+    ul.unstyled
+      li(ng-repeat = "question in questions")
+        img(ng-src = "{{ question._creator | userIconPic }}")
+        | {{ question._creator.name }}
+        | {{ question.createdAt | fromNow }}
+        div
+          | {{ question.content }}
+        div.comment(ng-repeat =  'comment in question.comments')
+          h5 {{comment._creator.name}}
+          p(ng-bind-html = 'comment.content')
+      
         div(ng-controller = 'newCommentCtrl')
           a(ng-show = "!reply", ng-click="reply = true") Reply
           div.footer(ng-show = "reply")
@@ -37,4 +31,7 @@ div(ng-controller = 'DiscussionCtrl')
             br
             button.btn.btn-primary(ng-click="createComment($index)") Post 
             button.btn(ng-click="reply = false") Cancel
+          
+  div(paginate, new-page-target = "questions", url = "", ng-show = "questions.length > 9")  
+          
   

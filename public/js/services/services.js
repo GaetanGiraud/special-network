@@ -26,6 +26,11 @@ angular.module('CareKids.services', ['ngResource']).
                       {update: {method: "PUT"}}
                       );
   }]).
+  factory('Question', ['$resource', function($resource){
+    return $resource('api/questions/:questionId', {questionId: '@id'},
+                      {update: {method: "PUT"}}
+                      );
+  }]).
   factory('Message', ['Socket', '$http', function(Socket, $http){
     var page = 1;
     
