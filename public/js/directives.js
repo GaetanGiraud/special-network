@@ -686,36 +686,44 @@ angular.module('CareKids.directives', []).
       }
     }
   }])
-  .directive('video', ['$compile',  function($compile) {
+  .directive('video', function($rootScope) {
     return {
       restrict: 'A', 
         scope:  { 
           video: '='
         },
-      link: function(scope, elm, attrs) {
-        var source = '';
-        console.log('finding the directive');
-    
-        scope.$watch('video', function(isInitiated) {
-          if (isInitiated) {
-            console.log('loading the video');
-            source = 'http://localhost:3000/uploads/videos/' + scope.video.name;
-            console.log(source);
-            console.log(template);
-            
-            var template =  '<video id="my_video_1" class="video-js vjs-default-skin" controls ' + 
+        template:  '<video id="my_video_1" class="video-js vjs-default-skin" controls ' + 
                          'preload="auto">' +
-                          '<source src="' + source + '" type="video/mp4">' +
-                          '</video>' ; 
-                          
-             var html = $compile(template)(scope);
-             elm.prepend(html);
-             var myPlayer = _V_(html[0]);
+                          '<source src="{{ source }}" type="video/mp4">' +
+                          '</video>' ,
+        replace: true,
+      link: function(scope, elm, attrs) {
+         scope.$watch('source', function(source) {
+            if (angular.isDefined(source)) {
+              var plyer = _V_(elm[0]);
+            }
+           
+          });
+        
+        scope.$watch('video', function(isInitiated) {
+          if (isInitiated && !scope.$$phase) {
+             scope.source = 'http://localhost:3000/uploads/videos/' + scope.video.name
+          //  (scope.source);
+             
+          } else {
+            // remove the video is no input is provided
+            /* console.log('remove the video');
+            console.log(html);
+            if (angular.isDefined(html))  {
+               console.log('is defined html, removing it');
+               html.remove();
+            }
+            console.log(html);*/
           }
         });
       }
     }
-  }])
+  })
   .directive( [ 'focus', 'blur', 'keyup', 'keydown', 'keypress' ].reduce( function ( container, name ) {
     var directiveName = 'ng' + name[ 0 ].toUpperCase( ) + name.substr( 1 );
 

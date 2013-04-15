@@ -51,11 +51,12 @@ exports.add = function (discussion, callback) {
       
  //   }
  // }
-      
+ 
+  
   Discussion.create(discussion, function(err, discussion) {
     if (err)  return callback(err, null);
     console.log(('Discussion: ' + discussion._id + ' created.'));
- 
+     console.log(discussion)  
     // if children have been referenced, 
     // link the lastUpdate value inside the child model to this discussion.
     

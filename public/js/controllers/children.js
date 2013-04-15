@@ -173,7 +173,13 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
     $scope.updateChild();
   }
 
-
+  $scope.albumThumbnail = function(album) {
+     if (album != null) {
+       console.log()
+       return _.find(album.content, function(item){ return item.type == 'picture' });
+     } 
+     return '';
+  }
 
 
   

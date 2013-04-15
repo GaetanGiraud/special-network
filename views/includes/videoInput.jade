@@ -1,10 +1,16 @@
 div(ng-controller = 'VideoCtrl')
   h5 Publish a video
-    div(ng-show = "newDiscussion.video")
-      div(video = "newDiscussion.video") 
-      | {{ newDiscussion.video.title  }}
-      //input.span2(type = "text", ng-model = "newDiscussion.video.title", placeholder = "Tell more about this picture")
-      button.btn(type = "button", ng-click= 'removeVideoFromDiscussion($index)') &times
+  button.btn(type='button', ng-click="openAlbumDialog()") Add an album
+  div(ng-show = 'album')
+    img(ng-show = 'albumThumbnail(album)', ng-src = "{{ albumThumbnail(album) | thumbPicture }}")
+    | You have selected the following album:
+    strong
+      {{ album.title }}
+      
+  div#video_upload(ng-show = "newDiscussion.video")
+    div(video = "newDiscussion.video") 
+    input.span2(type = "text", ng-model = "newDiscussion.video.title", placeholder = "Tell more about this picture")
+    button.btn(type = "button", ng-click= 'removeVideoFromDiscussion($index)') &times
        
   div#progress
     div.bar(style="width: 0%;")

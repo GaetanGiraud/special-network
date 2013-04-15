@@ -12,8 +12,8 @@ var discussionSchema = mongoose.Schema({
   tags: [ String ],
   video: {
     _creatorId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    title: String,
-    name: String
+    name: String,
+    title: String
   },
   pictures: [ { 
     _creatorId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User' },

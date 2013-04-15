@@ -45,15 +45,11 @@ angular.module('CareKids.filters', []).
   filter('picture', function() {
     return function(object) {
      if (angular.isDefined(object)) {
-      if (angular.isUndefined(object.picture)) { 
-           return 'images/defaults/user-default.png';  
-        } else {
-          return 'uploads/images/' + object.name;
-        }
-      } else {
-        return 'images/defaults/user-default.png';   
-      }
-    } 
+        return 'uploads/images/' + object.name;
+     } else {
+       return 'images/defaults/user-default.png';   
+     }
+    }
   }).
   filter('userPic', function() {
     return function(user) {

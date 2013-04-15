@@ -1,5 +1,11 @@
 div(ng-controller = 'PictureCtrl')
   h5 Publish a picture
+  button.btn(type='button', ng-click="openAlbumDialog()") Add an album
+  div(ng-show = 'album')
+    img(ng-show = 'albumThumbnail(album)', ng-src = "{{ albumThumbnail(album) | thumbPicture }}")
+    | You have selected the following album:
+    strong
+      {{ album.title }}
   ul.thumbnails
     li.span2(ng-repeat = "pic in newDiscussion.pictures ")
       div.thumbnail

@@ -66,7 +66,7 @@ module.exports = function(options) {
           // make the name look nice
             file = _.extend(file, { 'title':  _(path.basename(file.name, path.extname(file.name))).titleize()});
             file.name = path.basename(file.path);
-            
+            console.log(file.type);
             // 2 use cases, one for images, one for videos
             if (/image/.test(file.type)) { 
               // create the images directory if not presnet
@@ -109,7 +109,8 @@ module.exports = function(options) {
              else {
                // Only images and videos are accepted. All other types will be destroyed.
                fs.unlinkSync(file.path);
-               res.send(400, 'Only video and images are allowed');
+               self.res.send(400, 'Only video and images are allowed');
+               finsih();
              }
             
             

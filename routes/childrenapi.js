@@ -117,3 +117,57 @@ exports.isAuthorized = function(id, userId, callback) {
   })
 };
 
+
+exports.addAlbum = function (req, res) {
+  var childId = req.params.childId;
+  console.log(req.params);
+  var albumData = req.body;
+  //if (albumData._id) delete albumData._id; // stripping the id for mongoDB if it is present in the request body.
+  
+  Child.findOne({_id: childId}, function(err, child) {
+    //var album = child.albums.id(id).content.concat(albumData);
+    if (err) return res.send(400, err);
+    child.albums.push(albumData);
+    
+    child.save(function(err, album) {
+      res.json(album);
+    })
+    
+  });
+  
+    
+};
+
+exports.updateAlbum = function (req, res) {
+  var id = req.params.id;
+  var childId = req.params.childId;
+  
+  var albumData = req.body;
+  console.log()
+
+  // if (albumData._id) delete albumData._id; // stripping the id for mongoDB if it is present in the request body.
+  
+ // Child.findOne({'_id': childId, 'albums._id': id}, function(err, child) { console.log(child.albums)})
+  
+  Child.update({'_id': childId, 'albums._id': id}
+                , { $push: { 'albums.$.content': { $each: albumData } } }
+                , function(err, child) {
+                  if (err) res.send(400, err);
+                  console.log('child updated ' + child)
+                  res.json(child);
+                  });
+  
+ /* Child.findOne({_id: childId}, function(err, child) {
+    if (err) return res.send(400, err);
+    child.albums.id(id).content.pushAll(albumData);
+    
+    child.save(function(err, child) {
+       console.log(child);
+      res.json(child.albums.id(id));
+    })
+    
+  });*/
+  
+    
+};
+

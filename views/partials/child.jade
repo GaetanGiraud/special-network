@@ -18,27 +18,36 @@ div.row
               | New picture
               input(type="file", uploader, opts = "childProfileUpload" , done='setProfilePicture(file)', data-url="/upload")
 
-      
-      div.form-inline(ng-show = 'authorize.edit')
-        h5 Customize the page title
-        input(type='text', ng-model = 'child.pageTitle', name='pageTitle', ng-pattern = "/^[a-zA-Z0-9_-]+$/") 
-        button.btn.btn-success(type = 'text', ng-click = 'updateChild()') Ok
-        br
-        span.error(ng-show="childForm.pageTitle.$error.pattern") 
-          | Should contain only letters and numbers!
+      div.row
+        div.span5.form-inline(ng-show = 'authorize.edit')
+          h5 Customize the page title
+          input(type='text', ng-model = 'child.pageTitle', name='pageTitle', ng-pattern = "/^[a-zA-Z0-9_-]+$/") 
+          button.btn.btn-success(type = 'text', ng-click = 'updateChild()') Ok
+          br
+          span.error(ng-show="childForm.pageTitle.$error.pattern") 
+            | Should contain only letters and numbers!
         
-      div
-        h5 My Superpowers
-        ul.unstyled
-          li(ng-repeat = 'superpower in child.superpowers')
-             | {{ superpower }}
-             button(ng-click = 'removeSuperpower($index)', ng-show = 'authorize.edit') &times
-          li(ng-show = 'authorize.edit') 
-            | Search
-            autocomplete(results = 'child.newSuperpower', url = '/api/discussions/search?type=tags', create = 'addSuperpower(string, newObject)')
-            //button.btn(ng-click = 'addSuperpower()') Add
-            //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
+      div.row
+        div.span5
+          h5 My Superpowers
+          ul.unstyled
+            li(ng-repeat = 'superpower in child.superpowers')
+               | {{ superpower }}
+               button(ng-click = 'removeSuperpower($index)', ng-show = 'authorize.edit') &times
+            li(ng-show = 'authorize.edit') 
+              | Search
+              autocomplete(results = 'child.newSuperpower', url = '/api/discussions/search?type=tags', create = 'addSuperpower(string, newObject)')
+              //button.btn(ng-click = 'addSuperpower()') Add
+              //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
       
+      div.row
+        div.span5
+          h5 Photos and Videos
+          ul.unstyled(ng-click = "openAlbumDialog()")
+            li(ng-repeat = 'album in child.albums | limitTi:9')
+            
+
+        
       //button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
       //button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
 
@@ -84,8 +93,11 @@ div.row
             a(class="thumbnail")
               img(ng-src = "{{ pic | picture}}", alt = 'picture {{ picture.file }}')
             | {{ pic.title }}
+
       div(ng-show = "discussion.video")
         div(video = "discussion.video") 
+        p
+         | The title: {{ discussion.video.title }}
             
       p(ng-bind-html = 'discussion.content')
         

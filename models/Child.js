@@ -10,8 +10,13 @@ var superPowerSchema = mongoose.Schema({
   });
 
 var albumSchema = mongoose.Schema({
-  content: String,
-  type: {type: String, match: /(text|photo|video)/}
+  title: String,
+  content: [{ 
+           type: {type: String, match: /(picture|video)/},
+           _creatorId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+           name: String,
+           title: String
+           }]
   });
 
 

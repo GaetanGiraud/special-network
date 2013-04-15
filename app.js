@@ -139,6 +139,9 @@ app.get('/api/children/:id',routes.sessions.restrictChildren, api.children.findB
 app.post('/api/children', restrict, api.children.add);
 app.put('/api/children/:id', restrict, api.children.update);
 app.delete('/api/children/:id', restrict, api.children.delete);
+// access sub-documents directly
+app.put('/api/children/:childId/albums/:id', restrict, api.children.updateAlbum);
+app.post('/api/children/:childId/albums', restrict, api.children.addAlbum);
 
 // discussion API.
 app.get('/api/discussions', restrict, api.discussions.findAll);

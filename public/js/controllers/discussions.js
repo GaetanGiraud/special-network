@@ -9,10 +9,10 @@
  * 
  */
  
-function DiscussionCtrl($scope, $location, Socket) {
+function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
     
     $scope.inputType = 'text';
-    
+    $scope.album = null;
    
     $scope.setInputType = function(input) {
       $scope.inputType = input;
@@ -31,16 +31,32 @@ function DiscussionCtrl($scope, $location, Socket) {
              }
          } 
        }
+
       Socket.socket().emit('discussionCreated', $scope.newDiscussion);
       
+     // _.each($scope.discussion.children) {
+        
+      
+       console.log('album is not null? : ' + ($scope.album != null ));
+      if ($scope.album != null ) {
+         if ($scope.inputType == 'picture') var data = $scope.newDiscussion.pictures ;
+         if ($scope.inputType == 'video') var data = [ $scope.newDiscussion.video ];
+        
+         $http.put('/api/children/' + $scope.child._id + '/albums/' + $scope.album._id, data );
+      }
+      
+      // add new discussion to the thread
       $scope.discussions.unshift(angular.copy($scope.newDiscussion));
+      
+      // reset newDiscussion variable
       $scope.newDiscussion.content = '';
       $scope.newDiscussion.children = ''; 
+      $scope.newDiscussion.pictures = '';
+      $scope.newDiscussion.video = '';
       
     }   
    
-    
-   $scope.albums = {};
+  // $scope.albums = {};
    
    $scope.removeVideoFromDiscussion = function() {
       $scope.newDiscussion.video = '';
@@ -75,9 +91,54 @@ function DiscussionCtrl($scope, $location, Socket) {
       $scope.discussions[index].comments.push(comment);
       Socket.socket().emit('commentAdded', { 'comment': comment, 'discussionId': id});
     });
+    
+    // albums choice dialog
+    
+    
+   var opts = {
+          backdrop: true,
+          keyboard: true,
+          backdropClick: true,
+          templateUrl:  'templates/albumChoice',
+          resolve: {albums: function() { return angular.copy( $scope.child.albums) }},
+          controller: 'AlbumChoiceCtrl'
+     };
+       
+    $scope.openAlbumDialog = function() { 
+      $dialog.dialog(opts).open().then(function(result){
+        if (angular.isDefined(result)) {
+          if (result.content == 'createNew') { 
+            $scope.createAlbum(result.title);
+          } else {
+            $scope.album = result;
+            console.log('album registered: ');
+            console.log($scope.album);
+          }
+        }
+      });
+    }  
+    
+    $scope.createAlbum = function(title) {
+      $http.post('/api/children/' + $scope.child._id + '/albums', { title: title})
+        .success(function(data) {
+          $scope.album = data;
+      });
+      
+    }
+    
+   $scope.albumThumbnail = function(album) {
+     if (album != null) {
+       console.log()
+       return _.find(album.content, function(item){ return item.type == 'picture' });
+     } 
+     return '';
+   }
+    
+ 
+    
 
 }
-DiscussionCtrl.$inject = ['$scope', '$location', 'Socket'];
+DiscussionCtrl.$inject = ['$scope', '$location', 'Socket', '$http', '$dialog'];
 
 function newCommentCtrl($scope) {
   $scope.newComment = {};
@@ -97,7 +158,7 @@ function newCommentCtrl($scope) {
 }
 newCommentCtrl.$inject = ['$scope'];
    
-function PictureCtrl($scope) {
+function PictureCtrl($scope, $dialog) {
     $scope.pictureUploadOptions = { 
       dropZone: '#input-picture'
      // dropZone: $('#profile-picture') 
@@ -107,9 +168,10 @@ function PictureCtrl($scope) {
    $scope.addPicture = function(file) {
       // if pictures array inside the newDiscussion object has not been instantiated, do it.
       if (angular.isUndefined($scope.newDiscussion.pictures)) $scope.newDiscussion.pictures = [];
-      console.log(file);
-      console.log('adding picture to the array '+ file.name)
-      $scope.newDiscussion.pictures.push({ _creatorId:  $scope.currentUser._id,
+
+      $scope.newDiscussion.pictures.push({ 
+                                      type: 'picture',
+                                      _creatorId:  $scope.currentUser._id,
                                       title: file.title,
                                       name: file.name });
       $scope.$apply($scope.newDiscussion.pictures);
@@ -118,12 +180,14 @@ function PictureCtrl($scope) {
    $scope.removePictureFromDiscussion = function($index) {
       $scope.newDiscussion.pictures.splice($index, 1);
     }
+    
+    
 }
-PictureCtrl.$inject = ['$scope'];
+PictureCtrl.$inject = ['$scope', '$dialog'];
 
 function VideoCtrl($scope) {
   
-       
+
     
     $scope.videoUploadOptions = {
      dropZone: '#input-video'
@@ -133,18 +197,61 @@ function VideoCtrl($scope) {
    
    $scope.addVideo = function(file) {
       // if pictures array inside the newDiscussion object has not been instantiated, do it.
-      if (angular.isUndefined($scope.newDiscussion.video)) $scope.newDiscussion.video = {};
-      $scope.newDiscussion.video =  { _creatorId:  $scope.currentUser._id,
+     // if (angular.isUndefined($scope.newDiscussion.video)) $scope.newDiscussion.video = {};
+      $scope.newDiscussion.video =  { type: 'video',
+                                      _creatorId:  $scope.currentUser._id,
                                       title: file.title,
                                       name: file.name };
       $scope.$apply($scope.newDiscussion.video);
+      console.log('my video ')
+      console.log($scope.newDiscussion.video)
       //var myPlayer = _V_("example_video_1");
    }
    
    $scope.removeVideoFromDiscussion = function() {
-      $scope.newDiscussion.video = '';
+      delete $scope.newDiscussion.video;
+      console.log('video deleted')
+      console.log($scope.newDiscussion.video)
     }
 
   
 }
 VideoCtrl.$inject = ['$scope'];
+
+function AlbumChoiceCtrl($scope, dialog, albums) {
+    $scope.albums = albums;
+    
+    $scope.selectAlbum = function($index) {
+      $scope.selectedAlbum = $index;
+      console.log('selected ' + $index)
+    }
+    
+    $scope.isSelected = function($index) {
+      if ($scope.selectedAlbum == $index) return 'selected';
+      return '';
+    }
+    
+       
+    $scope.confirmAlbum = function() {
+      if ($scope.selectedAlbum == 'createNew') {
+        // create a new album in the database
+        dialog.close({ content: $scope.selectedAlbum, title: $scope.newAlbumTitle });
+      } else {
+         dialog.close($scope.albums[$scope.selectedAlbum]);
+      };
+    }
+    
+    $scope.close = function() {
+      dialog.close(); 
+    }
+    
+   $scope.thumbnail = function(album) {
+     if (album != null) {
+       console.log()
+       return _.find(album.content, function(item){ return item.type == 'picture' });
+     } 
+     return '';
+   }
+  
+}
+AlbumChoiceCtrl.$inject = ['$scope', 'dialog', 'albums']

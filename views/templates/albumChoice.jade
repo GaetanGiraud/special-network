@@ -1,0 +1,25 @@
+div.modal-header
+  h3 Choose an album or create a new one
+  
+div(ng-class="modalAlert.type", ng-show="modalAlert.msg.length > 0", ng-cloak, class="ng-cloak")
+  button(class = "close", ng-click="modalAlert.msg = ''")&times;
+  {{modalAlert.msg}}
+ 
+div.modal-body
+  ul.thumbnails
+    li.span2(ng-repeat = "album in albums", ng-class = "{{ isSelected($index) }}", ng-click = "selectAlbum($index)")
+      div.thumbnail
+        img(ng-src="{{ thumbnail(album) | thumbPicture  }}", alt="{{ thumbnail(album).title }}", ng-show = "thumbnail(album)")
+        h3 {{ album.title }}
+    li.span2(ng-class = "{{ isSelected('createNew') }}", ng-click = "selectAlbum('createNew')")
+      div.thumbnail
+        img(ng-src="{{ }}",alt="{{  }}">
+        h3 Create New Album
+        input(type = 'text', placeholder='Give the album a title', ng-model = "newAlbumTitle", ng-show = "isSelected('createNew')")
+          
+
+  
+div(class="modal-footer")
+  button(type='button', ng-click='confirmAlbum()', class='btn btn-primary') Confirm
+  button(type='button', ng-click='close()', class='btn') Cancel
+  

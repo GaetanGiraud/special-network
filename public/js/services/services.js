@@ -61,6 +61,11 @@ angular.module('CareKids.services', ['ngResource']).
        }
     }
   }]).
+  factory('Albums', function() {
+    
+    
+    
+  }).
   factory('Alert', ['$rootScope', function($rootScope) {
 
      // refreshing the alert messages on page change
