@@ -24,7 +24,7 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socke
   // fetching the data for the sidebar
   $scope.$watch('currentUser', function(currentUser) {
     if(currentUser != null) {
-      $scope.followed = Child.query({following: true});
+      //$scope.followed = Child.query({following: true});
       Message.getUnreadMessagesCount(function(err, data) {
         $scope.unreadMessageCount = data.messageCount;
       });
@@ -88,15 +88,14 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
     // loading the data
     $scope.discussions = Discussion.query({'page': 1});
     $scope.children = [];
+    $scope.authorize= { post : true} ;
     
     // get all the children about which the user can post.
     $scope.children = Child.query({'post': 'true'}, function() {
       if ($scope.children.length > 0) {
-        $scope.newDiscussion.type = 'update' ;
         $scope.initializeChildren();
       } else {
         // if the user is not allowed to post for any child, set the type to question.
-        $scope.newDiscussion.type = 'question' ;
       } 
     });
 

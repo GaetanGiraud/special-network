@@ -3,7 +3,11 @@ var mongoose = require('mongoose');
 
 var answerSchema = mongoose.Schema({
   content: String, 
-  votes: Number,
+  totalVotes: {type: Number, default: 0},
+  votes: [{
+      vote: Number,
+      _creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    }], 
   _creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now},
   updatedAt: { type: Date, default: Date.now},
@@ -16,12 +20,14 @@ var answerSchema = mongoose.Schema({
 
 
 var questionSchema = mongoose.Schema({
+  title: {type: String, unique: true, sparse: true, trim: true},
   content: String, 
+  details: String,
   createdAt: { type: Date, default: Date.now},
   updatedAt: { type: Date, default: Date.now},
   _creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   answers: [ answerSchema ],
-  tags: [ String ],
+  tags: [  {type: mongoose.Schema.Types.ObjectId, ref: 'Tag'}  ],
   comments : [{
     _creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     content: String,

@@ -1,67 +1,11 @@
 div.row
   div.span9
-    article
-      h5 Create a new discussion
-      a(ng-click = 'newDiscussion.type = "update"', ng-class = 'selectedDiscussion("update")', ng-show = "children.length >= 0"  ) Update
-      a(ng-click = 'newDiscussion.type = "question"', ng-class = 'selectedDiscussion("question")'  ) I have a question 
-      a(ng-click = 'newDiscussion.type = "share"', ng-class = 'selectedDiscussion("share")'  ) Share information 
-
-div(ng-controller = 'DiscussionCtrl')
-  div.row
-    div.span6#new-discussion
-      div(ng-show = 'newDiscussion.type == "update"')
-        div(ng-repeat = "child in children")
-         label.checkbox
-           input(type="checkbox", ng-model="child.send", ng-change = "loadTags($index)") 
-           | {{child.name}}
-        div(ng-show = "children.length == 0")
-          p
-            | You are not following any children. 
+    div(ng-repeat = "child in children")
+      label.checkbox
+        input(type="checkbox", ng-model="child.send", ng-change = "loadTags($index)") 
+        | {{child.name}}
+    div(ng-show = "children.length == 0")
+       p
+        | You are not following any children. 
       
-      tags(tags = 'newDiscussion.tags', url = '/api/discussions/search?type=tags')
-
-      div.content
-        div.well(ng-show = 'newDiscussion.picture')
-          img(ng-src = "{{ newDiscussion | picture }}")
-        div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
-        div.btn-group.fileupload-buttonbar.footer
-          span.fileinput-button 
-            button.btn(type = "button", ng-click = "createDiscussion()") Post
-          span.btn.fileinput-button 
-            i.icon-picture.icon-white
-              input(type = "file", uploader, done = "addPicture(file)", data-url="/upload", name="file")
-           span.btn.fileinput-button 
-             i.icon-film.icon-white
-               input(type = "file", uploader, done = "addPicture(file)", data-url="/upload", name="file")
-  div.row
-    div.span6
-      div#discussions(ng-repeat = "discussion in discussions")
-        article.discussion
-          h4
-            img(ng-src = '{{ discussion._creator | iconPicture }}')
-            | {{discussion._creator.name}} 
-            | {{ $index }}
-          h5 {{discussion.type}} 
-          ul.unstyled
-            li(ng-repeat = "child in discussion.children")
-              img(ng-src = '{{ child.picture | iconPicture }}')
-              a(ng-href="/children/{{ child.pageTitle }}") {{child.name}}
-          h5 Tags
-          ul.unstyled
-            li(ng-repeat = "tag in discussion.tags")
-              | {{ tag }}
-          p(ng-bind-html = 'discussion.content')
-            
-          div.comment(ng-repeat =  'comment in discussion.comments')
-            h6 {{comment._creator.name}}
-            p(ng-bind-html = 'comment.content')
-          
-        div(ng-controller = 'newCommentCtrl')
-          a(ng-show = "!reply", ng-click="reply = true") Reply
-          div.footer(ng-show = "reply")
-            textarea(ng-model = "newComment.content") 
-            br
-            button.btn.btn-primary(ng-click="createComment($index)") Post 
-            button.btn(ng-click="reply = false") Cancel
-      
-      div(paginate, new-page-target = "discussions", url = "/api/discussions")
+   include ../includes/discussions

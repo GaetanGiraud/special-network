@@ -155,8 +155,8 @@ exports.count = function (req, res) {
   // setting up the default query parameter 
   var id = req.session.user;
   
-  Message.find()
-  .or(
+  Message.find({
+  $or:
     [
       { $and: [
         {'_creator': id}, 
@@ -164,12 +164,13 @@ exports.count = function (req, res) {
         ] 
       },
       { $and: [
-        {'receivers._id': id},
+        {'receivers._user': id},
         {'receivers.read': false}
         ]  
       }
-    ])
-  .count(function(err,count) {
+    ]
+  })
+  .count(function(err, count) {
     if(err) res.send(400, err);
     res.json({ messageCount: count});
   });

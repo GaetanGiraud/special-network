@@ -10,6 +10,7 @@ var app = angular.module('CareKids', ['ngSanitize', 'angular-underscore', 'CareK
     //Restricted partials
     $routeProvider.when('/home', {templateUrl: 'partials/home', controller: HomeCtrl}); 
     $routeProvider.when('/questions', {templateUrl: 'partials/questions', controller: QuestionsCtrl}); 
+    $routeProvider.when('/questions/:questionId', {templateUrl: 'partials/question', controller: QuestionCtrl});
     $routeProvider.when('/messages', {templateUrl: 'partials/messages', controller: MessageCtrl}); 
      
     $routeProvider.when('/users/:userId', {templateUrl: 'partials/user', controller: UserCtrl}); 

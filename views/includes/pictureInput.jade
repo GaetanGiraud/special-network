@@ -25,5 +25,6 @@ div(ng-controller = 'PictureCtrl')
         input(type="file", uploader, opts = "pictureUploadOptions" , done='addPicture(file)', data-url="/upload", multiple)
   br
   br
+  tags(tags = 'newDiscussion.tags', url = '/api/tags')
   div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
   

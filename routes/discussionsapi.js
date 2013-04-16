@@ -7,35 +7,14 @@ var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , Discussion = require('../models/Discussion')(db)
   , Child = require('../models/Child')(db)
+  , Tag = require('../models/Tag')(db)
+  , _ = require('underscore')
+  , mongoose = require('mongoose')
   , path = require('path')
   , extend = require('node.extend');
   
   
 // Create a new discussion
-/*exports.add = function (req, res) {
-  Discussion.create(req.body, function(err, discussion) {
-    if (err)  return res.send(400, err);
-    console.log(('Discussion: ' + discussion._id + ' created.'));
- 
-    // populate the creator before sending back the response.
-    
-    if (discussion.type == 'update') {
-      discussion.children.forEach( function(childId) {
-      
-       Child.findByIdAndUpdate(childId, {'lastUpdate': discussion._id}, function(err, child) {
-         
-    //     console.log(child);
-       });
-      });
-    }
-    
-    discussion.populate({path: '_creator', select: '_id name picture'}).populate('children', function(err, discussion) {
-      if (err) return res.send(400, err);
-      return res.json(discussion);
-    })
-    
-  });
-};*/
 
 exports.add = function (discussion, callback) {
   if (Array.isArray(discussion.children)) {
@@ -44,65 +23,32 @@ exports.add = function (discussion, callback) {
     }
   } 
   discussion._creator = discussion._creator._id;
-  
-  
- //if (!_.isUndefined(discussion.video)) {
-//    if ((!_.isUndefined(discussion.video.video) ) {
-      
- //   }
- // }
- 
+  discussion.tags = _.map(discussion.tags, function(tag) { return mongoose.Types.ObjectId(tag._id) }); // storing only the _id of the tags
   
   Discussion.create(discussion, function(err, discussion) {
-    if (err)  return callback(err, null);
-    console.log(('Discussion: ' + discussion._id + ' created.'));
-     console.log(discussion)  
-    // if children have been referenced, 
-    // link the lastUpdate value inside the child model to this discussion.
-    
-    if (discussion.type == 'update') {
-      discussion.children.forEach( function(childId) {
+          if (err)  return callback(err, null);
       
-       Child.findByIdAndUpdate(childId, {'lastUpdate': discussion._id}, function(err, child) {
+      // if children have been referenced, 
+      // link the lastUpdate value inside the child model to this discussion.
+          
+    discussion.children.forEach( function(childId) {
+      Child.findByIdAndUpdate(childId, {'lastUpdate': discussion._id}, function(err, child) {
          if (err) return callback(err, null);
-       });
-      });
-    }
-    
-    
-    discussion.populate({path: '_creator', select: '_id name picture'}).populate('children', function(err, discussion) {
-      if (err) return callback(err, null);
-      return callback(null, discussion);
-    })
-    
-  });
-};
-
-
-
-// Create a comment on an already existing discussion
-/*exports.addComment = function (req, res) {
-
-// First identify the discussion
-   Discussion.findById(req.params.id, function(err, discussion) {
-    if (err)  return res.send(400, err);
-
-    // add the comment to the discussion comments and save the index for further referencing of the comment.
-    var index = discussion.comments.push(req.body);
-    discussion.updatedAt = Date.now();
-    
-    discussion.save(function(err) {
-      if (err) return res.send(400, err);
-      
-      var comment = discussion.comments[index-1] ;
-      
-      discussion.populate({path: 'comments._creator', select: '_id name picture'}, function(err, discussion) {
-          if (err) return res.sen(400, err);
-          return res.json(discussion.comments.id(comment._id));
       });
     });
+          
+    discussion
+      .populate({path: '_creator', select: '_id name picture'})
+      .populate({path: 'tags', select: '_id name'})
+      .populate('children', function(err, discussion) {
+       if (err) return callback(err, null);
+      return callback(null, discussion);
+    })
+          
   });
-};*/
+  
+  
+};
 
 exports.addComment = function (id, comment, callback) {
 
@@ -119,7 +65,7 @@ exports.addComment = function (id, comment, callback) {
       
     //  var comment =  ;
       
-      discussion.populate({path: 'comments._creator', select: '_id name picture'}, function(err, discussion) {
+      discussion.ppopulate({path: 'comments._creator', select: '_id name picture'}, function(err, discussion) {
           if (err) return callback(err, null, null);
           return callback(null, discussion, discussion.comments[index-1]);
       });
@@ -146,23 +92,36 @@ exports.findAll = function (req, res) {
   }
   
   if(req.query.type) {  
-    var params = {'type': req.query.type}; 
+    params = {'type': req.query.type}; 
+  } else if(req.query.children) {
+    params = {'children': req.query.children}; 
   } 
-  if(req.query.children) {
-    var params = {'children': req.query.children}; 
-  } 
-  
-  console.log(params);
-    Discussion.find(params)
-    .sort({updatedAt: 'desc'})
-    .skip(skipIndex*10)
-    .limit(10)
-    .populate('_creator', '_id name picture').populate('comments._creator', '_id name picture').populate('children')
-    .exec(function (err, discussions) {
-      if (err)  return res.send(400, err);
-      return res.json(discussions);
-    });  
- // }    
+    
+    // recover all the children that the user if following
+    Child.find({ $or: [ {'permissions._user': req.session.user}, {'creator._user': req.session.user } ] })
+      .select('_id')
+      .exec(function(err, children) {
+      if (err) res.sen(400, err);
+      
+      if(req.query.children) {
+        params = {'children': req.query.children}; 
+      } else {
+        params = _.extend(params, { children: { $in: children }  })
+      }
+      
+      Discussion.find(params)
+      .sort({updatedAt: 'desc'})
+      .skip(skipIndex*10)
+      .limit(10)
+      .populate('_creator', '_id name picture')
+      .populate('comments._creator', '_id name picture')
+      .populate('children')
+      .populate({path: 'tags', select: '_id name'})
+      .exec(function (err, discussions) {
+        if (err)  return res.send(400, err);
+        return res.json(discussions);
+      });  
+   })    
 };
 
 exports.update = function (req, res) {

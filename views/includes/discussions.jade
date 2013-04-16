@@ -23,7 +23,7 @@ div(ng-controller = 'DiscussionCtrl')
     
   div(ng-repeat = "discussion in discussions")
     h4
-      img(ng-src = '{{ discussion._creator | iconPicture }}')
+      img(ng-src = '{{ discussion._creator | userIconPic }}')
       | {{discussion._creator.name}} 
       | {{ $index }}
     h5 {{discussion.type}} 
@@ -34,7 +34,7 @@ div(ng-controller = 'DiscussionCtrl')
       h5 Tags
       ul.unstyled
         li(ng-repeat = "tag in discussion.tags")
-          | {{ tag }}
+          | {{ tag.name }}
     div(ng-show = "discussion.pictures.length > 0")
       ul.thumbnails
         li.span3(ng-repeat = "pic in discussion.pictures ")
@@ -61,4 +61,4 @@ div(ng-controller = 'DiscussionCtrl')
         button.btn.btn-primary(ng-click="createComment($index)") Post 
         button.btn(ng-click="reply = false") Cancel
           
-  div(paginate, new-page-target = "discussions", url = "{{ paginationUrl }}", ng-show = "discussions.length > 9")  
+  div(paginate, new-page-target = "discussions", url = "{{ paginationUrl }}")  

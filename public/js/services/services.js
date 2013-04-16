@@ -31,9 +31,12 @@ angular.module('CareKids.services', ['ngResource']).
                       {update: {method: "PUT"}}
                       );
   }]).
-  factory('Message', ['Socket', '$http', function(Socket, $http){
-    var page = 1;
-    
+  factory('Message', ['Socket', '$http', '$rootScope', function(Socket, $http, $rootScope){
+    var page =1;
+      $rootScope.$on('$routeChangeSuccess', function() {
+        page = 1;
+      });  
+      
     return { 
        query: function(callback) {
          if (angular.isUndefined(callback)) var callback = function(err, data) {} ;

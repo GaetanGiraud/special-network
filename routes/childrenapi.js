@@ -8,7 +8,9 @@
 
 var db = require('../config/database').connection
   , User = require('../models/User')(db)
+  , Tag = require('../models/Tag')(db)
   , _ = require('underscore')
+  , mongoose = require('mongoose')
   , Child = require('../models/Child')(db);
   
 exports.add = function (req, res) {
@@ -47,7 +49,9 @@ exports.findById = function (req, res) {
      var opts = {'pageTitle': id};
   }
   
-  Child.findOne(opts, function (err, child) {
+  Child.findOne(opts)
+    .populate({path: 'superpowers', select: '_id name'})
+    .exec(function (err, child) {
     if (err)  return res.send(400, err);
     return res.json(child);
   });
@@ -67,7 +71,10 @@ exports.findAll = function (req, res) {
     opts = {'creator._user': req.session.user};
   }
   
-  Child.find(opts).populate('lastUpdate').exec(function (err, children) {
+  Child.find(opts)
+       .populate('lastUpdate')
+       .populate({path: 'superpowers', select: '_id name'})
+       .exec(function (err, children) {
       if (err)  return res.send(400, err);
       return res.json(children);
    });  
@@ -78,13 +85,19 @@ exports.update = function (req, res) {
   
   var childData = req.body;
   if (childData._id) delete childData._id; // stripping the id for mongoDB if it is present in the request body.
-  console.log(childData)
   
+  //console.log( childData);
+  
+  childData.superpowers = _.map(childData.superpowers, function(tag) { 
+    //console.log(tag._id)
+    return mongoose.Types.ObjectId(tag._id);
+     }); // storing only the _id of the tags
+
   if (_.isUndefined(childData.permission) == false) {
     var data = childData.permission;
     childData =  { $addToSet: { 'permissions': data  } };
-    console.log(childData)
   }
+  
   Child.findByIdAndUpdate(id, childData, function(err, child) {
      if (err) return res.send(400, err);
      console.log('child: ' + child._id + ' updated'.green);
@@ -117,6 +130,14 @@ exports.isAuthorized = function(id, userId, callback) {
   })
 };
 
+/*
+ * 
+ * Managing albums
+ * 
+ * 
+ */
+
+
 
 exports.addAlbum = function (req, res) {
   var childId = req.params.childId;
@@ -127,10 +148,10 @@ exports.addAlbum = function (req, res) {
   Child.findOne({_id: childId}, function(err, child) {
     //var album = child.albums.id(id).content.concat(albumData);
     if (err) return res.send(400, err);
-    child.albums.push(albumData);
+    var index = child.albums.push(albumData);
     
-    child.save(function(err, album) {
-      res.json(album);
+    child.save(function(err, child) {
+      res.json(child.albums[index-1]);
     })
     
   });

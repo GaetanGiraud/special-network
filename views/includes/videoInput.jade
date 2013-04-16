@@ -26,5 +26,6 @@ div(ng-controller = 'VideoCtrl')
         input(type="file", uploader, opts = "videoUploadOptions" , done='addVideo(file)', data-url="/upload")
   br
   br
+  tags(tags = 'newDiscussion.tags', url = '/api/tags')
   div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
   

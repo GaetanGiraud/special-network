@@ -28,8 +28,13 @@ angular.module('CareKids.directives', []).
     }
    }
   }]).
-  directive('paginate', function($http, $window, $rootScope) {
+  directive('paginate',['$compile', '$http', '$window', '$rootScope', function($compile, $http, $window, $rootScope) {
     var page = 2;
+    
+    $rootScope.$on('$routeChangeSuccess', function() {
+           $(window).unbind('scroll');
+           page = 2;
+    });
     
        return {
          restrict: 'A',
@@ -37,46 +42,27 @@ angular.module('CareKids.directives', []).
              newPageTarget: '=',
              url: '@'
            },
-         template: '<i class = "icon-spinner icon-spin"></i> {{ status }}',
+         template: '<div><i class = "icon-spinner icon-spin"></i> {{ status }}</div>',
+         replace: true,
          link: function(scope, elem, attrs) {
-        
-         scope.status = 'Loading';
-         console.log('paginate');
-         // unbind event on page change and reset page counter
-         $rootScope.$on('$routeChangeSuccess', function() {
-           $(window).unbind('scroll');
-           page = 2;
-          });
          
-         // bind the scroll object to the window only if scope.url is defined.
-        /*  scope.$watch('newPageTarget', function(newPageTarget) {
-            if (newPageTarget.length == 0) {
-               scope.status = 'End of page'; 
-                          
-                    // remove the spinner if present
-              if (angular.isDefined(elem.children()[0])) {
-                 elem.children()[0].remove();
-              }  
-              
-              
-            }
-            
-          })*/
-            $(window).bind('scroll', function(event) {
-              if ($(window).scrollTop() > ($(document).height() - $(window).height() - 50)) {
+         //var html;
+         scope.status = 'Loading';
+
+          $(window).bind('scroll', function(event) {
+             if ($(window).scrollTop() > ($(document).height() - $(window).height() - 50)) {
                 scope.loadNewPage();
                 page++;
-               }
-             });
+              }
+           });
          
           
           // load new page function
             scope.loadNewPage = function() {
-              console.log(scope.url);
               if (angular.isUndefined(scope.url) || scope.url == null || scope.url == '') return; // do nothing if the url has not been loaded.
               $http({method: 'GET', url: scope.url, params: {'page': page} })
                 .success(function(data) {
-                  
+                  //data = [];
                   // if not result, unbind the scroll event.
                   if (data.length == 0) {
                     scope.status = 'End of page'; 
@@ -95,7 +81,7 @@ angular.module('CareKids.directives', []).
           }
         
       }
-  })
+  }])
 .directive('uploader', ['$compile', function($compile) {
        return {
          restrict: 'A',
@@ -293,7 +279,7 @@ angular.module('CareKids.directives', []).
        },
      template: '<ul class = "unstyled">' + 
                   '<li ng-repeat = "tag in tags">' +
-                    ' {{ tag }} <button type = "button" ng-click = "remove($index)"> &times</button>' + 
+                    ' {{ tag.name }} <button type = "button" ng-click = "remove($index)"> &times</button>' + 
                   '</li>' +
                 '</ul>' +
                 '<div class = "input-prepend">' +
@@ -312,7 +298,10 @@ angular.module('CareKids.directives', []).
 
      var suggestionTemplate = '<ul class = "autocomplete">' +
                                    "<li ng-click='add($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
-                                   '{{suggestion}}'+
+                                   '{{suggestion.name }}'+
+                                    "<li ng-show = 'createNew' ng-click='create()'>" +
+                                   'Do you want to create a new occurence?' +
+                                   '</li>'
                                    '</li></ul>';
     var createnewTemplate = '<ul class = "autocomplete">' +
                                    "<li ng-click='add()'>" +
@@ -324,7 +313,7 @@ angular.module('CareKids.directives', []).
                                    '</li></ul>';
     var html;                          
 
-    
+    scope.createNew  = false;
     // watching the bindings to set up some smart defaults
       scope.$watch('newTag', function(tag) {
         if (angular.isDefined(scope.tag) && scope.tag.length == 0) { 
@@ -342,6 +331,16 @@ angular.module('CareKids.directives', []).
      * 
      */
      
+     scope.create = function() {
+         $http.post(attrs.url,  {'name': scope.newTag })
+         .success(function(data) {
+             html.remove();
+             scope.tags.push(data);
+             scope.newTag = '';
+          //if select action defined, trigger create actio
+          })
+     }
+     
      scope.complete = function() {
 
        // if no data entered do not show anything (Handling backspace )
@@ -355,23 +354,18 @@ angular.module('CareKids.directives', []).
           console.log(data);
           scope.suggestions = data;
           
-          // if no data ask to create a new object
-          if (data.length < 1) {
-            console.log(scope.create());
-            if (angular.isDefined(scope.create())) {
-              html = $compile(createnewTemplate)(scope);
-            } else {
-              html = $compile(noresultTemplate)(scope);
-            }
-            
+          if  (_.contains(scope.suggestions, scope.term )) {
+              scope.createNew  = false;
           } else {
-          // compile the suggestions
-            html = $compile(suggestionTemplate)(scope);
+              scope.createNew  = true;
           }
+         html = $compile(suggestionTemplate)(scope);
+          
           // append the result of the query to the element
           html.css('width', ElmWidth);
           $('ul.autocomplete').css('width', ElmWidth);
           elm.append(html);
+          console.log(scope.suggestions);
         
         });
        
@@ -381,21 +375,10 @@ angular.module('CareKids.directives', []).
       // on click function
       scope.add = function($index, $event) {
         html.remove();
-        if (angular.isDefined($index)) {
-          scope.tags.push(scope.suggestions[$index]);
-          scope.newTag = '';
+        console.log(scope.suggestions[$index]);
+        scope.tags.push(scope.suggestions[$index]);
+        scope.newTag = '';
           //if select action defined, trigger create action
-          if (angular.isDefined(scope.select())) scope.select();
-          
-        } else {
-          //if create action defined, trigger create action
-          if (angular.isDefined(scope.create())) scope.create({string: scope.results, newObject: true});
-          
-          //if select action defined, trigger create action
-          if (angular.isDefined(scope.select())) scope.select();
-        } 
-    
-        
       }
       
      scope.remove = function (index) {

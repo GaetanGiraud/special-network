@@ -36,12 +36,13 @@ div.row
     h5 My Superpowers
     form(name='childForm')
     ul.unstyled
-      li(ng-repeat = 'superpower in child.superpowers')
-         | {{ superpower }}
+      li(ng-repeat = 'superpower in child.superpowers', ng-show = '!authorize.edit')
+         | {{ superpower.name }}
          button(ng-click = 'removeSuperpower($index)', ng-show = 'authorize.edit') &times
       li(ng-show = 'authorize.edit') 
         | Search
-        autocomplete(results = 'child.newSuperpower', url = '/api/discussions/search?type=tags', create = 'addSuperpower(string, newObject)')
+        tags(tags = 'child.superpowers', url = '/api/tags')
+        
         //button.btn(ng-click = 'addSuperpower()') Add
         //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
       

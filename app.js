@@ -119,13 +119,22 @@ app.get('/api/discussions/:id',restrict, api.discussions.findById);
 app.post('/api/discussions', restrict, api.discussions.add);
 app.post('/api/discussions/:id/comments', restrict, api.discussions.addComment);
 
+// tags
+app.get('/api/tags', restrict, api.tags.findAll);
+app.post('/api/tags', restrict, api.tags.add);
+app.put('/api/tags/:id', restrict, api.tags.update);
 
+// questions API
 app.get('/api/questions', restrict, api.questions.findAll);
 app.get('/api/questions/search', restrict, api.questions.search)
 app.get('/api/questions/:id',restrict, api.questions.findById);
 app.post('/api/questions', restrict, api.questions.add);
+app.post('/api/questions/:id/answers', restrict, api.questions.addAnswer);
 app.post('/api/questions/:id/comments', restrict, api.questions.addComment);
+app.post('/api/questions/:questionId/answers/:id/comments', restrict, api.questions.addCommentToAnswer);
+app.put('/api/questions/:questionId/answers/:id/vote', restrict, api.questions.vote);
 app.put('/api/questions/:id', restrict, api.questions.update);
+
 
 
 // location API

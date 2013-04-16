@@ -22,15 +22,13 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
     $scope.createDiscussion = function() {
       $scope.newDiscussion.children = [];
     // linking chosen children to the discussion
-       if ($scope.newDiscussion.type == 'update') {
          
-         for(var i = 0; i < $scope.children.length; i++) {
+      for(var i = 0; i < $scope.children.length; i++) {
            console.log($scope.children[i].send)
            if ($scope.children[i].send) { 
              $scope.newDiscussion.children.push($scope.children[i]); 
              }
-         } 
-       }
+       } 
 
       Socket.socket().emit('discussionCreated', $scope.newDiscussion);
       
@@ -50,8 +48,8 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
       
       // reset newDiscussion variable
       $scope.newDiscussion.content = '';
-      $scope.newDiscussion.children = ''; 
-      $scope.newDiscussion.pictures = '';
+      $scope.newDiscussion.children = []; 
+      $scope.newDiscussion.pictures = [];
       $scope.newDiscussion.video = '';
       
     }   
@@ -109,6 +107,7 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
         if (angular.isDefined(result)) {
           if (result.content == 'createNew') { 
             $scope.createAlbum(result.title);
+            
           } else {
             $scope.album = result;
             console.log('album registered: ');

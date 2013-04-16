@@ -75,13 +75,12 @@ function ChildrenCtrl($scope, Child, Alert, User) {
 }
 ChildrenCtrl.$inject = ['$scope', 'Child', 'Alert', 'User'];
 
-function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $location, Socket, $dialog) {
+function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $location, Socket, $dialog, Alert) {
   
    // setting up default values for discussions on the page. Logic is in Discussion controller.
     $scope.overviewType = 'discussions';
     
     $scope.newDiscussion = {};
-    $scope.newDiscussion.type ='update';
     $scope.$watch('currentUser', function(currentUser) {
       if (currentUser != null) {
         $scope.newDiscussion._creator = { '_id': currentUser._id, 'name': currentUser.name, 'picture': currentUser.picture } ;
@@ -100,7 +99,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
       $scope.children.push(child);
       
       // fill in the child superpowers as discussiont tags by default
-      $scope.newDiscussion.tags = child.superpowers;
+      $scope.newDiscussion.tags = angular.copy(child.superpowers);
       
       $scope.discussions = Discussion.query({'children':  child._id, 'page': 1});
       Socket.subscribe('child_' +  child._id );
@@ -129,11 +128,18 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
       
     });
     
+    $scope.$watch('child.superpowers', function(superpowers) {
+       if (angular.isDefined(superpowers)) {
+         console.log($scope.child);
+         $scope.updateChild();
+       }
+      
+    } , true)
 
    $scope.updateChild = function() {
      Child.update({childId: $scope.child._id}, $scope.child, 
       function(child){
-        $scope.child = child;
+        //$scope.child = child;
         $location.url('/children/' + $scope.child.pageTitle);
         
       }, 
@@ -148,7 +154,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
     $scope.updateChild();
   };
   
-   $scope.addSuperpower = function(superpower, newSuperpower) {
+/*   $scope.addSuperpower = function(superpower, newSuperpower) {
     if(angular.isDefined(superpower)) {
       console.log('I am here');
       $scope.child.superpowers.push(superpower);
@@ -163,13 +169,13 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
     }
     
     $scope.updateChild();
-  }
+  }*/
   
     
-   $scope.removeSuperpower = function(index) {
+  /* $scope.removeSuperpower = function(index) {
     $scope.child.superpowers.splice(index, 1);
     $scope.updateChild();
-  }
+  }*/
 
   $scope.albumThumbnail = function(album) {
      if (album != null) {
@@ -216,7 +222,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
   
   
 }
-ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams', 'Discussion', 'Child','$location', 'Socket', '$dialog'];
+ChildCtrl.$inject = ['$scope', '$http', '$rootScope', '$routeParams', 'Discussion', 'Child','$location', 'Socket', '$dialog', 'Alert'];
 
 function AlbumsCtrl($scope) {
     $scope.albums = $scope.child.albums;

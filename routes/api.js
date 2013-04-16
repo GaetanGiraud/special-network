@@ -17,3 +17,4 @@ exports.children = require('./childrenapi');
 exports.discussions = require('./discussionsapi');
 exports.messages = require('./messageapi');
 exports.questions = require('./questionapi');
+exports.tags = require('./tagapi');

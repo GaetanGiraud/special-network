@@ -27,8 +27,7 @@ var childSchema = mongoose.Schema({
   gender: { type: String, match: /(boy|girl)/ },
   picture: String,
   creator: { _user: {type: mongoose.Schema.Types.ObjectId, ref: 'User' }, relationship: String },
-  specialties: [String],
-  superpowers: [String],
+  superpowers: [ {type: mongoose.Schema.Types.ObjectId, ref: 'Tag'} ],
   albums: [albumSchema],
   lastUpdate: {type: mongoose.Schema.Types.ObjectId, ref: 'Discussion' },
   permissions: [
