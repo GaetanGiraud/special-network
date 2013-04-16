@@ -1,6 +1,12 @@
 div.row
   div.span9
-    //h6 Add a question
+    h4 The topics I am following
+    
+
+
+div.row
+  div.span9
+    h6 Add a question
     button.btn(type="button", ng-click = "showNewQuestion = true", ng-show = "!showNewQuestion") Add a question
     div(ng-show = "showNewQuestion")
       tags(tags = 'newQuestion.tags', url = '/api/tags')

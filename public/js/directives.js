@@ -279,7 +279,8 @@ angular.module('CareKids.directives', []).
        },
      template: '<ul class = "unstyled">' + 
                   '<li ng-repeat = "tag in tags">' +
-                    ' {{ tag.name }} <button type = "button" ng-click = "remove($index)"> &times</button>' + 
+                    '<tag tag = "tag"></tag>'+ 
+                    ' <button type = "button" ng-click = "remove($index)"> &times</button>' + 
                   '</li>' +
                 '</ul>' +
                 '<div class = "input-prepend">' +
@@ -314,6 +315,8 @@ angular.module('CareKids.directives', []).
     var html;                          
 
     scope.createNew  = false;
+    
+    
     // watching the bindings to set up some smart defaults
       scope.$watch('newTag', function(tag) {
         if (angular.isDefined(scope.tag) && scope.tag.length == 0) { 
@@ -375,7 +378,9 @@ angular.module('CareKids.directives', []).
       // on click function
       scope.add = function($index, $event) {
         html.remove();
-        console.log(scope.suggestions[$index]);
+        
+        // follow all tags when adding them
+        $http.put('/api/tags/' + scope.suggestions[$index]._id, { action: 'follow' });
         scope.tags.push(scope.suggestions[$index]);
         scope.newTag = '';
           //if select action defined, trigger create action
@@ -385,10 +390,8 @@ angular.module('CareKids.directives', []).
        scope.tags.splice(index,1);
       if (angular.isDefined(scope.select)) scope.select();
      }
-      
-
-
-      
+    
+    
       /*
        * 
        *  Handling the user interface
@@ -437,6 +440,63 @@ angular.module('CareKids.directives', []).
    }
  }
 }])
+.directive('tag', function($http, $rootScope){
+  return {
+    restrict: 'E' ,
+    scope: {
+      tag: '='
+    },
+    replace: true,
+    template: '<span class = "tag">' + 
+                '<span class = "follow">' +
+                  '<a ng-click = "follow()" ng-show = "!isFollowed">follow</a>' +
+                  '<a ng-click = "unfollow()" ng-show = "isFollowed">unfollow</a>' +
+                 '</span>'+
+                 ' {{ tag.name }}' +
+               '</span>' ,
+    link: function(scope, elm, attrs) {
+    
+    scope.isFollowed = false;
+    
+    $rootScope.$watch('currentUser', function(currentUser) {
+        if (angular.isDefined(currentUser)) {
+         
+         
+         if (scope.tag.followers.length > 0) {
+            
+              scope.isFollowed = true;
+           } else {
+            
+          }
+        }
+     });
+     
+     scope.unfollow = function() {
+        $http.put('/api/tags/' + scope.tag._id, { action: 'unfollow' }).success(function(tag) {
+          console.log(tag)
+          scope.tag = tag; 
+          scope.isFollowed = false;  
+        });
+      }
+      
+      scope.follow = function() {
+        $http.put('/api/tags/' + scope.tag._id, { action: 'follow' }).success(function(tag) {
+          console.log(tag)
+          scope.tag = tag;
+          scope.isFollowed = true;  
+        });
+       
+      }
+      
+      
+      
+    }
+  }
+  
+  
+
+  
+})
 
 
 .directive('autocomplete',[ '$http', '$compile', function($http, $compile) {

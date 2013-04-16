@@ -1,6 +1,7 @@
 var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , _ = require('underscore')
+  , mongoose = require('mongoose')
   , Tag = require('../models/Tag')(db);
 
 
@@ -29,10 +30,11 @@ exports.findAll = function (req, res) {
 
 exports.update = function (req, res) {
   var id = req.params.id;
-  var opts = {};
   
-  if (_.isUndefined(req.body.followers) == false) {
-    var opts =  { $addToSet: { 'followers': data  } };
+  if (req.body.action == 'follow') {
+    var opts =  { $addToSet: { 'followers': mongoose.Types.ObjectId(req.session.user) } };
+  } else if (req.body.action == 'unfollow') {
+    var opts = { $pull: { 'followers': mongoose.Types.ObjectId(req.session.user) } };
   }
   
   Tag.findByIdAndUpdate(id, opts, function(err, tag) {

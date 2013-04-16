@@ -39,7 +39,10 @@ exports.add = function (discussion, callback) {
           
     discussion
       .populate({path: '_creator', select: '_id name picture'})
-      .populate({path: 'tags', select: '_id name'})
+      .populate({
+         path: 'tags',
+         match: { followers: req.session.user  }
+      })
       .populate('children', function(err, discussion) {
        if (err) return callback(err, null);
       return callback(null, discussion);
@@ -116,7 +119,7 @@ exports.findAll = function (req, res) {
       .populate('_creator', '_id name picture')
       .populate('comments._creator', '_id name picture')
       .populate('children')
-      .populate({path: 'tags', select: '_id name'})
+      .populate({path: 'tags' })
       .exec(function (err, discussions) {
         if (err)  return res.send(400, err);
         return res.json(discussions);

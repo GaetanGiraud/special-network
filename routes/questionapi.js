@@ -177,7 +177,10 @@ exports.findById = function (req, res) {
   }
   Question.findOne(opts)
    .populate({path: '_creator', select: '_id name picture'})
-   .populate({path: 'tags', select: '_id name'})
+   .populate({
+     path: 'tags',
+     match: { followers: req.session.user  }
+     })
    .populate('comments._creator', '_id name picture')
    .populate('answers._creator', '_id name picture')
    .populate('answers.comments._creator', '_id name picture')

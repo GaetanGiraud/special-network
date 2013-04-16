@@ -124,6 +124,7 @@ app.get('/api/tags', restrict, api.tags.findAll);
 app.post('/api/tags', restrict, api.tags.add);
 app.put('/api/tags/:id', restrict, api.tags.update);
 
+
 // questions API
 app.get('/api/questions', restrict, api.questions.findAll);
 app.get('/api/questions/search', restrict, api.questions.search)

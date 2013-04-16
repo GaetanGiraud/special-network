@@ -131,7 +131,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
     $scope.$watch('child.superpowers', function(superpowers) {
        if (angular.isDefined(superpowers)) {
          console.log($scope.child);
-         $scope.updateChild();
+        // $scope.updateChild();
        }
       
     } , true)
