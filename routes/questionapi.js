@@ -7,6 +7,7 @@ var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , Question = require('../models/Question')(db)
   , Child = require('../models/Child')(db)
+  , Tag = require('../models/Tag')(db)
   , _ = require('underscore')
   , mongoose = require('mongoose')
   , path = require('path')
@@ -195,20 +196,31 @@ exports.findById = function (req, res) {
 exports.findAll = function (req, res) {
   // setting up the default query parameter 
   var params = {};
+  var tagsId;
   if (req.query.page) {
      var skipIndex = req.query.page -1;
   } else { 
     var skipIndex = 0;
   }
   
-  if(req.query.type) {  
-    var params = {'type': req.query.type}; 
-  } 
+  if(req.query.topics) {  
+    params = { tags: { $in: req.query.topics }}; 
+  } else {
+    console.log('topics not defined')
+    // finding the topics you are following
+     
+  }
   if(req.query.children) {
-    var params = {'children': req.query.children}; 
+    params = _.extend(params, {'children': req.query.children}); 
   } 
   
-  console.log(params);
+  Tag.find({'followers':  mongoose.Types.ObjectId(req.session.user)})
+    .select('_id')
+    .exec(function(err, data) {
+      tagsId = _.map(data, function(tag) { return tag._id });
+      console.log(tagsId);
+      params = { 'tags': { $in: tagsId } };
+
     Question.find(params)
     .sort({updatedAt: 'desc'})
     .skip(skipIndex*10)
@@ -217,10 +229,11 @@ exports.findAll = function (req, res) {
     .populate('comments._creator', '_id name picture')
     .populate('tags')
     .exec(function (err, questions) {
+      
       if (err)  return res.send(400, err);
       return res.json(questions);
     });  
- // }    
+  });    
 };
 
 exports.vote = function (req, res) {

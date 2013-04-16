@@ -50,7 +50,7 @@ exports.findById = function (req, res) {
   }
   
   Child.findOne(opts)
-    .populate({path: 'superpowers', match: { followers: req.session.user  } })
+    .populate({path: 'superpowers'  })
     .exec(function (err, child) {
     if (err)  return res.send(400, err);
     return res.json(child);
@@ -74,8 +74,8 @@ exports.findAll = function (req, res) {
   Child.find(opts)
        .populate('lastUpdate')
        .populate({
-         path: 'superpowers',
-         match: { followers: req.session.user  }
+         path: 'superpowers'
+        // match: { followers: req.session.user  }
          })
        .exec(function (err, children) {
       if (err)  return res.send(400, err);

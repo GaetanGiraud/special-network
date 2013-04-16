@@ -14,12 +14,17 @@ exports.add = function (req, res) {
 
 exports.findAll = function (req, res) {
   var opts = {};
-  var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
   
+  if (!_.isUndefined(req.query.term)) {
+    var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
+    if (cleanQuery.length > 0) { 
+      var re = new RegExp(cleanQuery);
+      opts =  {name: {$regex: cleanQuery, $options: 'i'} };
+    }
+  }
   
-  if (cleanQuery.length > 0) { 
-    var re = new RegExp(cleanQuery);
-    opts =  {name: {$regex: cleanQuery, $options: 'i'} };
+  if (!_.isUndefined(req.query.mytags)) {
+   opts =  { 'followers':  mongoose.Types.ObjectId(req.session.user)  };
   }
     
   Tag.find(opts).populate('followers', '_id name picture' ).exec(function (err, tags) {

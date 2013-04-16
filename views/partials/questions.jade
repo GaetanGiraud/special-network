@@ -1,7 +1,7 @@
 div.row
-  div.span9
+  div.span3
     h4 The topics I am following
-    
+    tags(tags='myTags', url = '/api/tags', select = 'reloadQuestions()')
 
 
 div.row
@@ -9,7 +9,7 @@ div.row
     h6 Add a question
     button.btn(type="button", ng-click = "showNewQuestion = true", ng-show = "!showNewQuestion") Add a question
     div(ng-show = "showNewQuestion")
-      tags(tags = 'newQuestion.tags', url = '/api/tags')
+      tags(tags = 'newQuestion.tags', url = '/api/tags'')
       br
       input(type='text', ng-model = "newQuestion.content")
       br

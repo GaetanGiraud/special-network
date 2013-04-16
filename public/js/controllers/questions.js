@@ -11,8 +11,15 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket) {
       }  
     });
     
-    $scope.questions = Question.query();
-
+   $scope.questions = Question.query();
+   
+   // for building the filter array: foo[]=val1&foo[]=val2&foo[]=val3
+   
+ 
+   $scope.myTags = $http.get('/api/tags', { params : { mytags: true } })
+           .success(function(data) { 
+              $scope.myTags = data
+             })
 
    $scope.createQuestion = function() {
        Question.save($scope.newQuestion, function(question) {
@@ -20,6 +27,11 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket) {
         });
      
      }
+     
+   $scope.reloadQuestions = function() {
+     console.log('triggering action')
+      Question.query();
+    }
 
 }
 QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Question', '$http', 'Alert', 'Socket'];

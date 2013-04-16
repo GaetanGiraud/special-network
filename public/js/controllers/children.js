@@ -128,14 +128,14 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
       
     });
     
-    $scope.$watch('child.superpowers', function(superpowers) {
+   /* $scope.$watch('child.superpowers', function(superpowers) {
        if (angular.isDefined(superpowers)) {
          console.log($scope.child);
         // $scope.updateChild();
        }
       
     } , true)
-
+*/
    $scope.updateChild = function() {
      Child.update({childId: $scope.child._id}, $scope.child, 
       function(child){

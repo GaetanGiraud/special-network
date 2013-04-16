@@ -274,7 +274,7 @@ angular.module('CareKids.directives', []).
      scope: {
        tags: '=',
      //  create: '@'
-       create: '&',
+      // end: '&',
        select: '&'
        },
      template: '<ul class = "unstyled">' + 
@@ -378,12 +378,12 @@ angular.module('CareKids.directives', []).
       // on click function
       scope.add = function($index, $event) {
         html.remove();
-        
         // follow all tags when adding them
         $http.put('/api/tags/' + scope.suggestions[$index]._id, { action: 'follow' });
         scope.tags.push(scope.suggestions[$index]);
         scope.newTag = '';
           //if select action defined, trigger create action
+        if (angular.isDefined(scope.select)) scope.select();
       }
       
      scope.remove = function (index) {

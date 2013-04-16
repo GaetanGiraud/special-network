@@ -41,7 +41,7 @@ div.row
          button(ng-click = 'removeSuperpower($index)', ng-show = 'authorize.edit') &times
       li(ng-show = 'authorize.edit') 
         | Search
-        tags(tags = 'child.superpowers', url = '/api/tags')
+        tags(tags = 'child.superpowers', url = '/api/tags', select = 'updateChild()')
         
         //button.btn(ng-click = 'addSuperpower()') Add
         //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
