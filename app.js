@@ -38,7 +38,7 @@ app.configure(function(){
   
   // custom file upload middleware
   app.use('/upload', upload({ directory: __dirname}));
-
+  //app.use('/search',  );
   // some standard settings
   app.use(express.bodyParser());
   app.use(express.static(__dirname + '/public'));
@@ -59,8 +59,19 @@ app.configure('production', function(){
  * Function for Restricting access to logged in users
  */
  
- 
- 
+/* $ curl -XPUT "localhost:9200/_river/mongogridfs/_meta" -d'
+{
+  "type": "mongodb",
+    "mongodb": {
+      "db": "carekids", 
+      "collection": "questions"
+    },
+    "index": {
+      "name": "mongoquestions", 
+      "type": "questions"
+    }
+}'
+ */
  
  
 
@@ -128,14 +139,25 @@ app.put('/api/tags/:id', restrict, api.tags.update);
 // questions API
 app.get('/api/questions', restrict, api.questions.findAll);
 app.get('/api/questions/search', restrict, api.questions.search)
+
 app.get('/api/questions/:id',restrict, api.questions.findById);
 app.post('/api/questions', restrict, api.questions.add);
-app.post('/api/questions/:id/answers', restrict, api.questions.addAnswer);
-app.post('/api/questions/:id/comments', restrict, api.questions.addComment);
-app.post('/api/questions/:questionId/answers/:id/comments', restrict, api.questions.addCommentToAnswer);
-app.put('/api/questions/:questionId/answers/:id/vote', restrict, api.questions.vote);
 app.put('/api/questions/:id', restrict, api.questions.update);
+app.post('/api/questions/:id/comments', restrict, api.questions.addComment);
 
+// answers
+app.post('/api/questions/:id/answers', restrict, api.questions.addAnswer);
+app.post('/api/questions/:questionId/answers/:id/comments', restrict, api.questions.addCommentToAnswer);
+
+// search
+
+
+// vote
+app.put('/api/questions/:questionId/answers/:id/vote', restrict, api.questions.vote);
+
+// search terms
+app.get('/api/search', restrict, api.searchTerms.search)
+app.post('/api/search', restrict, api.searchTerms.increment)
 
 
 // location API

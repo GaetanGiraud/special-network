@@ -18,3 +18,4 @@ exports.discussions = require('./discussionsapi');
 exports.messages = require('./messageapi');
 exports.questions = require('./questionapi');
 exports.tags = require('./tagapi');
+exports.searchTerms = require('./searchTermsapi');

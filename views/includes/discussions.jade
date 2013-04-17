@@ -34,7 +34,7 @@ div(ng-controller = 'DiscussionCtrl')
       h5 Tags
       ul.unstyled
         li(ng-repeat = "tag in discussion.tags")
-          | {{ tag.name }}
+          tag(tag = "tag")
     div(ng-show = "discussion.pictures.length > 0")
       ul.thumbnails
         li.span3(ng-repeat = "pic in discussion.pictures ")

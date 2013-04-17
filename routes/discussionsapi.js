@@ -40,8 +40,7 @@ exports.add = function (discussion, callback) {
     discussion
       .populate({path: '_creator', select: '_id name picture'})
       .populate({
-         path: 'tags',
-         match: { followers: req.session.user  }
+         path: 'tags'
       })
       .populate('children', function(err, discussion) {
        if (err) return callback(err, null);
@@ -68,7 +67,7 @@ exports.addComment = function (id, comment, callback) {
       
     //  var comment =  ;
       
-      discussion.ppopulate({path: 'comments._creator', select: '_id name picture'}, function(err, discussion) {
+      discussion.populate({path: 'comments._creator', select: '_id name picture'}, function(err, discussion) {
           if (err) return callback(err, null, null);
           return callback(null, discussion, discussion.comments[index-1]);
       });

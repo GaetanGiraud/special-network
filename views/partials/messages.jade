@@ -47,10 +47,15 @@ div.row
          | {{ currentMessage.createdAt | fromNow }} 
        p(ng-bind-html = 'currentMessage.content')
 
-       div(ng-show = "showAction")
+       div(ng-show = "showAction", ng-controller = "newPermissionCtrl")
          div(ng-show = "!currentMessage.action.executed")
            //select(placeholder='Can this person post on {{ currentMessage.action.target.name }}'s profile?', ng-options = "r for r in ['Yes', 'No']", ng-model = "relationship")
-           select(placeholder='Who is he/her to you', ng-options = "r.name as r.name for r in relationships", ng-model = "relationship")
+           label
+             input(type='checkbox', ng-model = 'permission.rights')
+             | Can this person post on 
+             {{ currentMessage.action.target.name }}
+             |'s page?
+           select(placeholder='Who is he/her to you', ng-options = "r.name as r.name for r in relationships", ng-model = "permission.relationship")
            button.btn.btn-success(type = 'button', ng-click = "respondtoFollowingRequest(true)") Ok
            button.btn(type = 'button', ng-click = "respondtoFollowingRequest(false)") Ignore
         

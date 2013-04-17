@@ -56,6 +56,7 @@ app.run(['$rootScope', '$location', 'AuthService', 'requests401',  function ($ro
       fn = fn || function() {};
       if($scope.$$phase) {
         //don't worry, the value gets set and AngularJS picks up on it...
+        console.log('safe apply');
         fn();
       }
       else {

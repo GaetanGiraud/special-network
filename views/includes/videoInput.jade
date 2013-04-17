@@ -1,11 +1,6 @@
 div(ng-controller = 'VideoCtrl')
   h5 Publish a video
-  button.btn(type='button', ng-click="openAlbumDialog()") Add an album
-  div(ng-show = 'album')
-    img(ng-show = 'albumThumbnail(album)', ng-src = "{{ albumThumbnail(album) | thumbPicture }}")
-    | You have selected the following album:
-    strong
-      {{ album.title }}
+  include ../includes/albumChoice
       
   div#video_upload(ng-show = "newDiscussion.video")
     div(video = "{{ newDiscussion.video.name }}") 
@@ -26,6 +21,5 @@ div(ng-controller = 'VideoCtrl')
         input(type="file", uploader, opts = "videoUploadOptions" , done='addVideo(file)', data-url="/upload")
   br
   br
-  tags(tags = 'newDiscussion.tags', url = '/api/tags')
   div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
   

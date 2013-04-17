@@ -24,10 +24,11 @@ exports.findAll = function (req, res) {
   }
   
   if (!_.isUndefined(req.query.mytags)) {
+    console.log('myTags')
    opts =  { 'followers':  mongoose.Types.ObjectId(req.session.user)  };
   }
     
-  Tag.find(opts).populate('followers', '_id name picture' ).exec(function (err, tags) {
+  Tag.find(opts).exec(function (err, tags) {
       if (err)  return res.send(400, err);
       return res.json(tags);
    });  

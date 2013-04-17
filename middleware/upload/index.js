@@ -19,14 +19,15 @@ module.exports = function(options) {
     var UploadHandler= require('./uploadHandler')(options);
     
     var handler = new UploadHandler(req, res, function(results, err) {
+        if (err) return res.send(400, err);
+        
         res.set({
            'Content-Type': (req.headers.accept || '').indexOf('application/json') !== -1
                           ? 'application/json'
                           : 'text/plain'
         });
        
-       if (err) res.send(400, err);
-       res.json(200, results);
+       return res.json(200, results);
       });    
     
     if (req.method == 'POST' && req.session.user) { 

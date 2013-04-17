@@ -38,10 +38,13 @@ div.row
     ul.unstyled
       li(ng-repeat = 'superpower in child.superpowers', ng-show = '!authorize.edit')
          | {{ superpower.name }}
-         button(ng-click = 'removeSuperpower($index)', ng-show = 'authorize.edit') &times
+         //button(ng-click = 'removeSuperpower($index)', ng-show = 'authorize.edit') &times
       li(ng-show = 'authorize.edit') 
+        ul
+          li(ng-repeat = "tag in child.superpowers")
+            tag(tag = "tag", action = "true", remove = "removeSuperpower(tag)")
         | Search
-        tags(tags = 'child.superpowers', url = '/api/tags', select = 'updateChild()')
+        tags(url = '/api/tags', add = 'addSuperpower(tag)')
         
         //button.btn(ng-click = 'addSuperpower()') Add
         //button.btn(ng-click = 'child.newSuperpower = ""') Cancel

@@ -4,6 +4,7 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket) {
     $scope.newQuestion = {};
     $scope.showNewQuestion = false;
     $scope.newQuestion.tags = [];
+   // $scope.questions = []
     
     $scope.$watch('currentUser', function(user) {
       if (user != null ) {
@@ -11,28 +12,133 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket) {
       }  
     });
     
-   $scope.questions = Question.query();
+   //$scope.questions = Question.query();
    
    // for building the filter array: foo[]=val1&foo[]=val2&foo[]=val3
    
  
    $scope.myTags = $http.get('/api/tags', { params : { mytags: true } })
            .success(function(data) { 
-              $scope.myTags = data
+              $scope.myTags = data;
+              $scope.searchTags = angular.copy(data);
              })
+  
+  $scope.$watch('searchTags', function() {
+      var request;
+      angular.forEach($scope.searchTags, function(tag) {
+        if(!request) {
+          request = 'tags[]=' + tag._id;
+        } else  {
+          request = request + '&tags[]=' + tag._id;
+        }
+      });
+      console.log(request);
+      $http.get('/api/questions?' + request)
+      .success(function(data) {
+        $scope.questions = data;  
+        
+      });
+  }, true);          
+ 
+ $scope.search = function(term) {
+   
+   $http.get('http://localhost:9200/mongoquestions/_search?q',{params: {q: term }} )
+   .success(function(data) {
+      $scope.questions = _.map(data.hits.hits, function(hit) { return hit._source });
+      
+      console.log(data); 
+     
+    })
+   //$scope.questions = data;  
+   
+  }
+ 
+             
+             
+  $scope.$on('followingTag', function(event, tag) {
+    $scope.myTags.push(tag);
+  })       
+  
+  $scope.$on('unFollowingTag', function(event, tag) {
+    for(var i = 0; i < $scope.myTags.length; i++) {
+      if ($scope.myTags[i]._id == tag._id) {
+        $scope.myTags.splice(i, 1);
+        break;  
+      }
+      
+    }
+  })  
+  
+  
+  // handling tags      
+  
+  $scope.addQuestionTag = function(tag) { 
+    var isPresent = false;
+      
+      for(var i=0; i < $scope.newQuestion.tags.length; i++) {
+        if ($scope.newQuestion.tags[i]._id == tag._id)  {
+          isPresent = true;
+          alert('Already selected')
+          break;
+        }
+      }
+       if (!isPresent) {
+        $scope.newQuestion.tags.push(tag);
+      }
+    }
+    
+  $scope.removeQuestionTag = function(tag) {
+      for(var i=0; i < $scope.newQuestion.tags.length; i++) {
+        if ($scope.newQuestion.tags[i]._id == tag._id)  {
+          $scope.newQuestion.tags.splice(i, 1);
+          break;
+        }
+        
+      }
+    }
+  
+    $scope.addTag = function(tag) { 
+    var isPresent = false;
+      
+      for(var i=0; i < $scope.searchTags.length; i++) {
+        if ($scope.searchTags[i]._id == tag._id)  {
+          isPresent = true;
+          alert('Already selected')
+          break;
+        }
+      }
+       if (!isPresent) {
+        $scope.searchTags.push(tag);
+      }
+    }
+    
+  $scope.removeTag = function(tag) {
+      for(var i=0; i < $scope.searchTags.length; i++) {
+        if ($scope.searchTags[i]._id == tag._id)  {
+          $scope.searchTags.splice(i, 1);
+          break;
+        }
+        
+      }
+    }
+  
+  
 
    $scope.createQuestion = function() {
-       Question.save($scope.newQuestion, function(question) {
+       Question.save($scope.newQuestion, 
+         function(question) {
            $scope.questions.unshift(question);
+            $scope.showNewQuestion = false;
+            $scope.newQuestion.tags = [];
+            $scope.newQuestion.content = '';
+            $scope.newQuestion.details = '';
+        }, 
+        function(err) {
+           console.log(err);
+           Alert.error(err.data.err);  
         });
      
      }
-     
-   $scope.reloadQuestions = function() {
-     console.log('triggering action')
-      Question.query();
-    }
-
 }
 QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Question', '$http', 'Alert', 'Socket'];
 
@@ -68,6 +174,7 @@ function QuestionCtrl($scope, $routeParams, Question, $http, Alert, Socket) {
    }
    
    $scope.up = function(answer) {
+     
      $http.put('/api/questions/' + $scope.question._id + '/answers/' + answer._id + '/vote', {vote: 1, _creator: $scope.currentUser._id } )
       .success(function(data) {
         answer.votes.push(data);
@@ -123,3 +230,4 @@ function newQuestionCommentCtrl($scope, $http) {
     }
 
 }
+

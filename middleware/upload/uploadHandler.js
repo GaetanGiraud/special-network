@@ -31,13 +31,15 @@ module.exports = function(options) {
         self = this,
         form = new formidable.IncomingForm(),    // instantiate formidable
         tmpFiles = [],
+        err = null,
         files = [],
         finish = function() { 
                  // when called, decrement the action counter. 
                  // if equal to 0, not action left to process, process the callback.
                   if (!--self.counter) {
+                    console.log(err)
                     console.log('sending the response');
-                    self.callback(files);
+                    self.callback(files, err);
                   } else {
                    console.log('not sending') 
                   }
@@ -108,9 +110,11 @@ module.exports = function(options) {
              }
              else {
                // Only images and videos are accepted. All other types will be destroyed.
+               self.counter ++;
                fs.unlinkSync(file.path);
-               self.res.send(400, 'Only video and images are allowed');
-               finsih();
+               err = 'Only video and images are allowed';
+               //self.callback(null, 'Only video and images are allowed' );
+               finish();
              }
             
             

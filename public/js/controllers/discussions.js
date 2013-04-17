@@ -18,30 +18,54 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
       $scope.inputType = input;
 
     }
+   
+   // handling tags
+       
+   $scope.addTag = function(tag) { 
+      var isPresent = false;
+      
+      for(var i=0; i < $scope.newDiscussion.tags.length; i++) {
+        if ($scope.newDiscussion.tags[i]._id == tag._id)  {
+          isPresent = true;
+          alert('Already selected')
+          break;
+        }
+      }
+       if (!isPresent) {
+        $scope.newDiscussion.tags.push(tag);
+      }
+    }
+    
+    $scope.removeTag = function(tag) {
+      for(var i=0; i < $scope.newDiscussion.tags.length; i++) {
+        if ($scope.newDiscussion.tags[i]._id == tag._id)  {
+          $scope.newDiscussion.tags.splice(i, 1);
+          break;
+        }
+        
+      }
+    }
   
     $scope.createDiscussion = function() {
       $scope.newDiscussion.children = [];
     // linking chosen children to the discussion
          
       for(var i = 0; i < $scope.children.length; i++) {
-           console.log($scope.children[i].send)
            if ($scope.children[i].send) { 
              $scope.newDiscussion.children.push($scope.children[i]); 
-             }
+             
+             if ($scope.children[i].album) {
+               if ($scope.inputType == 'picture') var data = $scope.newDiscussion.pictures ;
+               if ($scope.inputType == 'video') var data = [ $scope.newDiscussion.video ];
+              
+               $http.put('/api/children/' + $scope.children[i]._id + '/albums/' + $scope.children[i].album._id, data );
+              }
+            }
        } 
 
       Socket.socket().emit('discussionCreated', $scope.newDiscussion);
       
      // _.each($scope.discussion.children) {
-        
-      
-       console.log('album is not null? : ' + ($scope.album != null ));
-      if ($scope.album != null ) {
-         if ($scope.inputType == 'picture') var data = $scope.newDiscussion.pictures ;
-         if ($scope.inputType == 'video') var data = [ $scope.newDiscussion.video ];
-        
-         $http.put('/api/children/' + $scope.child._id + '/albums/' + $scope.album._id, data );
-      }
       
       // add new discussion to the thread
       $scope.discussions.unshift(angular.copy($scope.newDiscussion));
@@ -51,8 +75,11 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
       $scope.newDiscussion.children = []; 
       $scope.newDiscussion.pictures = [];
       $scope.newDiscussion.video = '';
+      $scope.newDiscussion.album = '';
       
     }   
+    
+
    
   // $scope.albums = {};
    
@@ -92,36 +119,42 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
     
     // albums choice dialog
     
-    
+  $scope.albums = [];
+  
    var opts = {
           backdrop: true,
           keyboard: true,
           backdropClick: true,
           templateUrl:  'templates/albumChoice',
-          resolve: {albums: function() { return angular.copy( $scope.child.albums) }},
           controller: 'AlbumChoiceCtrl'
      };
        
-    $scope.openAlbumDialog = function() { 
+    $scope.openAlbumDialog = function(child) { 
+      opts = angular.extend(opts, {
+          resolve: {albums: function() { return angular.copy (child.albums) }}
+      });
+      
       $dialog.dialog(opts).open().then(function(result){
         if (angular.isDefined(result)) {
           if (result.content == 'createNew') { 
-            $scope.createAlbum(result.title);
-            
+            $http.post('/api/children/' + $scope.child._id + '/albums', { title: title})
+              .success(function(data) {
+                child.album = data;
+               });
           } else {
-            $scope.album = result;
-            console.log('album registered: ');
-            console.log($scope.album);
+            child.album = result;
           }
         }
       });
     }  
     
+    $scope.removeAlbum = function(child) {
+      
+      $scope.albums.splice(index,1);  
+    }
+    
     $scope.createAlbum = function(title) {
-      $http.post('/api/children/' + $scope.child._id + '/albums', { title: title})
-        .success(function(data) {
-          $scope.album = data;
-      });
+
       
     }
     

@@ -268,6 +268,144 @@ angular.module('CareKids.directives', []).
     }
   }   
 }])
+.directive('questionSearch',[ '$http', '$compile', function($http, $compile) {
+   return {
+     restrict: 'A',
+     scope: {
+       search: '&'
+      // term: '=',
+     //  create: '@'
+      // end: '&',
+     //  add: '&'
+       },
+     //replace: true,
+     template: ' <input class = "span9" placeholder = "search" id = "autocomplete" type ="text" ng-change="complete()" ng-model="term">',
+     link: function(scope, elm, attrs) {
+
+     var suggestionTemplate = '<ul class = "autocomplete">' +
+                                   "<li ng-click='select($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
+                                   '<i class = "icon-search"></i> {{suggestion.term }}'+
+                                   '</li>' +
+                              '</ul>';
+    var noresultTemplate = '<ul class = "autocomplete">' +
+                                   "<li>" +
+                                   'No results matching your request. Hi return to start a new search.' +
+                                   '</li></ul>';
+    var html;                          
+    var elmWidth = elm.children()[0].offsetWidth;
+    
+      scope.$watch('suggestions', function(suggestions) {
+        if (angular.isDefined(suggestions)) {
+          if (suggestions.length == 0) {
+           //scope.selected = 0;
+           if (angular.isDefined(html)) html.remove(); 
+          }
+        }
+      });
+    
+    /*
+     * 
+     *  get the autocompletion data from the server
+     * 
+     */
+     scope.complete = function() {
+
+       // if no data entered do not show anything (Handling backspace )
+       if (scope.term.length == 0) { 
+         if (angular.isDefined(html)) html.remove(); 
+      } else {
+       
+        $http({method: 'GET', url: '/api/search' , params: {'term': scope.term }})
+         .success(function(data) {
+          console.log('succes fetching search data');
+          if (html) html.remove();
+          
+           // if data is null, return
+           if (data.length == 0) { 
+               html = $compile(noresultTemplate)(scope);
+            } else { 
+            scope.suggestions = data;
+            html = $compile(suggestionTemplate)(scope);
+          }
+          
+          // append the result of the query to the element
+          html.css('width', elmWidth);
+          $('ul.autocomplete').css('width', elmWidth);
+          elm.append(html);
+        
+        });
+       
+       }
+     
+      }
+      // on click function
+      scope.select = function($index, $event) {
+        if (angular.isDefined($index)) {
+          scope.term = scope.suggestions[$index].term;
+        }
+        console.log($index)
+        //
+        html.remove();
+        //console.log(
+        
+        // increment the search term popularity
+        $http.post('/api/search', { term: scope.term });
+        scope.search({term: scope.term });
+       // $location.search('term', scope.term).path('/search')
+       // $location.path('/search?'
+
+      }
+    
+    
+      /*
+       * 
+       *  Handling the user interface
+       * 
+       */
+        
+      elm.bind('keydown', function(event) {
+          if ((event.keyCode == '40') && (scope.suggestions.length > 1) && (scope.selected < scope.suggestions.length ) ) {
+            scope.selected = scope.selected + 1; 
+            scope.$apply(scope.selected);
+          }
+          if ((event.keyCode == '38') && (scope.suggestions.length > 1) && (scope.selected <= scope.suggestions.length ) ) {
+            scope.selected = scope.selected - 1; 
+            scope.$apply(scope.selected);
+          }
+          if ( event.keyCode == '13' ) {
+            scope.$apply(scope.select(scope.selected)); 
+          }
+          if ( event.keyCode == '27' ) {
+            
+            html.remove();
+            scope.$apply(scope.term = '');
+          }
+        });
+      
+      $('html').bind('mousedown', function(event) {
+      //if(!$(event.target).is('#foo')) && !$(event.target).parents("#foo").is("#foo")
+        if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
+          scope.$apply(scope.newTag = '');
+          html.remove();
+        }
+       });
+      
+      //elm.bind
+      //mousedown
+      scope.toggleClass = function($index) {
+       scope.selected =  $index;
+        
+      }
+      
+      scope.highlight = function(index) {
+       if (scope.selected == index) return 'selected';
+       return '';
+      }
+      
+      
+   }
+ }
+}])
 .directive('tags',[ '$http', '$compile', function($http, $compile) {
    return {
      restrict: 'E',
@@ -275,15 +413,9 @@ angular.module('CareKids.directives', []).
        tags: '=',
      //  create: '@'
       // end: '&',
-       select: '&'
+       add: '&'
        },
-     template: '<ul class = "unstyled">' + 
-                  '<li ng-repeat = "tag in tags">' +
-                    '<tag tag = "tag"></tag>'+ 
-                    ' <button type = "button" ng-click = "remove($index)"> &times</button>' + 
-                  '</li>' +
-                '</ul>' +
-                '<div class = "input-prepend">' +
+     template: '<div class = "input-prepend">' +
                   '<span class= "add-on">' +
                     '<i class = "icon-tags"></i>'+ 
                   '</span>' +
@@ -298,7 +430,7 @@ angular.module('CareKids.directives', []).
      var ElmWidth =  inputElm.offsetWidth;
 
      var suggestionTemplate = '<ul class = "autocomplete">' +
-                                   "<li ng-click='add($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
+                                   "<li ng-click='select($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
                                    '{{suggestion.name }}'+
                                     "<li ng-show = 'createNew' ng-click='create()'>" +
                                    'Do you want to create a new occurence?' +
@@ -376,20 +508,21 @@ angular.module('CareKids.directives', []).
      
       }
       // on click function
-      scope.add = function($index, $event) {
+      scope.select = function($index, $event) {
         html.remove();
         // follow all tags when adding them
-        $http.put('/api/tags/' + scope.suggestions[$index]._id, { action: 'follow' });
-        scope.tags.push(scope.suggestions[$index]);
+        //$http.put('/api/tags/' + scope.suggestions[$index]._id, { action: 'follow' });
+        //scope.tags.push(scope.suggestions[$index]);
         scope.newTag = '';
           //if select action defined, trigger create action
-        if (angular.isDefined(scope.select)) scope.select();
+        console.log(scope.suggestions[$index]);
+        scope.add({tag:  scope.suggestions[$index] });
       }
       
-     scope.remove = function (index) {
+   /*  scope.remove = function (index) {
        scope.tags.splice(index,1);
-      if (angular.isDefined(scope.select)) scope.select();
-     }
+     // if (angular.isDefined(scope.select)) scope.select();
+     }*/
     
     
       /*
@@ -444,50 +577,94 @@ angular.module('CareKids.directives', []).
   return {
     restrict: 'E' ,
     scope: {
-      tag: '='
+      tag: '=',
+      remove: '&'
     },
-    replace: true,
+   //replace: true,
     template: '<span class = "tag">' + 
                 '<span class = "follow">' +
                   '<a ng-click = "follow()" ng-show = "!isFollowed">follow</a>' +
                   '<a ng-click = "unfollow()" ng-show = "isFollowed">unfollow</a>' +
                  '</span>'+
                  ' {{ tag.name }}' +
+                 ' <button type = "button" ng-show = "canRemove" ng-click = "removeTag()"> &times</button>' +
                '</span>' ,
     link: function(scope, elm, attrs) {
     
     scope.isFollowed = false;
+    scope.canRemove = false;
+    
+    
+    // initialize the tag
+    
+    var currentUserInit = false;
+    var currentTagInit = false;
+    var initPerformed = false;
+    
+    var initTag = function() {
+      if (currentTagInit && currentUserInit && !initPerformed) {
+        for(var i =0; i < scope.tag.followers.length; i++) {
+          if ( scope.tag.followers[i] == $rootScope.currentUser._id)  {
+            scope.isFollowed = true;
+            initPerformed = true;
+            break;
+          } 
+        }
+      }
+    }
     
     $rootScope.$watch('currentUser', function(currentUser) {
-        if (angular.isDefined(currentUser)) {
-         
-         
-         if (scope.tag.followers.length > 0) {
-            
-              scope.isFollowed = true;
-           } else {
-            
-          }
-        }
-     });
+      if (angular.isDefined(currentUser)) currentUserInit = true;
+      initTag();
+    });
+    
+    scope.$watch('tag', function(tag) {
+      if (angular.isDefined(tag)) currentTagInit = true;
+      initTag();        
+    });
+    
+    attrs.$observe('action', function(action) {
+      if (action) {
+        scope.canRemove = true;
+      }  
+    })
+    
+    scope.removeTag = function() {
+      //console.log('remove');
+      scope.remove({ tag: scope.tag }); 
+    }
      
      scope.unfollow = function() {
         $http.put('/api/tags/' + scope.tag._id, { action: 'unfollow' }).success(function(tag) {
           console.log(tag)
           scope.tag = tag; 
-          scope.isFollowed = false;  
+          $rootScope.$broadcast('unFollowingTag', tag);
+               //$rootScope.$safeApply(scope, function() { scope.isFollowed = false });  
+          
         });
+         
+         scope.isFollowed = false;
       }
       
       scope.follow = function() {
         $http.put('/api/tags/' + scope.tag._id, { action: 'follow' }).success(function(tag) {
-          console.log(tag)
+          //console.log(tag)
           scope.tag = tag;
-          scope.isFollowed = true;  
+          $rootScope.$broadcast('followingTag', tag);
+          //$rootScope.$safeApply(scope, function() { scope.isFollowed = true });  
         });
+        scope.isFollowed = true;  
+
        
       }
       
+    scope.$on('followingTag', function(event, tag) {
+        if (tag._id == scope.tag._id) scope.isFollowed = true;
+     })       
+  
+    scope.$on('unFollowingTag', function(event, tag) {
+      if (tag._id == scope.tag._id) scope.isFollowed = false;
+    })             
       
       
     }

@@ -1,6 +1,9 @@
 h5 Publish an update
 
 div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
-tags(tags = 'newDiscussion.tags', url = '/api/tags')
+ul
+  li(ng-repeat = "tag in newDiscussion.tags")
+    tag(tag = "tag", action = "true", remove =  "removeTag(tag)" )
+tags(url = '/api/tags', add = 'addTag(tag)')
 br
 

@@ -82,7 +82,7 @@ DialogCtrl.$inject = ['$scope', 'dialog'];
 
 function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
     Socket.subscribe('discussions');
-    
+    var childrenInitialized;
     $scope.newDiscussion = {};
     
     // loading the data
@@ -108,7 +108,7 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
     
     $scope.$watch('children', function(children) {
     // Ensure that at least one child is selected when creating an update.
-      if ($scope.newDiscussion.type == 'update') {
+      if(childrenInitialized) {
         var count =  $scope.children.filter(function(child) { return child.send == true }).length;
         if (count == 0) {
           alert('You need to specify the child to which the update belong')
@@ -127,6 +127,7 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
   // Set the first child as default child && use its superpowers as default tags
     $scope.initializeChildren = function() {
       $scope.children[0].send = true;
+      childrenInitialized = true;
       $scope.newDiscussion.tags = angular.copy($scope.children[0].superpowers);
     }
     

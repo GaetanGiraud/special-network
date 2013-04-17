@@ -136,19 +136,6 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
      * handle the following requests logic
      */
     
-    $scope.respondtoFollowingRequest = function(acceptance) {
-      
-      if(acceptance) {
-      Child.update({'childId': $scope.currentMessage.action.target._id },
-         { permission: { _user: $scope.currentMessage._creator._id,
-           rights: 'write',
-           relationship: $scope.relationship}
-          });
-       }   
-      Message.update($scope.currentMessage, { action : { executed: true }});
-      $scope.$safeApply($scope, function() { $scope.currentMessage.action.executed = true });
-    };
-    
     /*
      * Receive angular events from reply Controller.
      */
@@ -208,6 +195,28 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
 
 }
 MessageCtrl.$inject = ['$scope', '$location', 'Message', 'Socket', 'Child'];
+
+function newPermissionCtrl($scope) {
+  
+  $scope.$watch('currentMessage', function(currentMessage) {
+    if(angular.isDefined(currentMessage) && currentMessage != null) {
+      $scope.permission = { _user: $scope.currentMessage._creator._id };
+    }
+  })
+  
+  $scope.respondtoFollowingRequest = function(acceptance) {
+      
+      if(acceptance) {
+      Child.update({'childId': $scope.currentMessage.action.target._id },
+         { permission: $scope.permission } );
+       }   
+      Message.update($scope.currentMessage, { action : { executed: true }});
+      $scope.$safeApply($scope, function() { $scope.currentMessage.action.executed = true });
+    };
+    
+
+}
+
 
 function newReplyCtrl($scope) {
   $scope.newReply = {};

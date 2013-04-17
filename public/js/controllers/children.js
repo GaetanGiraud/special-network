@@ -98,6 +98,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
       child.send = true;
       $scope.children.push(child);
       
+      console.log(child.superpowers);
       // fill in the child superpowers as discussiont tags by default
       $scope.newDiscussion.tags = angular.copy(child.superpowers);
       
@@ -136,6 +137,39 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
       
     } , true)
 */
+   // handling superpowers
+   $scope.addSuperpower = function(superpower) {
+     
+     var isPresent = false;
+      for(var i=0; i < $scope.child.superpowers.length; i++) {
+        if ($scope.child.superpowers[i]._id == superpower._id)  {
+          isPresent = true;
+          alert('Already selected')
+          break;
+        }
+      }
+     if (!isPresent) {
+       $scope.child.superpowers.push(superpower);
+       $scope.updateChild();
+       $http.put('/api/tags/' + superpower._id, { action: 'follow' });
+       $scope.newDiscussion.tags.push(superpower);
+     }
+     
+    }
+    
+
+    $scope.removeSuperpower = function(superpower) {
+      console.log('search')
+      for(var i=0; i < $scope.child.superpowers.length; i++) {
+        if ($scope.child.superpowers[i]._id == superpower._id)  {
+          $scope.child.superpowers.splice(i, 1);
+          $scope.updateChild();
+          break;
+        }
+      }
+    }
+    
+   
    $scope.updateChild = function() {
      Child.update({childId: $scope.child._id}, $scope.child, 
       function(child){

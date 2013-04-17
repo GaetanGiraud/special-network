@@ -8,6 +8,7 @@ var db = require('../config/database').connection
   , Question = require('../models/Question')(db)
   , Child = require('../models/Child')(db)
   , Tag = require('../models/Tag')(db)
+  , SearchTerm = require('../models/SearchTerm')(db)
   , _ = require('underscore')
   , mongoose = require('mongoose')
   , path = require('path')
@@ -17,31 +18,6 @@ var db = require('../config/database').connection
   _.mixin(_.str.exports());
   _.str.include('Underscore.string', 'string')
   
-// Create a new question
-/*exports.add = function (req, res) {
-  Question.create(req.body, function(err, question) {
-    if (err)  return res.send(400, err);
-    console.log(('Question: ' + question._id + ' created.'));
- 
-    // populate the creator before sending back the response.
-    
-    if (question.type == 'update') {
-      question.children.forEach( function(childId) {
-      
-       Child.findByIdAndUpdate(childId, {'lastUpdate': question._id}, function(err, child) {
-         
-    //     console.log(child);
-       });
-      });
-    }
-    
-    question.populate({path: '_creator', select: '_id name picture'}).populate('children', function(err, question) {
-      if (err) return res.send(400, err);
-      return res.json(question);
-    })
-    
-  });
-};*/
 
 exports.add = function (req, res) {
   question = req.body;
@@ -55,7 +31,13 @@ exports.add = function (req, res) {
   question.title = _.slugify(question.content);
 
   Question.create(question, function(err, question) {
-    question.populate({path: '_creator', select: '_id name picture'}, function(err, question) {
+    if (err) return res.send(400, err);
+    
+    console.log('Question :')
+    console.log(question);
+    question
+    .populate({path: '_creator', select: '_id name picture'})
+    .populate('tags', function(err, question) {
       if (err) res.send(400, err);
       return res.json(question);
     })
@@ -63,31 +45,6 @@ exports.add = function (req, res) {
   });
 };
 
-
-
-// Create a comment on an already existing question
-/*exports.addComment = function (req, res) {
-
-// First identify the question
-   Question.findById(req.params.id, function(err, question) {
-    if (err)  return res.send(400, err);
-
-    // add the comment to the question comments and save the index for further referencing of the comment.
-    var index = question.comments.push(req.body);
-    question.updatedAt = Date.now();
-    
-    question.save(function(err) {
-      if (err) return res.send(400, err);
-      
-      var comment = question.comments[index-1] ;
-      
-      question.populate({path: 'comments._creator', select: '_id name picture'}, function(err, question) {
-          if (err) return res.sen(400, err);
-          return res.json(question.comments.id(comment._id));
-      });
-    });
-  });
-};*/
 
 exports.addAnswer = function (req, res) {
   var id = req.params.id;
@@ -179,8 +136,7 @@ exports.findById = function (req, res) {
   Question.findOne(opts)
    .populate({path: '_creator', select: '_id name picture'})
    .populate({
-     path: 'tags',
-     match: { followers: req.session.user  }
+     path: 'tags'
      })
    .populate('comments._creator', '_id name picture')
    .populate('answers._creator', '_id name picture')
@@ -196,15 +152,19 @@ exports.findById = function (req, res) {
 exports.findAll = function (req, res) {
   // setting up the default query parameter 
   var params = {};
-  var tagsId;
+  var ids;
+  
   if (req.query.page) {
      var skipIndex = req.query.page -1;
   } else { 
     var skipIndex = 0;
   }
   
-  if(req.query.topics) {  
-    params = { tags: { $in: req.query.topics }}; 
+  if(req.query.tags) {  
+    ids = _.map(req.query.tags, function(_id) { return  mongoose.Types.ObjectId(_id) });
+    console.log('myTags requests')
+    console.log(ids)
+    params = { tags: { $in: ids }}; 
   } else {
     console.log('topics not defined')
     // finding the topics you are following
@@ -214,13 +174,6 @@ exports.findAll = function (req, res) {
     params = _.extend(params, {'children': req.query.children}); 
   } 
   
-  Tag.find({'followers':  mongoose.Types.ObjectId(req.session.user)})
-    .select('_id')
-    .exec(function(err, data) {
-      tagsId = _.map(data, function(tag) { return tag._id });
-      console.log(tagsId);
-      params = { 'tags': { $in: tagsId } };
-
     Question.find(params)
     .sort({updatedAt: 'desc'})
     .skip(skipIndex*10)
@@ -233,7 +186,6 @@ exports.findAll = function (req, res) {
       if (err)  return res.send(400, err);
       return res.json(questions);
     });  
-  });    
 };
 
 exports.vote = function (req, res) {
@@ -281,62 +233,19 @@ exports.delete = function (req, res) {
 }; 
 
 
-exports.search = function (req, res) {
-   var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
-   var type = req.query.type;
-   
-   if (cleanQuery.length > 0) { 
-     var re = new RegExp(cleanQuery);
-    
-     // returning search for groups only
-     if (type == 'groups') {
-       Question.aggregate(
-         { $project: { groups : "$groups"  }},
-         {$unwind: "$groups"},
-         { $match : { groups : re } },
-         function (err, results) {
-           if (err) return res.send(400, err);
-             //parsing the results for groups
-             results.forEach(function(element, index) {
-               results[index] = element.groups;      
-              });
-           console.log(results);
-           var uniqueResults = results.filter(function(elem, pos, self) {
-              return self.indexOf(elem) == pos;
-            });
-             return res.json(uniqueResults);
-           });
-       } 
-    
-    // returning search for tags only
-       if (type == 'tags') {
-      //   Question.find({tags: re}).limit(5).exec(function(err, results) {
-        Question.aggregate(
-          { $project: { tags : "$tags"  }},
-          {$unwind: "$tags"},
-          { $match : { tags : {$regex: cleanQuery, $options: 'i'} } }, 
-          function(err, results) {
-            if (err) return res.send(400, err);
-              results.forEach(function(element, index) {
-                results[index] = element.tags;
-            
-              });
-            console.log(results);
-            var uniqueResults = results.filter(function(elem, pos, self) {
-              return self.indexOf(elem) == pos;
-            })
-            
-            return res.json(uniqueResults);
-         });
-        }
-         
-       } else {
-  
-     // empty array, nothing found    
-     return res.json({}); 
-    }
-      
+exports.search = function(req,res) {
+  var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
+  //var splitQuery = cleanQuery.split(' ').split(',');
+  console.log('searching ' +  cleanQuery)
+  Question.textSearch(cleanQuery, function (err, output) {
+     console.log(err);
+    if (err) return res.send(400, err);
+    console.log('this is the output: ')
+    console.log(output)
+    res.json(output);
+  });
 }
+
 
 
 
