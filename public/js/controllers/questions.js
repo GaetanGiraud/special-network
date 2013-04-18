@@ -42,12 +42,12 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket) {
  
  $scope.search = function(term) {
    
-   $http.get('http://localhost:9200/mongoquestions/_search?q',{params: {q: term }} )
+   $http.get('/api/questions/search/', {params: {term: term }} )
    .success(function(data) {
-      $scope.questions = _.map(data.hits.hits, function(hit) { return hit._source });
+      //$scope.questions = _.map(data.hits.hits, function(hit) { return hit._source });
       
       console.log(data); 
-     
+      $scope.questions = data;  
     })
    //$scope.questions = data;  
    

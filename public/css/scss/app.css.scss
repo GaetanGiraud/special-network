@@ -370,3 +370,30 @@ ul.nav {
       background-color: black;
       color: white;
     }
+    
+span.tag {
+  position: relative;
+  cursor: pointer;
+  border: 1px solid;
+  
+  &:hover {
+  background: black;
+  color: white;
+  }
+}
+
+div.popover {
+  min-height: 50px;
+  min-width: 10%;
+  //position: fixed;
+  
+  display: block;
+  position: absolute;
+  z-index: 999;
+  background-color: white;
+  padding: 0;
+  margin: 0;
+  border: 1px solid;
+  box-sizing: border-box;
+
+}

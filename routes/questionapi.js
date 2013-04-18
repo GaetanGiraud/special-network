@@ -4,6 +4,7 @@
 
 
 var db = require('../config/database').connection
+  , request = require('request')
   , User = require('../models/User')(db)
   , Question = require('../models/Question')(db)
   , Child = require('../models/Child')(db)
@@ -237,12 +238,36 @@ exports.search = function(req,res) {
   var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
   //var splitQuery = cleanQuery.split(' ').split(',');
   console.log('searching ' +  cleanQuery)
-  Question.textSearch(cleanQuery, function (err, output) {
-     console.log(err);
-    if (err) return res.send(400, err);
-    console.log('this is the output: ')
-    console.log(output)
-    res.json(output);
+  //Question.textSearch(cleanQuery, function (err, output) {
+  var options = 
+   { uri: 'http://localhost:9200/mongoquestions/_search',
+     method: 'POST',
+     json: {
+         query:{
+           match: {
+            'content': cleanQuery
+            }
+          }
+         }
+};
+    
+    request(options, function(err, response, body) {
+      console.log(err);
+      if (err) return res.send(400, err);
+      var questions = _.map(body.hits.hits, function(hit) { return hit._source });
+      
+      var opts = [
+         {path: '_creator', select: '_id name picture'},
+         {path: 'comments._creator', select: '_id name picture'},
+         {path: 'tags'}
+         ]
+      
+      Question.populate(questions, opts, function(err, questions) {
+      
+        console.log('this is the output: ')
+        console.log(questions)
+        res.json(questions);
+      });
   });
 }
 

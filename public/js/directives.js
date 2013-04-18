@@ -573,24 +573,23 @@ angular.module('CareKids.directives', []).
    }
  }
 }])
-.directive('tag', function($http, $rootScope){
+.directive('tag', function($http, $rootScope, $compile){
   return {
     restrict: 'E' ,
     scope: {
       tag: '=',
       remove: '&'
     },
-   //replace: true,
-    template: '<span class = "tag">' + 
-                '<span class = "follow">' +
-                  '<a ng-click = "follow()" ng-show = "!isFollowed">follow</a>' +
-                  '<a ng-click = "unfollow()" ng-show = "isFollowed">unfollow</a>' +
-                 '</span>'+
+    replace: true,
+    template: '<span class = "tag" ng-click = "showPopover()">' + 
                  ' {{ tag.name }}' +
                  ' <button type = "button" ng-show = "canRemove" ng-click = "removeTag()"> &times</button>' +
                '</span>' ,
     link: function(scope, elm, attrs) {
-    
+    var popOverTemplate = '<div class = "popover autocomplete"">' +
+                            '<a ng-click = "follow()" ng-show = "!isFollowed">follow</a>' +
+                            '<a ng-click = "unfollow()" ng-show = "isFollowed">unfollow</a>' +
+                         '</div>';
     scope.isFollowed = false;
     scope.canRemove = false;
     
@@ -600,6 +599,7 @@ angular.module('CareKids.directives', []).
     var currentUserInit = false;
     var currentTagInit = false;
     var initPerformed = false;
+    var html;
     
     var initTag = function() {
       if (currentTagInit && currentUserInit && !initPerformed) {
@@ -628,6 +628,22 @@ angular.module('CareKids.directives', []).
         scope.canRemove = true;
       }  
     })
+    
+    scope.showPopover = function() {
+      console.log('showing');
+      html = $compile(popOverTemplate)(scope);
+      console.log(html);
+      elm.append(html);
+      
+    }
+   
+   $('html').bind('mousedown', function(event) {
+      //if(!$(event.target).is('#foo')) && !$(event.target).parents("#foo").is("#foo")
+        if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
+          //scope.$apply(scope.newTag = '');
+          html.remove();
+        }
+   });
     
     scope.removeTag = function() {
       //console.log('remove');
