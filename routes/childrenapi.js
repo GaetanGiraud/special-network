@@ -25,7 +25,7 @@ exports.add = function (req, res) {
     child.pageTitle = child.name + '_' + child._id;
     
     // add the creator to the permissions list with 'write' rights.
-    child.permissions.push({'_user': child.creator._user, 'rights': 'write', 'relationship': child.creator.relationship});
+    child.permissions.push({'_user': child.creator._user, 'rights': 'write', 'validated': true, 'relationship': child.creator.relationship});
     
     child.save(function(err, child) {
       if (err)  return res.send(400, err); 
@@ -62,13 +62,25 @@ exports.findAll = function (req, res) {
   var opts;
 
   if(req.query.following == "familly") {  
-    opts = {'permissions._user': req.session.user, 'creator._user': {$ne: req.session.user }, 'permissions.relationship': { $ne: 'Friend' }};
+    opts = { 
+        'permissions._user': req.session.user, 
+        'creator._user': {$ne: req.session.user }, 
+        'permissions.relationship': { $ne: 'Friend' },
+        'permissions.validated': { $ne: false }
+        };
   } else if (req.query.following == "others") {
-    opts = {'permissions._user': req.session.user, 'creator._user': {$ne: req.session.user }, 'permissions.relationship': 'Friend' };
+    opts = {
+         'permissions._user': req.session.user, 
+         'creator._user': {$ne: req.session.user }, 
+         'permissions.relationship': 'Friend',
+         'permissions.validated': { $ne: false } };
   } else if(req.query.post) {
-     opts = {'permissions._user': req.session.user, 'permissions.rights': 'write'};
+     opts = {'permissions._user': req.session.user, 
+             'permissions.rights': 'write',
+             'permissions.validated': { $ne: false }};
   } else {
-    opts = {'creator._user': req.session.user};
+    opts = {'creator._user': req.session.user,
+            'permissions.validated': { $ne: false } };
   }
   
   Child.find(opts)
@@ -95,11 +107,6 @@ exports.update = function (req, res) {
     //console.log(tag._id)
     return mongoose.Types.ObjectId(tag._id);
      }); // storing only the _id of the tags
-
-  if (_.isUndefined(childData.permission) == false) {
-    var data = childData.permission;
-    childData =  { $addToSet: { 'permissions': data  } };
-  }
   
   Child.findByIdAndUpdate(id, childData, function(err, child) {
      if (err) return res.send(400, err);
@@ -125,7 +132,7 @@ exports.isAuthorized = function(id, userId, callback) {
     // otherwise use page title as unique identifier.
      var opts = {'pageTitle': id,  'permissions._user': userId};
   }
-  console.log(userId);
+  
   Child.find(opts, function(err, data) {
     if (err) return callback(err, null);
     console.log(data);
@@ -138,13 +145,25 @@ exports.follow = function(req, res) {
   var id = req.params.id;
   var data = req.body;
   
-  if (data.action == 'follow') {
-    var opts =  { $addToSet: { 'permissions': mongoose.Types.ObjectId(req.session.user) } };
+  if (data.action == 'validate') {
+    if (data.permission.rights == true) data.permission.rights = 'write';
+    if (data.permission.rights == false) data.permission.rights = 'read';
+      
+    id = {'_id': req.params.id, 'permissions._user': data.permission._user };
+    var opts =  { 
+      'permissions.$.validated': true,
+      'permissions.$.relationship': data.permission.relationship,
+      'permissions.$.rights': data.permission.rights
+       } ;
+  } else if (data.action == 'follow') {
+    id = {'_id': req.params.id };
+    opts =  { $addToSet: { 'permissions': { _user: mongoose.Types.ObjectId(req.session.user) } }  };
   } else if (data.action == 'unfollow') {
+    id = {'_id': req.params.id };
     var opts = { $pull: { permissions: { _user: mongoose.Types.ObjectId(req.session.user) } } };
   }
   
-  Child.findByIdAndUpdate(id, opts)
+  Child.findOneAndUpdate(id, opts)
     .populate('lastUpdate')
     .populate({
        path: 'superpowers'
@@ -152,6 +171,7 @@ exports.follow = function(req, res) {
      })
   .exec(function(err, child) {
      if (err) return res.send(400, err);
+     console.log(child);
      return res.json(child);
   });
   

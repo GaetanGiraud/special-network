@@ -1,0 +1,26 @@
+div.row
+  div.span9
+    h3 Search Results
+    p 
+      |  {{ data.hits }} results found corresponding to  {{ term }}
+    ul.unstyled
+      li(ng-repeat = "result in data.results")
+        ul
+          li(ng-repeat = "tag in result.document.tags")
+            tag(tag = "tag")
+        img(ng-src = "{{ result.document._creator | userIconPic }}")
+        | {{ result.document._creator.name }}
+        | {{ result.document.createdAt | fromNow }}
+        div(ng-switch on= "result.type")
+          div(ng-switch-when="discussion")
+            //a(ng-href="/childrens/{{ result.documentpageTitle }}")
+            | {{ result.document.content }}
+          h4 THis is a discussion
+          div(ng-switch-when="question")
+            a(ng-href="/questions/{{ result.document.title }}")
+              | {{ result.document.content }}
+            p
+              | {{ result.document.details }}
+            h4 THis is a question
+          
+  //div(paginate, new-page-target = "questions", url = "", ng-show = "questions.length > 9")  

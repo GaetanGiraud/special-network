@@ -31,24 +31,14 @@ div.row
           i.icon-globe
         input(type='text', ng-model = "currentUser.location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span3')
       button(type = 'button', ng-click="undoLocation()", class="btn btn-danger", ng-show = "undoLocUpdate") undo
-    br
-    div(ng-show='currentUser.location.country')
-      p
-        | There are xxx users registered in {{ currentUser.location.country.long }} 
-          
-    p(ng-show = "currentUser.location.formattedAddress.length > 0 && currentUser.location.formattedAddress.length < 5")
-      small
-        | Looking up your adress at Google. 
-        br
-        | This information is really only meant for your convenience, we are not doing anything with it.
-        br 
-        | So if you'd rather not disclose your full adrress, no problem!
-  
-    div(ng-show='locations')
-      ul(ng-repeat='loc in locations', class="unstyled")
-        li
-          button(ng-click="validateAdress($index)", class="btn btn-success") Ok
-          {{ loc.formatted_address }}
+     
+    div(ng-show = "currentUser.location.formattedAddress.length > 0 && currentUser.location.formattedAddress.length <= 6").well.well-transparent 
+      i.icon-spinner.icon-spin.pull-left.icon-border
+      | Looking up results
+    div(ng-show='locations').well.well-transparent 
+      span.location
+        | {{ locations[0].formatted_address }}
+      button(ng-click="validateAdress(0)", class="btn btn-success") Ok
   
 
   div.span5

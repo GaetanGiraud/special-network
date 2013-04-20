@@ -327,8 +327,8 @@ exports.search = function (req, res) {
                     return result._id != null;
                      });
                   Child.populate(filteredResult , {path: 'children._id'}, function(err, results) {
-                 //console.log('results after search')
-                 //console.log(filteredResult);
+                   console.log('results after search')
+                   console.log(filteredResult);
                    Tag.populate(results,{path: 'children._id.superpowers'}, function(err, data) {
                       if (err) return res.send(400, err);
                       res.json(filteredResult);

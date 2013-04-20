@@ -70,6 +70,7 @@ function FindCtrl($scope, User, Alert, $http, Message) {
   
    $http({method: 'GET', url: url, params: params }).
    success(function(data) {
+     console.log('search results');
      console.log(data);
      $scope.searchResults = data;
     });
@@ -105,6 +106,31 @@ function FindCtrl($scope, User, Alert, $http, Message) {
 }
 FindCtrl.$inject = ['$scope', 'User', 'Alert', '$http', 'Message'];
 
+function SearchCtrl($scope, $http, $location ) {
+
+   var getQuestions = function() {
+   
+   $http.get('/api/questions/search/', {params: {term: $scope.term }} )
+   .success(function(data) {
+      //$scope.questions = _.map(data.hits.hits, function(hit) { return hit._source });
+      
+      console.log(data); 
+      $scope.data = data;  
+    })
+   //$scope.questions = data;  
+   
+  }     
+  
+  if (angular.isDefined( $location.search().term )){
+     $scope.term = $location.search().term;
+     
+     getQuestions()
+     
+     console.log('term is defined');
+     console.log()
+    } 
+
+}
 
  
 function MapCtrl($scope, $rootScope, Location, homeLatLng, Map, Alert, User, Message) {

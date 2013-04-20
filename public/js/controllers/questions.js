@@ -1,19 +1,6 @@
 function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket, $location) {
    // Socket.subscribe('Questions');
     // setting default values for new discussions.
-    var getQuestions = function(term) {
-   
-   $http.get('/api/questions/search/', {params: {term: term }} )
-   .success(function(data) {
-      //$scope.questions = _.map(data.hits.hits, function(hit) { return hit._source });
-      
-      console.log(data); 
-      $scope.questions = data;  
-    })
-   //$scope.questions = data;  
-   
-  }     
-    
     
     
     
@@ -32,16 +19,7 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket, $loca
    //$scope.questions = Question.query();
    
    // for building the filter array: foo[]=val1&foo[]=val2&foo[]=val3
-  
-   if (angular.isDefined( $location.search().term )){
-     
-     getQuestions($location.search().term)
-     console.log('term is defined');
-     console.log()
-     } else {
-     
-     
-    }
+
    
    $scope.$watch('searchTags', function() {
      // to do - do a search in elastic search with the tags and the terms

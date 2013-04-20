@@ -76,6 +76,7 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
             }
          }
          Message.update($scope.currentMessage, {read: true});
+         $scope.$emit('messageRead');
        } 
       // toggle the actionMessage status. 
       // The Creator of the message is the requestor and do not get to see the message.
@@ -196,7 +197,7 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
 }
 MessageCtrl.$inject = ['$scope', '$location', 'Message', 'Socket', 'Child'];
 
-function newPermissionCtrl($scope, Child, $rootScope, Message) {
+function newPermissionCtrl($scope, Child, $rootScope, Message, $http) {
   
   $scope.$watch('currentMessage', function(currentMessage) {
     if(angular.isDefined(currentMessage) && currentMessage != null) {
@@ -207,9 +208,11 @@ function newPermissionCtrl($scope, Child, $rootScope, Message) {
   $scope.respondtoFollowingRequest = function(acceptance) {
       
       if(acceptance) {
-      Child.update({'childId': $scope.currentMessage.action.target._id },
-         { permission: $scope.permission } );
-      $rootScope.$broadcast('unFollowingChild', $scope.currentMessage.action.target);
+        
+       $http.put('/api/children/' + $scope.currentMessage.action.target._id + '/follow', { action: 'validate', permission: $scope.permission }).success(function(child) {
+          $scope.child = child; 
+        });
+      $rootScope.$broadcast('followingChild', $scope.currentMessage.action.target);
        }   
       Message.update($scope.currentMessage, { action : { executed: true }});
       $scope.$safeApply($scope, function() { $scope.currentMessage.action.executed = true });

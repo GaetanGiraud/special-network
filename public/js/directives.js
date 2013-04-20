@@ -359,7 +359,8 @@ angular.module('CareKids.directives', []).
         
         // increment the search term popularity
         $http.post('/api/search', { term: scope.term });
-        $location.search({'term': scope.term}).path('/questions');
+        $location.search({'term': scope.term}).path('/search');
+        scope.term = '';
        // $location.search('term', scope.term).path('/search')
        // $location.path('/search?'
 
@@ -747,7 +748,7 @@ angular.module('CareKids.directives', []).
 
   
 })
-.directive('kid', function($http, Message, $rootScope, $compile, $location){
+.directive('kid', function($http, Message, $rootScope, $compile, $location, Child){
   return {
     restrict: 'E' ,
     scope: {
@@ -758,7 +759,8 @@ angular.module('CareKids.directives', []).
                  '<img ng-src = "{{ child | userIconPic }}">' +
                  ' {{ child.name }}' +
                   '<button class= "btn" type="button" ng-click = "follow()" ng-show = "!isFollowed"> Follow</button>' +
-                  '<button class= "btn" type="button" ng-click = "unfollow()" ng-show = "isFollowed"> Unfollow me</button>' +
+                  '<span ng-show = "isFollowed && !isValidated" >Following request sent.</span>' +
+                  '<button class= "btn" type="button" ng-click = "unfollow()" ng-show = "isFollowed && isValidated "> Unfollow me</button>' +
                   '<span ng-show = "child.superpowers.length == 0"> No superpower registerd</span>' +
                  '<ul class = "unstyled">' +
                     '<li ng-repeat = "superp in child.superpowers">' +
@@ -767,7 +769,8 @@ angular.module('CareKids.directives', []).
                   '</ul>' +
                '</div>' ,
     link: function(scope, elm, attrs) {
-    scope.isFollowed = false;
+  
+    
     
     var currentUserInit = false;
     var currentChildInit = false;
@@ -783,25 +786,42 @@ angular.module('CareKids.directives', []).
     
     var initChild = function() {
       if (currentChildInit && currentUserInit && !initPerformed) {
+        scope.isFollowed = false;
+        scope.isValidated = false;
+        console.log('permissions  ' + scope.child.name);
+        console.log('rootScope currentUser ' + $rootScope.currentUser._id);
+        
         if (angular.isArray(scope.child.permissions)) {
           for(var i =0; i < scope.child.permissions.length; i++) {
+            console.log(scope.child.permissions)
             if ( scope.child.permissions[i]._user == $rootScope.currentUser._id)  {
+
+              
+              if(scope.child.permissions[i].validated == true) { 
+                scope.isValidated = true;
+                console.log('isValidated  ' + scope.child.name);
+                
+                 }
+              
               scope.isFollowed = true;
+              console.log(scope.isFollowed);
               initPerformed = true;
               break;
+              //return;
             } 
+          
           }
-        } else {
-          console.log('child init');
-          console.log(scope.child.permissions._user);
-          console.log($rootScope.currentUser._id)
-          if ( scope.child.permissions._user == $rootScope.currentUser._id)  {
-            scope.isFollowed = true;
-            initPerformed = true;
-          }
-        }
+         } 
+        // else {
+         // if ( scope.child.permissions._user == $rootScope.currentUser._id)  {
+         //   scope.isFollowed = true;
+         //   initPerformed = true;
+         // }
+       // }
       }
     }
+    
+    scope.$watch('isFollowed', function(data) { console.log(data) })
     
     $rootScope.$watch('currentUser', function(currentUser) {
       if (angular.isDefined(currentUser) && currentUser != null) currentUserInit = true;
@@ -825,6 +845,7 @@ angular.module('CareKids.directives', []).
       }
       
       scope.follow = function() {
+        console.log('following');
         Message.send({
           content: $rootScope.currentUser.name + " wants to follow " + scope.child.name,
           action: { 
@@ -834,7 +855,18 @@ angular.module('CareKids.directives', []).
           _creator: $rootScope.currentUser,
           receivers: [ { '_user': scope.child.creator._user } ]
         });
-        scope.isFollowed = true; 
+        console.log('querying :')
+        console.log('/api/children/' + scope.child._id + '/follow');
+        
+        
+        $http.put('/api/children/' + scope.child._id + '/follow', { action: 'follow' }).success(function(child) {
+          console.log(child);
+          //scope.child = child; 
+               //$rootScope.$safeApply(scope, function() { scope.isFollowed = false });  
+          scope.isFollowed = true; 
+          scope.isValidated = false; 
+          $rootScope.$broadcast('followingChild', child);
+        });
       }
       
     scope.$on('followingChild', function(event, child) {

@@ -13,7 +13,8 @@ var app = angular.module('CareKids', ['ngSanitize', 'angular-underscore', 'CareK
     $routeProvider.when('/questions/:questionId', {templateUrl: 'partials/question', controller: QuestionCtrl});
     $routeProvider.when('/topics/:tagId', {templateUrl: 'partials/topic', controller: TopicCtrl});
     $routeProvider.when('/messages', {templateUrl: 'partials/messages', controller: MessageCtrl}); 
-     
+    $routeProvider.when('/search', {templateUrl: 'partials/search', controller: SearchCtrl});
+    
     $routeProvider.when('/users/:userId', {templateUrl: 'partials/user', controller: UserCtrl}); 
     $routeProvider.when('/user', {templateUrl: 'partials/user', controller: UserCtrl}); 
     $routeProvider.when('/children', {templateUrl: 'partials/children', controller: ChildrenCtrl}); 

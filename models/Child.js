@@ -33,6 +33,7 @@ var childSchema = mongoose.Schema({
   permissions: [
    {
     _user: {type: mongoose.Schema.Types.ObjectId, ref: 'User' },// _id of an individual user or of a group
+    validated: {type: Boolean, default: false},
     rights: {type: String, match: /(read|write)/, default: 'read'}, // read - write
     relationship: String
     }]

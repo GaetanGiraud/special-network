@@ -254,19 +254,26 @@ exports.search = function(req,res) {
     request(options, function(err, response, body) {
       //console.log(err);
       if (err) return res.send(400, err);
-      var questions = _.map(body.hits.hits, function(hit) { return hit._source });
+      console.log(body);
+      
+      var results = _.map(body.hits.hits, function(hit) { 
+        return { type: hit._type, document: hit._source };
+      });
+      //results = _.extend(results, { hits: body.hits.total });
+      
+      console.log(results);
       //console.log(body.hits);
       var opts = [
-         {path: '_creator', select: '_id name picture'},
-         {path: 'comments._creator', select: '_id name picture'},
-         {path: 'tags'}
+         {path: 'document._creator', select: '_id name picture'},
+         {path: 'document.comments._creator', select: '_id name picture'},
+         {path: 'document.tags'}
          ]
       
-      Question.populate(questions, opts, function(err, questions) {
+      Question.populate(results, opts, function(err, results) {
       
-        console.log('this is the output: ')
-        console.log(questions)
-        return res.json(questions);
+      //  console.log('this is the output: ')
+        console.log(results)
+        return res.json({ hits: body.hits.total , results: results} );
       });
   });
 }
