@@ -11,6 +11,7 @@ var app = angular.module('CareKids', ['ngSanitize', 'angular-underscore', 'CareK
     $routeProvider.when('/home', {templateUrl: 'partials/home', controller: HomeCtrl}); 
     $routeProvider.when('/questions', {templateUrl: 'partials/questions', controller: QuestionsCtrl}); 
     $routeProvider.when('/questions/:questionId', {templateUrl: 'partials/question', controller: QuestionCtrl});
+    $routeProvider.when('/topics/:tagId', {templateUrl: 'partials/topic', controller: TopicCtrl});
     $routeProvider.when('/messages', {templateUrl: 'partials/messages', controller: MessageCtrl}); 
      
     $routeProvider.when('/users/:userId', {templateUrl: 'partials/user', controller: UserCtrl}); 
@@ -43,7 +44,11 @@ app.run(['$rootScope', '$location', 'AuthService', 'requests401',  function ($ro
     $rootScope.$on('event:angular-auth-loginRequired', function() {
       if(['/', '/login', '/logout'].indexOf($location.path()) == -1 ) { // exepting for the root and the login-logout pages
         AuthService.loginModal(function(result) {
-          if(result) { return requests401.retryAll(); }
+          console.log(result);
+          if(result) { 
+            console.log('call to retryAll');
+            return requests401.retryAll(); 
+            }
           
           if ( $rootScope.loggedIn ) return $location.path('/home');
           $location.path('/');

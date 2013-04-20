@@ -13,6 +13,10 @@ header.menu {
 
 }
 
+#main {
+  margin-top: 20px;
+  //padding-top: 40px;
+}
 
 header {
   
@@ -30,6 +34,89 @@ header {
   height: 200px;
   background-image: url('../images/banner-h200.png');
   background-repeat: no-repeat;
+  
+  &.decale {
+    margin-top: 40px;
+    
+  }
+}
+
+#menubar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 40px;
+  z-index: 1000;
+  background: #fff;
+  //margin: auto;
+  text-align: center;
+  font-size: 18px;
+  padding: 0;
+  border: 1px solid;
+  vertical-align: middle;
+
+   // some css to make the icon look as if it is part of the input
+  
+  span.add-on {
+    background: inherit;
+    border-right: none;
+    
+     -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+     -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+       -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+          transition: border linear 0.2s, box-shadow linear 0.2s;
+          
+          
+    &.focus {
+      background: inherit;
+      border-right: none;
+      border-color: rgba(82, 168, 236, 0.8);
+      outline: 0;
+      outline: thin dotted \9;
+      }
+    }
+    input  {
+      border-left: none;
+      
+      &:focus {
+      // remove the standard bootstrap shadows.
+        -webkit-box-shadow: none;
+	      -moz-box-shadow: none;
+	       box-shadow: none;
+      }
+      
+     }
+  
+  ul {
+    display: block;
+    padding: 0;
+    margin-top: 5px;
+   
+       
+  }
+  li {
+     display: inline-block;
+     color: black;
+     padding: 0 10px;
+     margin: 0;
+     
+     div {
+       margin: 0;
+       padding: 0;
+     }
+     
+     a, a:visited, a:link {
+       padding: 0;
+       margin: 0;
+       color: black;
+       
+        &:hover {
+          text-decoration:none;
+          color: blue;
+        }
+       }
+     }
+
 }
 
 #tagline {
@@ -89,28 +176,7 @@ header {
 
 }
 
-.map {
-  height: 400px;
-  width: 700px;
-}
 
-#markers {
- //position:absolute;
- //top:140px;
- //left:71%;
-//width:200px;
-// height:110px;
-}
-
-
-
-.drag {
- //position: absolute;
- width: 32px;
- height: 32px;
- //margin: auto;
- 
-}
 
 .dialog-box {
  position: absolute;
@@ -176,9 +242,9 @@ header {
 
 }
 
-.editable {
+div.editable {
   border: 1px solid grey;
-  min-height: 20px;
+  min-height: 50px;
 }
 
 #new-discussion {
@@ -373,27 +439,63 @@ ul.nav {
     
 span.tag {
   position: relative;
+  z-index: 0;
   cursor: pointer;
   border: 1px solid;
+  padding: 5px;
+  
+  @include rounded-corners(6px);
   
   &:hover {
   background: black;
   color: white;
+  //z-index: 0;
+  z-index: 0;
   }
 }
 
-div.popover {
+div.custom-popover {
   min-height: 50px;
-  min-width: 10%;
-  //position: fixed;
+  min-width: 15%;
+  position: absolute;
   
   display: block;
-  position: absolute;
-  z-index: 999;
-  background-color: white;
+
+
+  z-index: 10998;
+ 
   padding: 0;
   margin: 0;
-  border: 1px solid;
-  box-sizing: border-box;
+
+  
+  div.popover-inner {
+   background-color: #fff;
+   border: solid 2px red;
+   box-sizing: border-box;
+  }
+  
+  div.popover-header {
+      padding: 5px;
+  }
+  
+  a, a:visited, a:link, a:active, a:hover {
+    float: right;
+  
+  
+  }
 
 }
+
+.arrow-up {
+  position: relative;
+  
+  //z-index: 10998;
+  left: 5px;
+	width: 0; 
+	height: 0; 
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	
+	border-bottom: 5px solid black;
+}
+

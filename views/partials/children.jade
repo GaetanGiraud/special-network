@@ -1,7 +1,7 @@
 div.row(ng-show = "!optOut")
-  div(class='span4')
+  div(class='span9')
     div.row
-      div.span4
+      div.span9
         legend The kids page you are managing
         // Creating a new kid's page
         a(ng-click='newKid = !newKid', ng-show = "!newKid") 
@@ -61,7 +61,7 @@ div.row(ng-show = "!optOut")
   
         
     div.row
-      div.span4
+      div.span9
         legend The kids in your familly
         p(ng-show='famillyChildren.length == 0')
           | You are not following any children in you familly yet. 
@@ -87,7 +87,7 @@ div.row(ng-show = "!optOut")
               | {{ child.lastUpdate.updatedAt | fromNow }}
 
     div.row
-      div.span4
+      div.span9
         legend The kids you are following
         p(ng-show='followedChildren.length == 0')
           | You are not following any children yet. 
@@ -108,9 +108,4 @@ div.row(ng-show = "!optOut")
               img(ng-src="{{ child | userIconPic }}")
             td
               | {{ child.lastUpdate.updatedAt | fromNow }}
-   
-
-   
-  div.span5(ng-controller = "HomeCtrl")
-    include ../includes/discussions
 

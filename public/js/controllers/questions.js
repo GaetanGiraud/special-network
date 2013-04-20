@@ -1,9 +1,26 @@
-function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket) {
+function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket, $location) {
    // Socket.subscribe('Questions');
     // setting default values for new discussions.
+    var getQuestions = function(term) {
+   
+   $http.get('/api/questions/search/', {params: {term: term }} )
+   .success(function(data) {
+      //$scope.questions = _.map(data.hits.hits, function(hit) { return hit._source });
+      
+      console.log(data); 
+      $scope.questions = data;  
+    })
+   //$scope.questions = data;  
+   
+  }     
+    
+    
+    
+    
     $scope.newQuestion = {};
     $scope.showNewQuestion = false;
     $scope.newQuestion.tags = [];
+    var counter = 0;
    // $scope.questions = []
     
     $scope.$watch('currentUser', function(user) {
@@ -15,59 +32,40 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket) {
    //$scope.questions = Question.query();
    
    // for building the filter array: foo[]=val1&foo[]=val2&foo[]=val3
-   
- 
-   $scope.myTags = $http.get('/api/tags', { params : { mytags: true } })
-           .success(function(data) { 
-              $scope.myTags = data;
-              $scope.searchTags = angular.copy(data);
-             })
   
-  $scope.$watch('searchTags', function() {
-      var request;
-      angular.forEach($scope.searchTags, function(tag) {
-        if(!request) {
-          request = 'tags[]=' + tag._id;
-        } else  {
-          request = request + '&tags[]=' + tag._id;
-        }
-      });
-      console.log(request);
-      $http.get('/api/questions?' + request)
-      .success(function(data) {
-        $scope.questions = data;  
-        
-      });
-  }, true);          
- 
- $scope.search = function(term) {
-   
-   $http.get('/api/questions/search/', {params: {term: term }} )
-   .success(function(data) {
-      //$scope.questions = _.map(data.hits.hits, function(hit) { return hit._source });
-      
-      console.log(data); 
-      $scope.questions = data;  
-    })
-   //$scope.questions = data;  
-   
-  }
- 
-             
-             
-  $scope.$on('followingTag', function(event, tag) {
-    $scope.myTags.push(tag);
-  })       
-  
-  $scope.$on('unFollowingTag', function(event, tag) {
-    for(var i = 0; i < $scope.myTags.length; i++) {
-      if ($scope.myTags[i]._id == tag._id) {
-        $scope.myTags.splice(i, 1);
-        break;  
-      }
-      
+   if (angular.isDefined( $location.search().term )){
+     
+     getQuestions($location.search().term)
+     console.log('term is defined');
+     console.log()
+     } else {
+     
+     
     }
-  })  
+   
+   $scope.$watch('searchTags', function() {
+     // to do - do a search in elastic search with the tags and the terms
+      if (angular.isUndefined( $location.search().term )) {
+        var request;
+        angular.forEach($scope.searchTags, function(tag) {
+          if(!request) {
+            request = 'tags[]=' + tag._id;
+          } else  {
+            request = request + '&tags[]=' + tag._id;
+          }
+        });
+        console.log(request);
+        $http.get('/api/questions?' + request)
+        .success(function(data) {
+          $scope.questions = data;  
+        
+       });
+     }
+      }, true); 
+ 
+        
+             
+
   
   
   // handling tags      
@@ -140,7 +138,7 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket) {
      
      }
 }
-QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Question', '$http', 'Alert', 'Socket'];
+QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Question', '$http', 'Alert', 'Socket', '$location'];
 
 
 function QuestionCtrl($scope, $routeParams, Question, $http, Alert, Socket) {
@@ -228,6 +226,57 @@ function newQuestionCommentCtrl($scope, $http) {
         }
       })
     }
-
 }
 
+function TopicCtrl($scope, $routeParams, Tag, $http, Alert) {
+  
+  // setting up default values for discussions on the page. Logic is in Discussion controller.
+   $scope.editTopic = false;
+   $scope.waiting = false;
+   $scope.topicPitureUpload = { dropZone: '#topic-picture' };  
+   
+   $scope.tag = Tag.get({tagId:  $routeParams.tagId }, function(data) { 
+     $scope.tag = data })
+  
+   $scope.addLink = function() {
+     $scope.waiting = true;
+     $http.put('/api/tags/'+ $scope.tag._id +'/addlink', $scope.newLink)
+     .success(function(data) {
+       $scope.waiting = false;
+       $scope.tag.links.push(data);
+       $scope.newLink = {};
+     });
+       
+     }
+     
+    $scope.removeLink = function(index) {
+      $scope.tag.links.splice(index, 1);
+      $scope.updateTag();
+    }
+    
+   
+   $scope.updateTag = function() {
+     $scope.waiting = true;
+     $scope.editTopic = false;
+     Tag.update({tagId: $scope.tag._id}, $scope.tag, 
+      function(tag){      
+        $scope.waiting = false; 
+        Alert.success('Changes saved');
+      }, 
+      function(err){ 
+        $scope.waiting = false;
+        Alert.error('A system error while saving the page. Could you try again?' );
+      }
+    );
+  }
+    
+  $scope.setTopicPicture = function(file) {
+    console.log(file);
+    $scope.tag.picture = file.name ;
+    $scope.$apply( $scope.updateTag() )
+  };  
+  
+  
+  
+  
+}

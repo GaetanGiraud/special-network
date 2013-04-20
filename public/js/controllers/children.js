@@ -5,11 +5,14 @@ function ChildrenCtrl($scope, Child, Alert, User) {
   //setting up some default values
   $scope.notFollowing = true;
 
+   
+     $scope.famillyChildren = Child.query({following: 'familly'});
+     $scope.followedChildren = Child.query({following: 'others'});
     
   $scope.$watch('currentUser', function(currentUser) {
     if (angular.isDefined(currentUser) && currentUser != null ) {
       $scope.optOut = currentUser.settings.createChildOptOut;
-      
+      if (!$scope.optOut) { $scope.children = Child.query(); }
       $scope.newChild = {
           creator: {
              _user: currentUser._id,
@@ -17,6 +20,7 @@ function ChildrenCtrl($scope, Child, Alert, User) {
             }
         };
     }
+    
   });
  
   $scope.relationships = [

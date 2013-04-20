@@ -117,6 +117,7 @@ app.delete('/api/users/:id', restrict, api.users.delete);
 app.get('/api/children', restrict, api.children.findAll);
 app.get('/api/children/:id',routes.sessions.restrictChildren, api.children.findById);
 app.post('/api/children', restrict, api.children.add);
+app.put('/api/children/:id/follow', restrict, api.children.follow);
 app.put('/api/children/:id', restrict, api.children.update);
 app.delete('/api/children/:id', restrict, api.children.delete);
 // access sub-documents directly
@@ -131,9 +132,13 @@ app.post('/api/discussions', restrict, api.discussions.add);
 app.post('/api/discussions/:id/comments', restrict, api.discussions.addComment);
 
 // tags
+app.get('/api/tags/:id', restrict, api.tags.findById);
 app.get('/api/tags', restrict, api.tags.findAll);
 app.post('/api/tags', restrict, api.tags.add);
+app.put('/api/tags/:id/addlink', restrict, api.tags.addLink);
 app.put('/api/tags/:id', restrict, api.tags.update);
+
+
 
 
 // questions API

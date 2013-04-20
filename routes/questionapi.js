@@ -240,7 +240,7 @@ exports.search = function(req,res) {
   console.log('searching ' +  cleanQuery)
   //Question.textSearch(cleanQuery, function (err, output) {
   var options = 
-   { uri: 'http://localhost:9200/mongoquestions/_search',
+   { uri: 'http://localhost:9200/_search',
      method: 'POST',
      json: {
          query:{
@@ -252,10 +252,10 @@ exports.search = function(req,res) {
 };
     
     request(options, function(err, response, body) {
-      console.log(err);
+      //console.log(err);
       if (err) return res.send(400, err);
       var questions = _.map(body.hits.hits, function(hit) { return hit._source });
-      
+      //console.log(body.hits);
       var opts = [
          {path: '_creator', select: '_id name picture'},
          {path: 'comments._creator', select: '_id name picture'},
@@ -266,7 +266,7 @@ exports.search = function(req,res) {
       
         console.log('this is the output: ')
         console.log(questions)
-        res.json(questions);
+        return res.json(questions);
       });
   });
 }

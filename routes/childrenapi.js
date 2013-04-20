@@ -134,6 +134,29 @@ exports.isAuthorized = function(id, userId, callback) {
   })
 };
 
+exports.follow = function(req, res) {
+  var id = req.params.id;
+  var data = req.body;
+  
+  if (data.action == 'follow') {
+    var opts =  { $addToSet: { 'permissions': mongoose.Types.ObjectId(req.session.user) } };
+  } else if (data.action == 'unfollow') {
+    var opts = { $pull: { permissions: { _user: mongoose.Types.ObjectId(req.session.user) } } };
+  }
+  
+  Child.findByIdAndUpdate(id, opts)
+    .populate('lastUpdate')
+    .populate({
+       path: 'superpowers'
+        // match: { followers: req.session.user  }
+     })
+  .exec(function(err, child) {
+     if (err) return res.send(400, err);
+     return res.json(child);
+  });
+  
+  
+}
 /*
  * 
  * Managing albums

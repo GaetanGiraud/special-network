@@ -7,7 +7,7 @@
  * Handles views independant logic such as menubar, sibebar and socket connections
  * 
  */
-function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socket, Message) {
+function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socket, Message, $http) {
 
   // connect to the socket 
   Socket.connect();
@@ -21,6 +21,16 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socke
     });
   }
   
+  $scope.$watch('loggedIn', function(loggedIn) {
+     if (loggedIn) {
+     $scope.myTags = $http.get('/api/tags', { params : { mytags: true } })
+           .success(function(data) { 
+              $scope.myTags = data;
+              $scope.searchTags = angular.copy(data);
+             })
+    }
+  });
+        
   // fetching the data for the sidebar
   $scope.$watch('currentUser', function(currentUser) {
     if(currentUser != null) {
@@ -50,6 +60,7 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socke
     } 
   });
   
+  
   $scope.search = {};
   $scope.search.type = "Users";
   
@@ -59,6 +70,7 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socke
     
     $location.path('/find');  
   }
+
   
   
   /*
@@ -69,16 +81,34 @@ function AppCtrl($scope, AuthService, $location, Child, $rootScope, Alert, Socke
    */
   
 }
-AppCtrl.$inject = ['$scope', 'AuthService', '$location', 'Child', '$rootScope', 'Alert', 'Socket', 'Message'];
+AppCtrl.$inject = ['$scope', 'AuthService', '$location', 'Child', '$rootScope', 'Alert', 'Socket', 'Message', '$http'];
 
 // controller handling modal / dialog logic.
 function DialogCtrl($scope, dialog){
   
-  $scope.close = function(result){
-    dialog.close(result);
-  };
+
 }
 DialogCtrl.$inject = ['$scope', 'dialog'];
+
+function MyTagsCtrl($scope, $http) {
+  
+     
+  $scope.$on('followingTag', function(event, tag) {
+    $scope.myTags.push(tag);
+  })       
+  
+  $scope.$on('unFollowingTag', function(event, tag) {
+    for(var i = 0; i < $scope.myTags.length; i++) {
+      if ($scope.myTags[i]._id == tag._id) {
+        $scope.myTags.splice(i, 1);
+        break;  
+      }
+      
+    }
+  })    
+  
+}
+MyTagsCtrl.$inject = ['$scope', '$http'];
 
 function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
     Socket.subscribe('discussions');

@@ -1,7 +1,7 @@
 'use strict';
 
 function LoginCtrl($scope, User, $rootScope, $location, AuthService, Alert) {
-
+  
   $scope.register = function() {
     var user = User.save($scope.newUser, 
       function() {
@@ -25,9 +25,24 @@ function LoginCtrl($scope, User, $rootScope, $location, AuthService, Alert) {
     });
   }
   
+  
+  
+}
+
+
+LoginCtrl.$inject = ['$scope', 'User', '$rootScope', '$location', 'AuthService', 'Alert'];
+
+
+
+function ModalLoginCtrl($scope, User, $rootScope, $location, AuthService, Alert, dialog) {
+
+  $scope.close = function(result){
+    dialog.close(result);
+  };
+
   // When login in / registering using the login modal, the following functions are called.
   
-  $scope.modalRegister = function() {
+  $scope.register = function() {
     var user = User.save($scope.newUser, 
       function() {
         $scope.isNotRegistered = false;
@@ -39,13 +54,12 @@ function LoginCtrl($scope, User, $rootScope, $location, AuthService, Alert) {
      });
   }
   
-  $scope.modalLogin = function() {
+  $scope.login = function() {
     AuthService.login({'email': $scope.user.email, 'password': $scope.user.password}, function(loggedin) {
       console.log(loggedin);
       if (loggedin) {
-        
-        $scope.$parent.close();
-        $location.path('/home');
+        $scope.close(true);
+        //$location.path('/home');
         Alert.success('Welcome ' + $rootScope.currentUser.name + ', you have successfullt logged in!');
       } else {
         Alert.error('Error logging in, please try again', 'modal');
@@ -54,7 +68,7 @@ function LoginCtrl($scope, User, $rootScope, $location, AuthService, Alert) {
   }
 
 }
-LoginCtrl.$inject = ['$scope', 'User', '$rootScope', '$location', 'AuthService', 'Alert'];
+ModalLoginCtrl.$inject = ['$scope', 'User', '$rootScope', '$location', 'AuthService', 'Alert', 'dialog'];
 
 function LogoutCtrl($scope, AuthService, Alert, $location) {
   AuthService.logout();

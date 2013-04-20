@@ -1,0 +1,74 @@
+div.row 
+  div.span9
+    h3 
+      tag(tag = "tag")
+    button.btn(type = "button", ng-show = "!editTopic", ng-click = "editTopic = true") Edit
+    button.btn(type = "button", ng-show = "editTopic", ng-click = "editTopic = false") End Editing
+    
+div.row
+  div.span5
+    div.row
+      div.span5
+        h4 The topic description
+        p(ng-show = "!editTopic")
+          | {{ tag.description }}
+        div.editable(ng-show = "editTopic", contenteditable = 'true', ng-model = "tag.description")
+        button.btn(ng-show = "editTopic", type = 'button', ng-click = 'updateTag()' ) Save Changes
+    
+    div.row
+      div.span5(ng-show='!editTopic')
+        h5 Usefull link
+        ul.unstyled
+          li(ng-repeat = "link in tag.links")
+            //img(ng-href = "{{ link.picture }}")
+            a(favicon, ng-href = "{{ link.url }}", title = "link.title")
+              | {{ link.title }}
+            br
+            | {{ link.description }}
+            button(type = 'button',ng-show = "editTopic", ng-click = 'removeLink($index)' ) &times
+          li(ng-show="waiting")
+            i.icon-spinner.icon-spin
+            | Waiting
+
+      div.span5(ng-show = "editTopic")
+        h5 Add / Edit the links
+        ul.unstyled
+          li(ng-repeat = "link in tag.links")
+            br
+            a(favicon, ng-href = "{{ link.url }}", title = "link.title")
+              | {{ link.title }}
+            div.form-inline
+              input.span4(type = 'text', ng-model = "link.title") 
+              button.btn(type = 'button', ng-click = 'removeLink($index)' ) &times
+            br
+            textarea.span5(ng-model = "link.description", rows = '3')
+            button.btn(type = 'button', ng-click = 'updateTag()' ) Save Changes
+
+          li(ng-show="waiting")
+            i.icon-spinner.icon-spin
+            | Waiting
+          
+          form(name = 'linkForm')
+            | link: 
+            input(type = 'url', name = 'newLink', ng-model = 'newLink.url') 
+            | {{ newLink.url }}
+            button.btn.btn-success(type = 'button', ng-click = 'addLink()') Add a new link.
+            span.error(ng-show="linkForm.newLink.$error.url") Please enter a valid link
+        
+  
+  div.span4
+    h4 The topic picture
+    img#topic-picture.img-rounded.well(ng-src = "{{ tag | picture }}" )
+    div(ng-show = 'editTopic' )
+      small
+        | <strong>Drag & Drop</strong> the file onto the existing picture or
+        br
+        | Use the <strong>button</strong> to change the topic picture.
+      br
+      span.btn.btn-success.fileinput-button
+        i.icon-plus.icon-white
+        span 
+          | New picture
+          input(type="file", uploader, opts = "topicPitureUpload" , done='setTopicPicture(file)', data-url="/upload")
+
+    

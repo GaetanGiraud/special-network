@@ -20,8 +20,10 @@ div.row
       select(ng-options = "distance.value as distance.label for distance in distances", ng-change = 'getResults()', ng-model = "search.distance")
     
     h5 Related to specific superpowers?
-
-    tags(tags = 'superpowers', url = '/api/discussions/search?type=tags', select = 'getResults()')
+    ul.unstyle
+      li(ng-repeat = 'tag in superpowers')
+        tag(tag = 'tag', action = "true", remove = "removeSuperpower(tag)")
+      tags(url = '/api/tags', add = 'addSuperpower(tag)')
     //superpowers(results = 'superpower', url = '/api/discussions/search?type=tags', create = 'add(string, newObject)')
 
 div.row(ng-show = "!searchResults")
@@ -48,25 +50,17 @@ div.row(ng-show = "searchResults.length > 0")
         td
           ul.unstyled(ng-show = 'myChildren(result).length > 0')
             li(ng-repeat = "child in myChildren(result)")
-              img( ng-src = " {{ child | userIconPic }} ")
-              | {{ child.name }}
-              | I am his {{ child.relationship }}
-              ul
-                li(ng-repeat = 'superp in child.superpowers')
-                  | {{ superp | inflector:humanize }}
-                span(ng-show = 'child.superpowers.length == 0')
-                  | No superpower registerd
-                button.btn(type='button', ng-click = "followMe(child)") Follow me
+              kid(child = "child._id")
         td
           | I am following:
           br
           | {{ result.childrenCount }}
           | Children 
           br 
-          | with the following superpowers:
+          |and following:
           ul
-            li(ng-repeat = "superb in getSuperpowers(result)")
-              | {{ superb }}
+            li(ng-repeat = "superb in myTags")
+              tag(tag = "superb")
           
         td
           | Contact me

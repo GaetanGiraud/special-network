@@ -29,22 +29,46 @@ function FindCtrl($scope, User, Alert, $http, Message) {
    
   //$scope.homeLocation = $scope.currentUser.location;
    
-  $scope.$watch('superpowers', function(superpowers) {
-    $scope.getResults();  
-  })
    
-   $scope.$watch('search.term', function(superpowers) {
-    $scope.getResults();  
+  $scope.$watch('search.term', function(superpowers) {
+    if (angular.isDefined($scope.search.lng) && angular.isDefined($scope.search.lat)){
+      $scope.getResults();  
+    }
   })
+  
+  $scope.addSuperpower = function(superpower) {
+    $scope.superpowers.push(superpower);
+    $scope.getResults ();
+  }
+  
+  $scope.removeSuperpower = function(superpower) {
+    for(var i=0; i < $scope.superpowers.length; i++) {
+        if ($scope.superpowers[i]._id == superpower._id)  {
+          $scope.superpowers.splice(i, 1);
+          $scope.getResults();
+          break;
+        }
+      }
+  }
    
   $scope.getResults = function() {
+  var url = 'api/users/search';
    var params = angular.copy($scope.search);
    
    if ($scope.superpowers.length > 0) {
-     params = angular.extend(params, { 'superpowers': $scope.superpowers });  
+     var request;
+     angular.forEach($scope.superpowers, function(superpower) {
+          if(!request) {
+            request = 'superpowers[]=' + superpower._id;
+          } else  {
+            request = request + '&superpowers[]=' + superpower._id;
+          }
+     });
+     url = url + '?' + request;
+     //params = angular.extend(params, { 'superpowers': $scope.superpowers });  
    }
   
-   $http({method: 'GET', url: 'api/users/search', params: params }).
+   $http({method: 'GET', url: url, params: params }).
    success(function(data) {
      console.log(data);
      $scope.searchResults = data;
@@ -54,15 +78,6 @@ function FindCtrl($scope, User, Alert, $http, Message) {
   //
   
   $scope.followMe = function(child) {
-    Message.send({
-      content: $scope.currentUser.name + " wants to follow " + child.name,
-      action: { 
-        actionType: "following",
-        target: child._id
-        },
-      _creator: $scope.currentUser,
-      receivers: [ { '_user': child.creator._user } ]
-      });
     
   }
   
@@ -71,22 +86,11 @@ function FindCtrl($scope, User, Alert, $http, Message) {
      var myChildren = [];
      
      angular.forEach(result.children, function(child) {
-       if (child.creator._user ==  result._id._id) {
+       if (child._id.creator._user ==  result._id._id) {
         this.push(child);
       }
      }, myChildren);
      return myChildren;
-  }
-  
-  $scope.getSuperpowers = function(result) {
-    var superpowers = [];
-    
-    angular.forEach(result.children, function(child) {
-      //console.log(child.superpowers);
-      superpowers = superpowers.concat(child.superpowers);
-    });
-    console.log(superpowers)
-    return superpowers;
   }
   
   

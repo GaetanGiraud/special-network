@@ -2,32 +2,20 @@ extends layout
 
 block body
   include includes/header
-  div(class='container')
+  div#main(class='container')
 
     div(class='wrapper row')
-      div(id='sidebar', ng-show = "loggedIn", class='span3')
-        ul.nav.nav-pills
-          li 
-            a(href="/home")
-              i.icon-home.icon-2x
-              | Home
-          li 
-            a(href="/logout")
-              i.icon-signout.icon-2x
-              | Logout
-            
-        include includes/sidebar/user
-        include includes/sidebar/messages
+      div(id='sidebar', ng-cloak, ng-show = "loggedIn", class='ng-cloak span3')
         include includes/sidebar/children
         include includes/sidebar/questions
         
       div(id="partial", class="span9")
         //alert<type="alert.type", close="alert = null", ng-cloak, class="ng-cloak">{{alert.msg}}</alert>
-        div(ng-class="alert.type", ng-show="alert.msg.length > 0", ng-cloak, class="ng-cloak")
+        div#alert(ng-class="alert.type", ng-show="alert.msg.length > 0", ng-cloak, class="ng-cloak")
           button(class = "close", ng-click="alert.msg = ''")&times;
           {{alert.msg}}
         
-        div(ng-view)
+        div(ng-view ng-animate="{enter: 'view-enter', leave: 'view-leave'}")
 
     include includes/footer
   

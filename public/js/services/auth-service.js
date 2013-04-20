@@ -50,12 +50,13 @@ angular.module('auth-service', []).
           backdrop: true,
           keyboard: true,
           backdropClick: true,
-          templateUrl:  'partials/login',
-          controller: 'DialogCtrl'
+          templateUrl:  'templates/login',
+          controller: 'ModalLoginCtrl'
         };
        
         var d = $dialog.dialog(opts);
         d.open().then(function(result){
+          console.log(result);
           callback(result);
         });
       }
@@ -83,6 +84,7 @@ angular.module('auth-service', []).
         });
       },
       retryAll: function() {
+        console.log('call to retryAll');
         for (var i = 0; i < buffer.length; ++i) {
           retry(buffer[i].config, buffer[i].deferred);
         }

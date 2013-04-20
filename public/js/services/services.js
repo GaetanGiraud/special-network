@@ -26,6 +26,11 @@ angular.module('CareKids.services', ['ngResource']).
                       {update: {method: "PUT"}}
                       );
   }]).
+  factory('Tag', ['$resource', function($resource){
+    return $resource('api/tags/:tagId', {tagId: '@id'},
+                      {update: {method: "PUT"}}
+                      );
+  }]).
   factory('Question', ['$resource', function($resource){
     return $resource('api/questions/:questionId', {questionId: '@id'},
                       {update: {method: "PUT"}}
@@ -82,7 +87,7 @@ angular.module('CareKids.services', ['ngResource']).
     
     
   }).
-  factory('Alert', ['$rootScope', function($rootScope) {
+  factory('Alert', ['$rootScope', '$anchorScroll', '$location', function($rootScope, $anchorScroll, $location) {
 
      // refreshing the alert messages on page change
     /* $rootScope.$on('$routeChangeSuccess', function() {
@@ -94,20 +99,43 @@ angular.module('CareKids.services', ['ngResource']).
     // Types are linked to twitter bootstrap alert classes. Possible message types: 'success', 'error', 'info'. Others defaulft to standard alert.
     return {
       success: function(message, type) {
+
         if (type == 'modal') $rootScope.modalAlert = {msg: message, type: 'alert alert-success'};
-        if (angular.isUndefined(type)) $rootScope.alert = {msg: message, type: 'alert alert-success'};
+        if (angular.isUndefined(type)) {
+           $rootScope.alert = {msg: message, type: 'alert alert-success'};
+           $location.hash('banner');
+           $anchorScroll();
+          // $location.hash('');
+          }
       },
       error: function(message, type) {
         if (type == 'modal') $rootScope.modalAlert = {msg: message, type: 'alert alert-error'};
-        if (angular.isUndefined(type)) $rootScope.alert = {msg: message, type: 'alert alert-error'};
+        if (angular.isUndefined(type)){ 
+          $rootScope.alert = {msg: message, type: 'alert alert-error'};
+          $location.hash('banner');
+          $anchorScroll();
+          //$location.hash('');
+        }
       },
       info: function(message, type) {
         if (type == 'modal') $rootScope.modalAlert = {msg: message, type: 'alert alert-info'};
-        if (angular.isUndefined(type)) $rootScope.alert = {msg: message, type: 'alert alert-info'};
+        if (angular.isUndefined(type)) {
+           $rootScope.alert = {msg: message, type: 'alert alert-info'};
+                              $location.hash('banner');
+        $anchorScroll();
+           //$location.hash('');
+         }
       },
       warning: function(message, type) {
+        
         if (type == 'modal') $rootScope.modalAlert = {msg: message, type: 'alert'};
-        if (angular.isUndefined(type)) $rootScope.alert = {msg: message, type: 'alert'};
+        if (angular.isUndefined(type)){ 
+
+         $rootScope.alert = {msg: message, type: 'alert'};
+                           $location.hash('banner');
+        $anchorScroll();
+         //$location.hash('');
+       }
       }
     };
   }]).

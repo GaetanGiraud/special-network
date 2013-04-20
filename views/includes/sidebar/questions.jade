@@ -1,9 +1,6 @@
-article(ng-controller = "QuestionsCtrl")
-  h6 Latest Questions
-  
-  
-  div
-    | Create a question
-    br
-    a(href="/questions") 
-      | questions
+article(ng-controller = "MyTagsCtrl")
+  h5 The topics I am following
+  ul.unstyled
+    li(ng-repeat = 'tag in myTags' )
+      tag(tag = 'tag')
+

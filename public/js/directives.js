@@ -92,22 +92,22 @@ angular.module('CareKids.directives', []).
            },
          link: function(scope, elem, attrs) {
             
-           var template = '<div class = "bar" ng-style="width: {{ progress }} %"></div>' +
+           var template = '<div class = "bar" ng-style="progress">' +
                 '<br />' +
                 '<button ng-show = "inProgress" type = "button" class= "btn" ng-click =  "abort()"> Abort</button>' +
                 '<div ng-show = "!inProgress"><i class = "icon-spinner icon-spin"></i> We are processing the video ...</div>';
             var html;
-            
+            scope.progress = {width:  0 + '%' };
             
             scope.$watch('progress', function(progress) {
-              if (progress == 100) {
+              if (progress.width == '100%' ) {
                  scope.inProgress = false; 
               }
               
             });
             
             scope.$watch('opts', function(opts) {
-            
+            console.log(opts);
             if (angular.isUndefined(opts)) opts = {};
             
             // replace the selector with the DOM element 
@@ -129,14 +129,14 @@ angular.module('CareKids.directives', []).
                     html = $compile(template)(scope);
                     scope.progress = 0;
                     scope.inProgress = true;
-                    opts.dropZone.append(html);
+                    opts.dropZone.parent().append(html);
                     
                  });
                    // .complete(function (result, textStatus, jqXHR) {/* ... */});
               },
               progressall: function (e, data) {
                 var progress = parseInt(data.loaded / data.total * 100, 10);
-                scope.$apply(scope.progress = progress);
+                scope.$apply(scope.progress = {width:  progress + '%'});
                  //$('#progress .bar').css('width', progress + '%');
               },
               done:  function (e, data) {
@@ -268,7 +268,7 @@ angular.module('CareKids.directives', []).
     }
   }   
 }])
-.directive('questionSearch',[ '$http', '$compile', function($http, $compile) {
+.directive('questionSearch',[ '$http', '$compile', '$location', function($http, $compile, $location) {
    return {
      restrict: 'A',
      scope: {
@@ -278,21 +278,26 @@ angular.module('CareKids.directives', []).
       // end: '&',
      //  add: '&'
        },
-     //replace: true,
-     template: ' <input class = "span9" placeholder = "search" id = "autocomplete" type ="text" ng-change="complete()" ng-model="term">',
+     template: '<div class="input-prepend">' + 
+                 '<span class="add-on"><i class = "icon-search"></i></span>'+
+                 ' <input class = "span6" placeholder = "search" id = "autocomplete" type ="search" ng-change="complete()" ng-model="term">' +
+                '</div>',
      link: function(scope, elm, attrs) {
 
      var suggestionTemplate = '<ul class = "autocomplete">' +
                                    "<li ng-click='select($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
-                                   '<i class = "icon-search"></i> {{suggestion.term }}'+
+                                   '<i class = "icon-search"></i><span ng-bind-html-unsafe = "suggestion.term | highlight:term"></span>'+
                                    '</li>' +
                               '</ul>';
     var noresultTemplate = '<ul class = "autocomplete">' +
                                    "<li>" +
                                    'No results matching your request. Hi return to start a new search.' +
                                    '</li></ul>';
-    var html;                          
-    var elmWidth = elm.children()[0].offsetWidth;
+    var html;
+    var inputElm =  angular.element(elm.children().children()[1]);
+    var addOnElm =  angular.element(elm.children().children()[0]) ;
+    var inputWidth = addOnElm[0].offsetWidth + inputElm[0].offsetWidth;
+    var inputTop = inputElm[0].offsetTop + inputElm[0].offsetHeight;
     
       scope.$watch('suggestions', function(suggestions) {
         if (angular.isDefined(suggestions)) {
@@ -329,8 +334,12 @@ angular.module('CareKids.directives', []).
           }
           
           // append the result of the query to the element
-          html.css('width', elmWidth);
-          $('ul.autocomplete').css('width', elmWidth);
+          html.css('width', inputWidth);
+          html.css('top', inputTop);
+         // $('ul.autocomplete').css('width', inputWidth);
+         // $('ul.autocomplete').
+          console.log(html);
+          console.log(elm);
           elm.append(html);
         
         });
@@ -340,7 +349,7 @@ angular.module('CareKids.directives', []).
       }
       // on click function
       scope.select = function($index, $event) {
-        if (angular.isDefined($index)) {
+        if (angular.isDefined($index) && $index != '') {
           scope.term = scope.suggestions[$index].term;
         }
         console.log($index)
@@ -350,7 +359,7 @@ angular.module('CareKids.directives', []).
         
         // increment the search term popularity
         $http.post('/api/search', { term: scope.term });
-        scope.search({term: scope.term });
+        $location.search({'term': scope.term}).path('/questions');
        // $location.search('term', scope.term).path('/search')
        // $location.path('/search?'
 
@@ -362,7 +371,20 @@ angular.module('CareKids.directives', []).
        *  Handling the user interface
        * 
        */
-        
+      angular.element(inputElm).bind('focus', function(even) {
+   //     addOnElm.addClass('fade');
+        addOnElm.addClass('focus');
+        scope.$apply(scope.selected = '');
+        //addOnElm.css('border-right', 'none');
+        inputElm.css('border-left', 'none');
+        console.log('focussing');
+      })
+      
+      angular.element(inputElm).bind('blur', function(even) {
+        angular.element(addOnElm).removeClass('focus');
+        console.log('bluring');
+      })
+      
       elm.bind('keydown', function(event) {
           if ((event.keyCode == '40') && (scope.suggestions.length > 1) && (scope.selected < scope.suggestions.length ) ) {
             scope.selected = scope.selected + 1; 
@@ -402,6 +424,16 @@ angular.module('CareKids.directives', []).
        return '';
       }
       
+      
+  /*    function (element, start, end) { 
+    var str = element.innerHTML;
+    str = str.substr(0, start) +
+        '<span class="hilite">' + 
+        str.substr(start, end - start + 1) +
+        '</span>' +
+        str.substr(end + 1);
+    element.innerHTML = str;
+}*/
       
    }
  }
@@ -470,7 +502,7 @@ angular.module('CareKids.directives', []).
          $http.post(attrs.url,  {'name': scope.newTag })
          .success(function(data) {
              html.remove();
-             scope.tags.push(data);
+             scope.add({tag:  data });
              scope.newTag = '';
           //if select action defined, trigger create actio
           })
@@ -573,33 +605,52 @@ angular.module('CareKids.directives', []).
    }
  }
 }])
-.directive('tag', function($http, $rootScope, $compile){
+.directive('tag', function($http, $rootScope, $compile, $location){
   return {
     restrict: 'E' ,
     scope: {
       tag: '=',
       remove: '&'
     },
-    replace: true,
-    template: '<span class = "tag" ng-click = "showPopover()">' + 
+    //replace: true,
+    template: '<span class = "tag" ng-click = "showPopover()">' +
+                 '<img ng-src = "{{ tag | iconPicture }}">' +
                  ' {{ tag.name }}' +
                  ' <button type = "button" ng-show = "canRemove" ng-click = "removeTag()"> &times</button>' +
                '</span>' ,
     link: function(scope, elm, attrs) {
-    var popOverTemplate = '<div class = "popover autocomplete"">' +
-                            '<a ng-click = "follow()" ng-show = "!isFollowed">follow</a>' +
-                            '<a ng-click = "unfollow()" ng-show = "isFollowed">unfollow</a>' +
+    var popOverTemplate =  '<div class = "custom-popover">' +
+                              '<div class = "arrow-up"></div>' +
+                              '<div class = "popover-inner">' +
+                                '<div class = "popover-header">' +
+                                  '<a ng-click = "follow()" ng-show = "!isFollowed">follow</a>' +
+                                  '<a ng-click = "unfollow()" ng-show = "isFollowed">unfollow</a>' +
+                                   '{{ tag.followers.length }} followers' +
+                                '</div>' +
+                                '<div class = "popover-body">' +
+                                   '{{ tag.followers.length }} followers' +
+                                '</div>' +
+                              '</div>' +
                          '</div>';
     scope.isFollowed = false;
     scope.canRemove = false;
     
-    
-    // initialize the tag
-    
     var currentUserInit = false;
     var currentTagInit = false;
     var initPerformed = false;
+    var clickRegistered;
     var html;
+    
+    // reset all tag initiation values on page change.
+    scope.$on('$routeChangeSuccess', function(scope, next, current) {
+      currentUserInit = false;
+      currentTagInit = false;
+      initPerformed = false;
+      clickRegistered = false;
+      
+      if (angular.isDefined(html)) html.remove();
+    });
+   
     
     var initTag = function() {
       if (currentTagInit && currentUserInit && !initPerformed) {
@@ -614,12 +665,12 @@ angular.module('CareKids.directives', []).
     }
     
     $rootScope.$watch('currentUser', function(currentUser) {
-      if (angular.isDefined(currentUser)) currentUserInit = true;
+      if (angular.isDefined(currentUser) && currentUser != null) currentUserInit = true;
       initTag();
     });
     
     scope.$watch('tag', function(tag) {
-      if (angular.isDefined(tag)) currentTagInit = true;
+      if (angular.isDefined(scope.tag.followers)) currentTagInit = true;
       initTag();        
     });
     
@@ -630,11 +681,16 @@ angular.module('CareKids.directives', []).
     })
     
     scope.showPopover = function() {
+      if (clickRegistered) {
+        $location.path('/topics/' + scope.tag.title);
+      } else {
       console.log('showing');
       html = $compile(popOverTemplate)(scope);
       console.log(html);
+      //elm.css
       elm.append(html);
-      
+      clickRegistered = true;
+      }
     }
    
    $('html').bind('mousedown', function(event) {
@@ -642,6 +698,7 @@ angular.module('CareKids.directives', []).
         if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
           //scope.$apply(scope.newTag = '');
           html.remove();
+          clickRegistered = false;
         }
    });
     
@@ -680,6 +737,112 @@ angular.module('CareKids.directives', []).
   
     scope.$on('unFollowingTag', function(event, tag) {
       if (tag._id == scope.tag._id) scope.isFollowed = false;
+    })             
+      
+      
+    }
+  }
+  
+  
+
+  
+})
+.directive('kid', function($http, Message, $rootScope, $compile, $location){
+  return {
+    restrict: 'E' ,
+    scope: {
+      child: '='
+    },
+    replace: true,
+    template: '<div class = "child">' +
+                 '<img ng-src = "{{ child | userIconPic }}">' +
+                 ' {{ child.name }}' +
+                  '<button class= "btn" type="button" ng-click = "follow()" ng-show = "!isFollowed"> Follow</button>' +
+                  '<button class= "btn" type="button" ng-click = "unfollow()" ng-show = "isFollowed"> Unfollow me</button>' +
+                  '<span ng-show = "child.superpowers.length == 0"> No superpower registerd</span>' +
+                 '<ul class = "unstyled">' +
+                    '<li ng-repeat = "superp in child.superpowers">' +
+                       '<tag tag= "superp"></tag>' +
+                     '</li>' +
+                  '</ul>' +
+               '</div>' ,
+    link: function(scope, elm, attrs) {
+    scope.isFollowed = false;
+    
+    var currentUserInit = false;
+    var currentChildInit = false;
+    var initPerformed = false;
+    
+    // reset all tag initiation values on page change.
+    scope.$on('$routeChangeSuccess', function(scope, next, current) {
+      currentUserInit = false;
+      currentChildInit = false;
+      initPerformed = false;
+    });
+   
+    
+    var initChild = function() {
+      if (currentChildInit && currentUserInit && !initPerformed) {
+        if (angular.isArray(scope.child.permissions)) {
+          for(var i =0; i < scope.child.permissions.length; i++) {
+            if ( scope.child.permissions[i]._user == $rootScope.currentUser._id)  {
+              scope.isFollowed = true;
+              initPerformed = true;
+              break;
+            } 
+          }
+        } else {
+          console.log('child init');
+          console.log(scope.child.permissions._user);
+          console.log($rootScope.currentUser._id)
+          if ( scope.child.permissions._user == $rootScope.currentUser._id)  {
+            scope.isFollowed = true;
+            initPerformed = true;
+          }
+        }
+      }
+    }
+    
+    $rootScope.$watch('currentUser', function(currentUser) {
+      if (angular.isDefined(currentUser) && currentUser != null) currentUserInit = true;
+      initChild();
+    });
+    
+    scope.$watch('child', function(child) {
+      if (angular.isDefined(scope.child.permissions)) currentChildInit = true;
+      initChild();        
+    })
+    
+     scope.unfollow = function() {
+        $http.put('/api/children/' + scope.child._id + '/follow', { action: 'unfollow' }).success(function(child) {
+          scope.child = child; 
+          $rootScope.$broadcast('unFollowingChild', child);
+               //$rootScope.$safeApply(scope, function() { scope.isFollowed = false });  
+          
+        });
+         
+         scope.isFollowed = false;
+      }
+      
+      scope.follow = function() {
+        Message.send({
+          content: $rootScope.currentUser.name + " wants to follow " + scope.child.name,
+          action: { 
+            actionType: "following",
+            target: scope.child._id
+            },
+          _creator: $rootScope.currentUser,
+          receivers: [ { '_user': scope.child.creator._user } ]
+        });
+        scope.isFollowed = true; 
+      }
+      
+    scope.$on('followingChild', function(event, child) {
+        if (child._id == scope.child._id) scope.isFollowed = true;
+     })       
+  
+    scope.$on('unFollowingChild', function(event, child) {
+      if (child._id == scope.child._id) scope.isFollowed = false;
     })             
       
       
@@ -1006,4 +1169,24 @@ angular.module('CareKids.directives', []).
     return function(scope, elm, attrs) {
       elm.text(version);
     };
-  }]);
+  }])
+ .directive('favicon', function($rootScope) {
+    return function(scope, elm, attrs) {
+    
+      var getDomain = function(url) {
+        return url.match(/:\/\/(.[^/]+)/)[1];
+      }
+      
+      attrs.$observe('href', function(href) {
+        if (angular.isDefined(href)) {
+          elm.css({background: "url(http://google.com/s2/favicons?domain=" + getDomain(href) + ")" +
+                              "left center no-repeat", 'padding-left': "20px"});
+          
+        }
+      })
+    }
+  });
+  
+  
+  
+

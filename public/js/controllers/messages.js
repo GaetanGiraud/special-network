@@ -196,7 +196,7 @@ function MessageCtrl($scope, $location, Message, Socket, Child) {
 }
 MessageCtrl.$inject = ['$scope', '$location', 'Message', 'Socket', 'Child'];
 
-function newPermissionCtrl($scope) {
+function newPermissionCtrl($scope, Child, $rootScope, Message) {
   
   $scope.$watch('currentMessage', function(currentMessage) {
     if(angular.isDefined(currentMessage) && currentMessage != null) {
@@ -209,6 +209,7 @@ function newPermissionCtrl($scope) {
       if(acceptance) {
       Child.update({'childId': $scope.currentMessage.action.target._id },
          { permission: $scope.permission } );
+      $rootScope.$broadcast('unFollowingChild', $scope.currentMessage.action.target);
        }   
       Message.update($scope.currentMessage, { action : { executed: true }});
       $scope.$safeApply($scope, function() { $scope.currentMessage.action.executed = true });

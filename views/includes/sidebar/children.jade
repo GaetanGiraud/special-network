@@ -1,6 +1,10 @@
 article(ng-controller = "ChildrenCtrl")
+  h5 
+    a(href='/children') 
+      |The Children
   h6 
     a(href='/find') Find new children
+    tags(tags = 'superpowers', url = '/api/tags', select = 'getResults()', ng-change = "openFindWindow())
     input(type = "text", ng-model = "search.term", ng-change = "openFindWindow()")
   
   h6 The kids page you are managing
@@ -36,27 +40,10 @@ article(ng-controller = "ChildrenCtrl")
     button(type='button', ng-click="registerOptOut()", class='btn btn-small') I want to opt out.
     br
     small You can reverse this setting on your profile page.
-  
-  table.table(ng-show = "children.length > 0")
-    tr
-      th
-      th
-      th
-        small You are
-      th
-        small latest update
-      th
-    tr(ng-repeat="child in children")
-      td
-        img(ng-src="{{ child | userIconPic }}")
-      td
-        a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
-      td
-        | {{child.creator.relationship | pronomize }} 
-      td
-        | {{ child.lastUpdate.updatedAt | fromNow }}
-      td
-        button(type='button', ng-click="deleteChild($index)", class='btn' ) &times
+  ul(ng-show = "children.length > 0")
+    li(ng-repeat="child in children")
+      kid(child = 'child')
+      button(type='button', ng-click="deleteChild($index)", class='btn' ) &times
               
           
   h6 The kids in your familly
@@ -65,23 +52,12 @@ article(ng-controller = "ChildrenCtrl")
     | Use the 
     a(href = "/find") Find
     | functionality to look out people and follow children
-  table.table(ng-show = "famillyChildren.length > 0")
-    tr
-      th
-      th 
-        | You are
-      th 
-        | latest update
-      th
-    tr(ng-repeat="child in famillyChildren")
-      td
-        a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
-        br
-        img(ng-src="{{ child | userIconPic }}")
-      td
-        | {{ getRelationship(child) }} 
-      td
-        | {{ child.lastUpdate.updatedAt | fromNow }}
+  
+  ul(ng-show = "famillyChildren.length > 0")
+    li(ng-repeat="child in famillyChildren")
+      kid(child = 'child')
+      button(type='button', ng-click="deleteChild($index)", class='btn' ) &times
+
   
   h6 The kids you are following
   p(ng-show='followedChildren.length == 0')

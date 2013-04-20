@@ -10,6 +10,7 @@ var db = require('../config/database').connection
   , User = require('../models/User')(db)
   , Location = require('../models/Location')(db)
   , Child = require('../models/Child')(db)
+    , Tag = require('../models/Tag')(db)
   , _ = require("underscore")
   , mongoose = require('mongoose')
   , bcrypt = require('bcrypt');
@@ -268,7 +269,7 @@ exports.search = function (req, res) {
    //console.log( querySuperpowers )
     
     if (typeof querySuperpowers != 'undefined') {
-      querySuperpowers = req.query.superpowers.replace(/[\[\]{}|&;$%@"<>()+]/g, "").split(',');
+      //querySuperpowers = req.query.superpowers.replace(/[\[\]{}|&;$%@"<>()+]/g, "").split(',');
       var opts = {'superpowers': {$in: querySuperpowers }};
       
       //console.log(querySuperpowers)
@@ -303,14 +304,14 @@ exports.search = function (req, res) {
             }, 
           { $unwind: "$permissions"}, 
           { $group: 
-            { _id: "$permissions._user", childrenCount: { $sum : 1 }, children: { $addToSet: {_id: "$_id", relationship: "$permissions.relationship", superpowers: "$superpowers", creator: "$creator", pageTitle: "$pageTitle", name: "$name", picture: "$picture"}} 
+            { _id: "$permissions._user", childrenCount: { $sum : 1 }, children: { $addToSet: {_id: "$_id"}} 
             }
           },
          // { $match: { 'children.creator._user': req.session.user }},
           
           function (err, results) {
               if (err) return res.send(400, err);
-              console.log(results);
+
               User.populate(results, { 
                 path: '_id', 
                // match: {'name': {$regex: cleanedTerm, $options: 'i'}},
@@ -321,12 +322,18 @@ exports.search = function (req, res) {
                 },
                 function(err, results) {
                  // console.log(results);
+                 
                   var filteredResult = _.filter(results, function(result) { 
                     return result._id != null;
                      });
-                  console.log( filteredResult);
-                 if (err) return res.send(400, err);
-                 res.json(filteredResult);
+                  Child.populate(filteredResult , {path: 'children._id'}, function(err, results) {
+                 //console.log('results after search')
+                 //console.log(filteredResult);
+                   Tag.populate(results,{path: 'children._id.superpowers'}, function(err, data) {
+                      if (err) return res.send(400, err);
+                      res.json(filteredResult);
+                    });
+                  });
               });
           });
     });

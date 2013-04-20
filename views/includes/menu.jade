@@ -1,12 +1,21 @@
-div(ng-cloak, class="ng-cloak")
-  div
-    h5 My Children:
-      ul(class="unstyled") 
-        li(ng-repeat = 'child in myChildren')
-          a(ng-href = '/children/{{child.pageTitle}}') {{child.name}}
-
-  
-  div
-    h5 What's happening right now
+div#menubar(ng-cloak, class="ng-cloak")
+  ul
+    li
+      div(question-search search = 'search(term)')
+    li
+      a(href="/user")
+        img(ng-src = "{{ currentUser | userIconPic }}") 
+        | {{currentUser.name}} 
+    li 
+      a(href="/home")
+        i.icon-home.icon
+    li
+      a(href="/messages")
+        span(ng-show = "unreadMessageCount > 0") {{ unreadMessageCount }}
+        i.icon-envelope
+         
+    li 
+      a(href="/logout")
+        i.icon-signout
 
       
