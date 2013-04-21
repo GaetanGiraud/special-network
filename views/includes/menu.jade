@@ -1,21 +1,35 @@
 div#menubar(ng-cloak, class="ng-cloak")
-  ul
-    li
-      div(question-search search = 'search(term)')
-    li
-      a(href="/user")
-        img(ng-src = "{{ currentUser | userIconPic }}") 
-        | {{currentUser.name}} 
-    li 
-      a(href="/home")
-        i.icon-home.icon
-    li
-      a(href="/messages")
-        span(ng-show = "unreadMessageCount > 0") {{ unreadMessageCount }}
-        i.icon-envelope
-         
-    li 
-      a(href="/logout")
-        i.icon-signout
+  div.container
+    ul.pull-left
+      li
+        a(href="/home")
+          i.icon-home.icon
+          | Home
+      li
+        div.search(question-search search = 'search(term)')
+      
+          // include includes/sidebar/children
+      //include includes/sidebar/questions
+    ul.pull-right
+      li
+        div(popup-menu = 'children')
+          | The Children
+          
+      li
+        div(popup-menu = 'topics')
+         | My Topics
+
+      li
+        a(href="/user")
+          img(ng-src = "{{ currentUser | userIconPic }}") 
+          | {{currentUser.name}} 
+      li(ng-class = "{'mail': unreadMessageCount > 0}")
+        a(href="/messages")
+          span(ng-show = "unreadMessageCount > 0", class = "count badge badge-important") {{ unreadMessageCount }}
+          i.icon-envelope
+           
+      li 
+        a(href="/logout")
+          i.icon-signout
 
       

@@ -1,0 +1,9 @@
+h5 {{ }}
+
+  | {{ item.document._creator.name }}
+  | {{ item.document.updatedAt | fromNow }}
+  
+  div(ng-repeat = "tag in item.document.tags")
+    tag(tag = "tag")
+    
+  | {{ item.content }}

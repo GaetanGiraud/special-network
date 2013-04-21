@@ -36,6 +36,10 @@ angular.module('CareKids.directives', []).
            page = 2;
     });
     
+    $rootScope.$on('$viewContentLoaded', function() {
+       page = 2;
+    });
+    
        return {
          restrict: 'A',
            scope: {
@@ -48,7 +52,7 @@ angular.module('CareKids.directives', []).
          
          //var html;
          scope.status = 'Loading';
-
+         //attrs.url.$observe
           $(window).bind('scroll', function(event) {
              if ($(window).scrollTop() > ($(document).height() - $(window).height() - 50)) {
                 scope.loadNewPage();
@@ -60,11 +64,15 @@ angular.module('CareKids.directives', []).
           // load new page function
             scope.loadNewPage = function() {
               if (angular.isUndefined(scope.url) || scope.url == null || scope.url == '') return; // do nothing if the url has not been loaded.
-              $http({method: 'GET', url: scope.url, params: {'page': page} })
+              console.log('page ++');
+              console.log(scope.url);
+              scope.$apply(function() { 
+                $http({method: 'GET', url: attrs.url, params: {'page': page} })
                 .success(function(data) {
                   //data = [];
                   // if not result, unbind the scroll event.
-                  if (data.length == 0) {
+                  console.log(data);
+                  if (data.length <= 9) {
                     scope.status = 'End of page'; 
                     $(window).unbind('scroll');
                     
@@ -73,10 +81,13 @@ angular.module('CareKids.directives', []).
                       elem.children()[0].remove();
                     }
                     
+                    return;
+                    
                   }
                   scope.newPageTarget = scope.newPageTarget.concat(data);
                  });
-            }
+                }   );
+              }
           
           }
         
@@ -92,7 +103,9 @@ angular.module('CareKids.directives', []).
            },
          link: function(scope, elem, attrs) {
             
-           var template = '<div class = "bar" ng-style="progress">' +
+           var template = '<div class = "progress progress-striped active">'+
+                            '<div class = "bar" ng-style="progress">' +
+                          '</div>'+
                 '<br />' +
                 '<button ng-show = "inProgress" type = "button" class= "btn" ng-click =  "abort()"> Abort</button>' +
                 '<div ng-show = "!inProgress"><i class = "icon-spinner icon-spin"></i> We are processing the video ...</div>';
@@ -280,16 +293,18 @@ angular.module('CareKids.directives', []).
        },
      template: '<div class="input-prepend">' + 
                  '<span class="add-on"><i class = "icon-search"></i></span>'+
-                 ' <input class = "span6" placeholder = "search" id = "autocomplete" type ="search" ng-change="complete()" ng-model="term">' +
+                 ' <input class = "span4" placeholder = "search" id = "autocomplete" type ="search" ng-change="complete()" ng-model="term">' +
                 '</div>',
      link: function(scope, elm, attrs) {
 
-     var suggestionTemplate = '<ul class = "autocomplete">' +
+     var suggestionTemplate =  '<div class = "arrow-up"></div>' +
+                               '<ul>' +
                                    "<li ng-click='select($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
                                    '<i class = "icon-search"></i><span ng-bind-html-unsafe = "suggestion.term | highlight:term"></span>'+
                                    '</li>' +
                               '</ul>';
-    var noresultTemplate = '<ul class = "autocomplete">' +
+    var noresultTemplate =   '<div class = "arrow-up"></div>' +
+                               '<ul>' +
                                    "<li>" +
                                    'No results matching your request. Hi return to start a new search.' +
                                    '</li></ul>';
@@ -334,12 +349,9 @@ angular.module('CareKids.directives', []).
           }
           
           // append the result of the query to the element
-          html.css('width', inputWidth);
-          html.css('top', inputTop);
-         // $('ul.autocomplete').css('width', inputWidth);
-         // $('ul.autocomplete').
-          console.log(html);
-          console.log(elm);
+          angular.element(html[1]).css('width', inputWidth);
+          angular.element(html[1]).css('top', inputTop + 15);
+
           elm.append(html);
         
         });
@@ -349,10 +361,11 @@ angular.module('CareKids.directives', []).
       }
       // on click function
       scope.select = function($index, $event) {
-        if (angular.isDefined($index) && $index != '') {
+        
+        if (angular.isDefined($index)) {
+          console.log($index)
           scope.term = scope.suggestions[$index].term;
         }
-        console.log($index)
         //
         html.remove();
         //console.log(
@@ -748,36 +761,42 @@ angular.module('CareKids.directives', []).
 
   
 })
-.directive('kid', function($http, Message, $rootScope, $compile, $location, Child){
+.directive('kid', function($http, $timeout, Message, $rootScope, $compile, $location, Child){
   return {
     restrict: 'E' ,
     scope: {
       child: '='
     },
     replace: true,
-    template: '<div class = "child">' +
-                 '<img ng-src = "{{ child | userIconPic }}">' +
-                 ' {{ child.name }}' +
+    template: '<div class = "child" ng-mouseover = "showPopover($event)" ng-mouseleave = "removePopover()">'+ 
+                 '<span>' +
+                   '<img ng-src = "{{ child | userIconPic }}">' +
+                   '<a ng-href = "/children/{{ child.pageTitle }}"> {{ child.name }} </a>' +
+                 '</span>'+
+                '</div>' ,
+    link: function(scope, elm, attrs) {
+  
+    var template = '<div class = "childPopover">' +
+                '<span ng-show = "isFollowed && !isValidated" >Following request sent.</span>' +
                   '<button class= "btn" type="button" ng-click = "follow()" ng-show = "!isFollowed"> Follow</button>' +
-                  '<span ng-show = "isFollowed && !isValidated" >Following request sent.</span>' +
                   '<button class= "btn" type="button" ng-click = "unfollow()" ng-show = "isFollowed && isValidated "> Unfollow me</button>' +
+                  '<br />' +
                   '<span ng-show = "child.superpowers.length == 0"> No superpower registerd</span>' +
                  '<ul class = "unstyled">' +
                     '<li ng-repeat = "superp in child.superpowers">' +
                        '<tag tag= "superp"></tag>' +
                      '</li>' +
                   '</ul>' +
-               '</div>' ,
-    link: function(scope, elm, attrs) {
-  
-    
-    
+                   '<span class = "badge badge-info">{{ child.permissions.length }}</span> Followers ' +
+                 '</div>';
+    var html;
     var currentUserInit = false;
     var currentChildInit = false;
     var initPerformed = false;
     
     // reset all tag initiation values on page change.
     scope.$on('$routeChangeSuccess', function(scope, next, current) {
+      
       currentUserInit = false;
       currentChildInit = false;
       initPerformed = false;
@@ -876,12 +895,37 @@ angular.module('CareKids.directives', []).
     scope.$on('unFollowingChild', function(event, child) {
       if (child._id == scope.child._id) scope.isFollowed = false;
     })             
+    
+    scope.showPopover = function(event) {
+      if () {
+      console.log(event);
+        html = $compile(template)(scope);
+        elm.append(html);
+      }
+      }
+
+   scope.removePopover = function() {
+      console.log('showing');
+      if (angular.isDefined(html)) {
+        html.remove();
+      }
+      }
+      
+      
+     $('html').bind('mousedown', function(event) {
+       console.log('event recorded');
+      //if(!$(event.target).is('#foo')) && !$(event.target).parents("#foo").is("#foo")
+        if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
+          //scope.$apply(scope.newTag = '');
+          scope.$apply(html.remove());
+        }
+   });
       
       
     }
   }
-  
-  
+
+
 
   
 })
@@ -1179,6 +1223,66 @@ angular.module('CareKids.directives', []).
       }
     }
   })
+  .directive('popupMenu', function($compile, $http){
+     var template_for = function(type) {
+        return '/templates/' + type + '.jade';
+     };
+  
+  return {
+    restrict: 'A',
+    scope: true,
+    replace: true,
+    transclude: true,
+    template: '<div class= "popup"><a ng-href = "" ng-click = "showPopover()" ng-transclude></a></div>',
+    link: function(scope, elm, attrs) {
+    
+    var template;
+    var html;
+    var clickRegisterd = false;
+    
+    scope.$on('$routeChangeSuccess', function(scope, next, current) {
+      if (angular.isDefined(html)) { 
+        clickRegisterd = false;
+        html.remove();
+      }
+    });
+    
+    $('html').bind('mousedown', function(event) {
+      //if(!$(event.target).is('#foo')) && !$(event.target).parents("#foo").is("#foo")
+        if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
+          //scope.$apply(scope.newTag = '');
+          scope.$apply(html.remove());
+          clickRegisterd = false;
+        }
+   });
+    
+  scope.showPopover = function() {
+       // var tmpl = template_for(scope.attrs.popover);
+         console.log(attrs.popupMenu)
+         //$event.preventDefault();
+         if (clickRegisterd) { 
+           html.remove()
+           clickRegisterd = false;
+           return
+         }
+         clickRegisterd = true;
+         $http.get(template_for(attrs.popupMenu)).success(function(result) {
+           template = '<div class="arrow-up"></div>' + result;
+           console.log(template);
+           //template = '<p>Coucou </p>'
+        //   scope.$apply(function() {
+              html = $compile(template)(scope);
+              console.log(html); 
+              //console.log(elm);
+        //   });
+           elm.append(html);
+         })
+    };
+   
+    }
+  }
+  
+})
   .directive( [ 'focus', 'blur', 'keyup', 'keydown', 'keypress' ].reduce( function ( container, name ) {
     var directiveName = 'ng' + name[ 0 ].toUpperCase( ) + name.substr( 1 );
 

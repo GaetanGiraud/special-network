@@ -235,46 +235,134 @@ exports.delete = function (req, res) {
 
 
 exports.search = function(req,res) {
-  var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
-  //var splitQuery = cleanQuery.split(' ').split(',');
-  console.log('searching ' +  cleanQuery)
+  var query;
+  console.log(req.query)
+  if(typeof req.query.tags != "undefined") {
+    tags = req.query.tags;
+  } else {
+    tags = [];  
+  }
+  
+  if (req.query.page) {
+     var skipIndex = req.query.page -1;
+  } else { 
+    var skipIndex = 0;
+  }
+  
+  if(typeof req.query.term != "undefined") {
+    var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
+    //var splitQuery = cleanQuery.split(' ').split(',');
+    console.log('searching ' +  cleanQuery)
+    query = { 
+      "sort" : [
+        { "updatedAt" : {"order" : "desc"} }
+        ],
+      query: {
+         multi_match: {
+           query: cleanQuery,
+           fields: ['content']
+        }
+      },
+      from: skipIndex*10,
+      size: 10
+    }
+  } else {
   //Question.textSearch(cleanQuery, function (err, output) {
-  var options = 
-   { uri: 'http://localhost:9200/_search',
-     method: 'POST',
-     json: {
-         query:{
-           match: {
-            'content': cleanQuery
-            }
+
+  query = {
+     "sort" : [
+        { "updatedAt" : {"order" : "desc"} }
+        ],
+    "query": {
+     "bool": {
+       "should": [
+                 {
+                   terms: { "tags._id": tags}
+                  },
+                  {
+                   term: { "_creator" : req.session.user }
+                  },
+                  {
+                   term: { "permissions._user" : req.session.user }
+                  }
+              ],
+              "minimum_number_should_match" : 1
           }
-         }
-};
+       },
+       from: skipIndex*10,
+       size: 10
+     }
+  }
+  
+    var options = { uri: 'http://localhost:9200/_search',
+     method: 'POST',
+     json: query
+    }
+   // }
+ 
     
     request(options, function(err, response, body) {
       //console.log(err);
       if (err) return res.send(400, err);
       console.log(body);
+      if (body.hits.hits.length == 0) return res.json([]);
       
       var results = _.map(body.hits.hits, function(hit) { 
         return { type: hit._type, document: hit._source };
       });
-      //results = _.extend(results, { hits: body.hits.total });
+      var counter = results.length;
+      results.forEach(function(element, index, array) {
+        results[index].document._creator = mongoose.Types.ObjectId(results[index].document._creator); 
+        results[index].document.tags = _.map(results[index].document.tags, function(tag) {return mongoose.Types.ObjectId(tag) }) 
+        
+        User.findOne({'_id': results[index].document._creator}, function(err, user) {
+          results[index].document._creator = user;
+          
+          Tag.find({'_id': { $in: results[index].document.tags } }, function(err, tags) {
+            results[index].document.tags =tags;
+            
+            if (typeof results[index].document.children != "undefined") {
+              Child.find({'_id': { $in: results[index].document.children } }, function(err, children) {
+                results[index].document.children = children;
+                 counter--;
+                          
+                  if (counter == 0) {
+                    console.log(results);
+                    return res.json({ hits: body.hits.total , results: results} );
+                  }
+                 
+                 
+               })
+              } else {
+                counter--;
+                
+              
+              if (counter == 0) {
+                console.log(results);
+                return res.json({ hits: body.hits.total , results: results} );
+              }
+          }
+            
+          })
+        })
+  
+      }) 
       
-      console.log(results);
-      //console.log(body.hits);
-      var opts = [
-         {path: 'document._creator', select: '_id name picture'},
-         {path: 'document.comments._creator', select: '_id name picture'},
-         {path: 'document.tags'}
-         ]
-      
-      Question.populate(results, opts, function(err, results) {
-      
+     // console.log(results[0].document._creator instanceof 'ObjectId');
+   //   var populateOpts = [
+   //     {path: 'document._creator', select: '_id name picture'},
+        // {path: 'document.comments._creator', select: '_id name picture'},
+    //     {path: 'document.tags'}
+    //    ]
+     // console.log(results);
+     //Question.populate(results, 'document._creator', function(err, results) {
+     // if(err) return res.send(400, err);
+      //
       //  console.log('this is the output: ')
-        console.log(results)
-        return res.json({ hits: body.hits.total , results: results} );
-      });
+      ///console.log(err);
+        //   console.log(results);
+        
+    // });
   });
 }
 

@@ -5,11 +5,8 @@ block body
   div#main(class='container')
 
     div(class='wrapper row')
-      div(id='sidebar', ng-cloak, ng-show = "loggedIn", class='ng-cloak span3')
-        include includes/sidebar/children
-        include includes/sidebar/questions
-        
-      div(id="partial", class="span9")
+      div(id="partial", class="span12")
+        div#horizontalbanner
         //alert<type="alert.type", close="alert = null", ng-cloak, class="ng-cloak">{{alert.msg}}</alert>
         div#alert(ng-class="alert.type", ng-show="alert.msg.length > 0", ng-cloak, class="ng-cloak")
           button(class = "close", ng-click="alert.msg = ''")&times;

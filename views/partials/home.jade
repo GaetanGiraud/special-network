@@ -1,11 +1,10 @@
 div.row
+  div#home(ng-repeat = "item in data.results", ng-switch on = "item.type")
+    article(g-switch-when="discussion",  ng-class = 'item.type')
+      include ../includes/discussion
+    article(ng-switch-when="question",  ng-class = 'item.type')
+      include ../includes/question
+div.row
   div.span9
-    div(ng-repeat = "child in children")
-      label.checkbox
-        input(type="checkbox", ng-model="child.send", ng-change = "loadTags($index)") 
-        | {{child.name}}
-    div(ng-show = "children.length == 0")
-       p
-        | You are not following any children. 
+    div(paginate, new-page-target = "data.results", url = "{{ resultUrl }}")  
       
-   include ../includes/discussions

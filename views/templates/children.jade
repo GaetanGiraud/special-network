@@ -1,0 +1,22 @@
+article#my-children(ng-controller = "ChildrenCtrl")
+  p(ng-show='children.length > 0 && followedChildren.length == 0 && famillyChildren.length > 0')
+    | You are not following any children yet. 
+    | Create a new 
+    a(href = '/home') child's page 
+    | or  
+    a(href = "/find") find 
+    | children to follow.
+    
+  a(href="/children", title = "Manage children's page and followers'")
+  ul#yourchildren(ng-show = "children.length > 0")
+    li(ng-repeat="child in children")
+      kid(child = 'child')
+
+  ul#famillychildren(ng-show = "famillyChildren.length > 0")
+    li(ng-repeat="child in famillyChildren")
+      kid(child = 'child')
+  
+  ul(ng-show = "followedChildren.length > 0")
+    li(ng-repeat="child in famillyChildren")
+      kid(child = 'child')
+  

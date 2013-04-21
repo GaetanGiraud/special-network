@@ -1,0 +1,18 @@
+small
+
+h5 
+  | Some news from 
+span(ng-repeat = "child in item.document.children")
+  kid(child = "child")
+  
+div(ng-repeat = "tag in item.document.tags")
+  tag(tag = "tag")
+p
+ | {{ item.document.content }}
+ 
+small
+  | Posted by 
+  img(ng-src = "{{ item.document._creator | userIconPic }}")
+  {{ item.document._creator.name }}
+  | at {{ item.document.updatedAt | fromNow }}
+  | {{ item.document.comments.length }} Replies

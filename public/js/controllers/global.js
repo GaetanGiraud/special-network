@@ -104,7 +104,33 @@ function MyTagsCtrl($scope, $http) {
 }
 MyTagsCtrl.$inject = ['$scope', '$http'];
 
-function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
+function HomeCtrl($scope, $http, $location) {
+  
+   $scope.$watch('searchTags', function(searchTags) {
+     // to do - do a search in elastic search with the tags and the terms
+      if (angular.isDefined( searchTags )) {
+        var request;
+        angular.forEach($scope.searchTags, function(tag) {
+          if(!request) {
+            request = 'tags[]=' + tag._id;
+          } else  {
+            request = request + '&tags[]=' + tag._id;
+          }
+        });
+        //console.log(request);
+        $scope.resultUrl = '/api/questions/search?' + request ;
+        $http.get($scope.resultUrl)
+        .success(function(data) {
+          $scope.data = data;  
+          console.log(data);
+       });
+       }
+      }, true);  
+  
+}
+HomeCtrl.$inject = ['$scope', '$http', '$location'];
+
+function Home2Ctrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
     Socket.subscribe('discussions');
     var childrenInitialized;
     $scope.newDiscussion = {};
@@ -180,4 +206,4 @@ function HomeCtrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
     }    
     
 }
-HomeCtrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert', 'Child', 'Socket'];
+Home2Ctrl.$inject = ['$scope', '$rootScope', 'Discussion', '$http', 'Alert', 'Child', 'Socket'];

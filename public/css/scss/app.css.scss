@@ -2,7 +2,7 @@
 
 body {
 
-  background-color: grey;
+  background-color: $mainColor;
 
 }
 
@@ -14,9 +14,13 @@ header.menu {
 }
 
 #main {
-  margin-top: 20px;
-  //padding-top: 40px;
+  margin-top: 40px;
 }
+
+// Header
+//
+//
+//
 
 header {
   
@@ -24,7 +28,7 @@ header {
   padding-bottom: 10px;
   width: 100%;
   /* height: 200px;*/
-  background-color: #B3DFF2;
+  background-color: $yellow;
 
 }
 
@@ -41,24 +45,38 @@ header {
   }
 }
 
+#sidebar {
+  position: relative;
+  //background-image: url('../images/horizonataldivider.png');
+ // background-repeat: no-repeat;
+}
+
 #menubar {
   position: fixed;
   top: 0;
   width: 100%;
   height: 40px;
   z-index: 1000;
-  background: #fff;
+  background: $green;
   //margin: auto;
   text-align: center;
   font-size: 18px;
   padding: 0;
-  border: 1px solid;
-  vertical-align: middle;
-
-   // some css to make the icon look as if it is part of the input
+  border: 1px solid $ligthGreen;
+  
+  div.container {
+    vertical-align: middle;
+  }
+  
+  
+  // some css to make the icon look as if it is part of the input
+  .search {
+    color: black;
+  
+  }
   
   span.add-on {
-    background: inherit;
+    background: #fff;
     border-right: none;
     
      -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
@@ -68,8 +86,9 @@ header {
           
           
     &.focus {
-      background: inherit;
+      background: #fff;
       border-right: none;
+      border-width: 2px;
       border-color: rgba(82, 168, 236, 0.8);
       outline: 0;
       outline: thin dotted \9;
@@ -78,46 +97,148 @@ header {
     input  {
       border-left: none;
       
+      
       &:focus {
       // remove the standard bootstrap shadows.
+        border-width: 2px;
+      
         -webkit-box-shadow: none;
 	      -moz-box-shadow: none;
 	       box-shadow: none;
       }
       
      }
+     
+  // styling of the search results
+  .search {
+  
+      div.arrow-up {
+      @include arrow-up(15px, $green);
+      
+      //left: 5px;
+       top: 5px;
+    }
+  ul {
+    display: block;
+    position: absolute;
+    z-index: 999;
+    background-color: white;
+    padding: 0;
+    margin: 0;
+    border: 3px solid $green;
+    //color: grey;
+    @include rounded-corners(5px);
+    
+    
+    li {
+      display: block;
+      width: inherit;
+      padding: 5px;
+      margin: 0;
+      color: grey;
+      text-align: left;
+      font-size: 14px;
+      box-sizing: border-box;
+      -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	    -moz-box-sizing: border-box; 
+
+      &.selected {
+        //color: lighten(black, 10%);
+        background-color: rgba($ligthGreen, .4);   
+      }
+      
+      img {
+        padding: 2px;
+      }
+      
+        &:hover {
+         cursor: pointer;
+      }
+    }
+  }
+  }
+  
+  
+  
+  
   
   ul {
     display: block;
     padding: 0;
     margin-top: 5px;
-   
+    font-size: 18px;
+    font-weight: 700;
+    
+    &.pull-right {
+      margin-top: 10px;
+    }
        
   }
   li {
      display: inline-block;
-     color: black;
+     color: #fff;
      padding: 0 10px;
      margin: 0;
+     width: inherit;
+     cursor: pointer;
+     
+     img {
+         margin-right: 9px;
+     
+        }
      
      div {
        margin: 0;
        padding: 0;
      }
      
-     a, a:visited, a:link {
+     &:hover {
+     
+     
+     }
+     
+     a, a:visited, a:link, a:active, a:hover {
        padding: 0;
        margin: 0;
-       color: black;
-       
+       color: #fff;
+       text-decoration:none;
         &:hover {
           text-decoration:none;
           color: blue;
         }
-       }
+      }
+      
+    &.mail {
+      position: relative;
+      
+      .count {
+      font-weight: 700;
+      top: -5px;
+      left: 20px;
+      position: absolute;
+      
+      font-size: 12px;
+      display: block;
+      color: #fff;
+      
+      
+      
+      
+      }
+    
+      }
      }
 
 }
+
+      
+      span.ui-match {
+        color: black;
+        font-weight: 800;
+        background-color: none;
+      }
+      
+
 
 #tagline {
   display: block;
@@ -129,53 +250,139 @@ header {
 }
 
 
+//  
+// Main views
+//
+//
+
 #partial {
- // position: relative;
- // left: 12%;
- // width: 83%;
-  
-  // to keep the layout whatever happens inside the partial
-  //box-sizing: border-box;
-  
+  position: relative;
   padding: 5px 0px 5px 5px;
   
   margin-right: -8px;
-  
-  //border: solid 1px;
-  //background-color: grey; 
+
   @include rounded-corners(6px);
 
 }
 
+div#horizontalbanner {
+    position: absolute;
+    left: -110px;
+    top: 50px;
+    width: 100px;
+    height: 700px;
+    background-image: url('../images/horizonataldivider.png');
+    background-repeat: no-repeat;
+    //z-index: 1000;
+  
+ }
 
 #sidebar {
-  //position: relative;
-  //left: 0;
- // float: left;
-  //width: 11%;
-  //margin-left: 5px;
   background-color: none; 
   text-align: center;
-  //font-size: 11px;
-  i { 
-   // font-size: 200%;
-  }   
-  a, a:visited, a:link {
-    color: black;
-    
-    &:hover {
-    color: blue;
-     text-decoration:none;
-  }
+  //position: relative;
   
-
-  }
-
- // background-color: grey; 
-  @include rounded-corners(6px);
-
+  //@include rounded-corners(6px);
 }
 
+#sidebar article {
+  background-color: #fff;
+  border: 1px solid #999;
+  border: 1px solid rgba(0,0,0,0.3);
+  margin-bottom: 5%;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  outline: 0;
+  -webkit-box-shadow: 0 3px 7px rgba(0,0,0,0.3);
+  -moz-box-shadow: 0 3px 7px rgba(0,0,0,0.3);
+  box-shadow: 0 3px 7px rgba(0,0,0,0.3);
+  -webkit-background-clip: padding-box;
+  -moz-background-clip: padding-box;
+  background-clip: padding-box;
+}
+
+
+// Common DOM Elements
+
+#menubar .popup {
+  position: relative;
+  
+   div.arrow-up {
+     @include arrow-up(15px, $green);
+      
+     //left: 5px;
+     top: 8px;
+    }
+    
+      
+  article {
+    position: absolute;
+    top: 40px;
+    overflow: auto;
+    max-height: 200px;
+    width: 300px;
+    z-index: 999;
+   // background-color: $green;
+    border: 3px solid $green;
+    background-color: white;
+    color: grey;
+    @include rounded-corners(5px);
+    
+    ul {
+    //display: inline;
+    //position: absolute;
+    //z-index: 999;
+    //background-color: white;
+    padding: 0;
+    margin: 0;
+    //border: 3px solid $green;
+    //color: grey;
+    
+    
+    
+    li {
+      display: list-item;
+      width: inherit;
+      padding: 5px;
+      margin: 0;
+      color: grey;
+      text-align: left;
+      font-size: 14px;
+      box-sizing: border-box;
+      -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	    -moz-box-sizing: border-box; 
+       
+       
+      &.selected {
+        //color: lighten(black, 10%);
+        background-color: rgba($ligthGreen, .4);   
+      }
+      
+      a, a:hover, a:visited, a:active{
+        color: grey;
+      
+      }
+      
+      img {
+        padding: 2px;
+      }
+      
+        &:hover {
+         cursor: pointer;
+      }
+    }
+    
+    
+    
+    
+    
+  }
+  
+  
+  }
+
+}
 
 
 .dialog-box {
@@ -194,7 +401,20 @@ header {
   
 }
 
+div.child {
+  position: relative;
+  
+  .childPopover {
+  position: absolute;
+  z-index: 800;
+  background: #fff;
+  width: inherit;
 
+}
+  
+  
+
+  }
   
 #infoWindow {
  overflow: auto;
@@ -223,6 +443,8 @@ header {
     width: inherit;
     padding: 4px 0;
     margin: 0;
+    color: black;
+    
     
     &.selected {
       color: white;
@@ -233,10 +455,10 @@ header {
       padding: 2px;
     }
     
-    &:hover {
-      color: white;
-      background-color: black;   
-    }
+    //&:hover {
+    //  color: #fff;
+    //  background-color: black;   
+   // }
   }
   
 
@@ -271,6 +493,7 @@ div.editable {
   
   .footer {
   
+  height: 50px;
   
   }
 
@@ -293,7 +516,9 @@ div.menu {
   }
 
 }
-a.selected {
+
+
+/* a.selected {
 
 
 }
@@ -312,21 +537,69 @@ a.question {
 #discussions {
   overflow: auto;
 
+}*/
+
+// Pages
+
+#home {
+  
+  article {
+   float: left;    
+   padding: 10px;
+   
+   width: 20%;
+   margin:  1% 1% 20px 1%; 
+   height: 200px;
+  
+   @include white-box-shadow();
+   @include rounded-corners();
+   
+      
+   
+   &:hover {
+     cursor: pointer;
+     background-color: $green;
+     border-color: $green;
+    
+   
+   }
+      &.discussion {
+    border: 2px solid $yellow;
+    
+    &:hover {
+    background: rgba($green, 0.1);
+    @include transition(background);
+    //@include gradient($green, $ligthGreen, $yellow)
+    
+    }
+    
+  }
+  
+  &.question {
+    border: 2px solid $ligthGreen;
+    
+        &:hover {
+    background: rgba($yellow, 0.1);
+    @include transition(background);
+   // @include gradient($red, $green, $yellow)
+    
+    }
+  }
+  }
+  
+  
+  
+
+
 }
+
+
+
+// Pictures and Videos
 
 #input-picture {
   width: 100 px;
   height: 100px;
- // background: grey;
- // padding: 10px;
- // margin: 10px;
-  //@include rounded-corners;
-  
-  //&:after {
- //   padding: 10px;
- //   content: "Drag & Drop picture or use button.";
- //   text-align: center;
- // }
 }
 .bar {
     height: 18px;
@@ -339,7 +612,6 @@ a.question {
   z-index: 1050;
   width: 80%;
   min-height: 80%;
- // margin-left: -280px;
   background-color: #fff;
   border: 1px solid #999;
   border: 1px solid rgba(0,0,0,0.3);
@@ -371,33 +643,14 @@ div#albumViewer {
 
 }
 
-#sidebar article {
-  background-color: #fff;
-  border: 1px solid #999;
-  border: 1px solid rgba(0,0,0,0.3);
-  margin-bottom: 5%;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
-  outline: 0;
-  -webkit-box-shadow: 0 3px 7px rgba(0,0,0,0.3);
-  -moz-box-shadow: 0 3px 7px rgba(0,0,0,0.3);
-  box-shadow: 0 3px 7px rgba(0,0,0,0.3);
-  -webkit-background-clip: padding-box;
-  -moz-background-clip: padding-box;
-  background-clip: padding-box;
-}
+//
+//
+// Messages
+//
+//
+//
 
-ul.nav {
-  margin-bottom: 0;
-  
-}
-
-#messages {
-
-
-
-  
+#messages {  
   
   article.message {
     background-color: #fff;
@@ -437,6 +690,13 @@ ul.nav {
       color: white;
     }
     
+// 
+//
+//Tag - Topic popover elemenet
+//
+//
+
+
 span.tag {
   position: relative;
   z-index: 0;
@@ -453,6 +713,7 @@ span.tag {
   z-index: 0;
   }
 }
+
 
 div.custom-popover {
   min-height: 50px;
@@ -486,16 +747,4 @@ div.custom-popover {
 
 }
 
-.arrow-up {
-  position: relative;
-  
-  //z-index: 10998;
-  left: 5px;
-	width: 0; 
-	height: 0; 
-	border-left: 5px solid transparent;
-	border-right: 5px solid transparent;
-	
-	border-bottom: 5px solid black;
-}
 
