@@ -26,3 +26,32 @@
  //   rigth:-100px;
   opacity:0;
 }
+
+.enter-animation-setup, .leave-animation-setup,
+.move-animation-setup, .show-animation-setup,
+.hide-animation-setup {
+  -webkit-transition:all linear 0.2s;
+  -moz-transition:all linear 0.2s;
+  -o-transition:all linear 0.2s;
+  transition:all linear 0.2s;
+}
+
+.enter-animation-setup { 
+ opacity:0;
+ }
+.enter-animation-setup.enter-animation-start {
+ opacity:1;
+
+ }
+
+.leave-animation-setup {  opacity: 1; }
+.leave-animation-setup.leave-animation-start { opacity: 0; }
+
+.move-animation-setup { }
+.move-animation-setup.move-animation-start { }
+
+.show-animation-setup { }
+.show-animation-setup.show-animation-start { }
+
+.hide-animation-setup { }
+.hide-animation-setup.hide-animation-start { }

@@ -317,6 +317,8 @@ div#horizontalbanner {
     
       
   article {
+    //@include transition(background);
+    
     position: absolute;
     top: 40px;
     overflow: auto;

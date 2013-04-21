@@ -6,17 +6,17 @@ div#menubar(ng-cloak, class="ng-cloak")
           i.icon-home.icon
           | Home
       li
-        div.search(question-search search = 'search(term)')
+        div.search(question-search search = 'search(term)', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
       
           // include includes/sidebar/children
       //include includes/sidebar/questions
     ul.pull-right
       li
-        div(popup-menu = 'children')
+        div(popup-menu = 'children', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
           | The Children
           
       li
-        div(popup-menu = 'topics')
+        div(popup-menu = 'topics', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
          | My Topics
 
       li

@@ -281,7 +281,7 @@ angular.module('CareKids.directives', []).
     }
   }   
 }])
-.directive('questionSearch',[ '$http', '$compile', '$location', function($http, $compile, $location) {
+.directive('questionSearch',[ '$http', '$compile', '$location', '$animator', function($http, $compile, $location, $animator) {
    return {
      restrict: 'A',
      scope: {
@@ -296,7 +296,8 @@ angular.module('CareKids.directives', []).
                  ' <input class = "span4" placeholder = "search" id = "autocomplete" type ="search" ng-change="complete()" ng-model="term">' +
                 '</div>',
      link: function(scope, elm, attrs) {
-
+     var animator = $animator(scope, attrs);
+    
      var suggestionTemplate =  '<div class = "arrow-up"></div>' +
                                '<ul>' +
                                    "<li ng-click='select($index, $event)' ng-mouseover = 'toggleClass($index)' ng-repeat = 'suggestion in suggestions' ng-class = 'highlight($index)' >" +
@@ -352,7 +353,7 @@ angular.module('CareKids.directives', []).
           angular.element(html[1]).css('width', inputWidth);
           angular.element(html[1]).css('top', inputTop + 15);
 
-          elm.append(html);
+          animator.enter(html, elm);
         
         });
        
@@ -367,7 +368,7 @@ angular.module('CareKids.directives', []).
           scope.term = scope.suggestions[$index].term;
         }
         //
-        html.remove();
+        animator.leave(html);
         //console.log(
         
         // increment the search term popularity
@@ -413,7 +414,7 @@ angular.module('CareKids.directives', []).
           }
           if ( event.keyCode == '27' ) {
             
-            html.remove();
+            animator.leave(html);
             scope.$apply(scope.term = '');
           }
         });
@@ -422,7 +423,7 @@ angular.module('CareKids.directives', []).
       //if(!$(event.target).is('#foo')) && !$(event.target).parents("#foo").is("#foo")
         if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
           scope.$apply(scope.newTag = '');
-          html.remove();
+          animator.leave(html);
         }
        });
       
@@ -452,7 +453,7 @@ angular.module('CareKids.directives', []).
    }
  }
 }])
-.directive('tags',[ '$http', '$compile', function($http, $compile) {
+.directive('tags',[ '$http', '$compile', function($http, $compile, $animator) {
    return {
      restrict: 'E',
      scope: {
@@ -469,7 +470,7 @@ angular.module('CareKids.directives', []).
                 '</div>',
      link: function(scope, elm, attrs) {
      
-  
+     var animator = $animator(scope, attrs);
      
      // find the input element inside the template
      var inputElm =  elm.children().children()[1];
@@ -761,7 +762,7 @@ angular.module('CareKids.directives', []).
 
   
 })
-.directive('kid', function($http, $timeout, Message, $rootScope, $compile, $location, Child){
+.directive('kid', function($http, $timeout, Message, $rootScope, $compile, $location, Child, $animator){
   return {
     restrict: 'E' ,
     scope: {
@@ -793,7 +794,7 @@ angular.module('CareKids.directives', []).
     var currentUserInit = false;
     var currentChildInit = false;
     var initPerformed = false;
-    
+    var animator = $animator(scope, attrs);
     // reset all tag initiation values on page change.
     scope.$on('$routeChangeSuccess', function(scope, next, current) {
       
@@ -897,11 +898,9 @@ angular.module('CareKids.directives', []).
     })             
     
     scope.showPopover = function(event) {
-      if () {
       console.log(event);
         html = $compile(template)(scope);
-        elm.append(html);
-      }
+        elm.append(html)
       }
 
    scope.removePopover = function() {
@@ -1223,7 +1222,7 @@ angular.module('CareKids.directives', []).
       }
     }
   })
-  .directive('popupMenu', function($compile, $http){
+  .directive('popupMenu', function($animator, $compile, $http){
      var template_for = function(type) {
         return '/templates/' + type + '.jade';
      };
@@ -1239,6 +1238,7 @@ angular.module('CareKids.directives', []).
     var template;
     var html;
     var clickRegisterd = false;
+    var animator = $animator(scope, attrs);
     
     scope.$on('$routeChangeSuccess', function(scope, next, current) {
       if (angular.isDefined(html)) { 
@@ -1251,7 +1251,7 @@ angular.module('CareKids.directives', []).
       //if(!$(event.target).is('#foo')) && !$(event.target).parents("#foo").is("#foo")
         if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
           //scope.$apply(scope.newTag = '');
-          scope.$apply(html.remove());
+          scope.$apply(animator.leave(html));
           clickRegisterd = false;
         }
    });
@@ -1275,7 +1275,8 @@ angular.module('CareKids.directives', []).
               console.log(html); 
               //console.log(elm);
         //   });
-           elm.append(html);
+        animator.enter(html, elm);
+          // elm.append(html);
          })
     };
    
