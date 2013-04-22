@@ -60,6 +60,13 @@ angular.module('CareKids.directives', []).
               }
            });
          
+         scope.$watch('newPageTarget', function(newPageTarget) {
+            if ((page == 2 && newPageTarget.length < 9) ||  newPageTarget.length < 10 * page - 1   ) {
+              
+                 elem.remove();
+              $(window).unbind('scroll');
+            }
+          })
           
           // load new page function
             scope.loadNewPage = function() {
@@ -73,13 +80,9 @@ angular.module('CareKids.directives', []).
                   // if not result, unbind the scroll event.
                   console.log(data);
                   if (data.length <= 9) {
-                    scope.status = 'End of page'; 
+                    elem.remove();
                     $(window).unbind('scroll');
-                    
-                    // remove the spinner if present
-                    if (angular.isDefined(elem.children()[0])) {
-                      elem.children()[0].remove();
-                    }
+                  
                     
                     return;
                     
@@ -453,7 +456,7 @@ angular.module('CareKids.directives', []).
    }
  }
 }])
-.directive('tags',[ '$http', '$compile', function($http, $compile, $animator) {
+.directive('tags',[ '$http', '$compile', '$animator', function($http, $compile, $animator) {
    return {
      restrict: 'E',
      scope: {
@@ -620,21 +623,23 @@ angular.module('CareKids.directives', []).
    }
  }
 }])
-.directive('tag', function($http, $rootScope, $compile, $location){
+.directive('tag', function($http, $rootScope, $timeout, $compile, $location, $animator){
   return {
     restrict: 'E' ,
     scope: {
       tag: '=',
       remove: '&'
     },
-    //replace: true,
-    template: '<span class = "tag" ng-click = "showPopover()">' +
-                 '<img ng-src = "{{ tag | iconPicture }}">' +
-                 ' {{ tag.name }}' +
-                 ' <button type = "button" ng-show = "canRemove" ng-click = "removeTag()"> &times</button>' +
-               '</span>' ,
+    replace: true,
+    template: '<div ng-mouseover = "showPopover()" mouseaway = "removePopover()">'+ 
+                  '<a ng-href = "/topics/{{scope.tag.title}}" class = "tag" >' +
+                    '<img ng-src = "{{ tag | iconPicture }}">' +
+                   ' {{ tag.name }}' +
+                  '</a>' + 
+                  ' <button class= "closed" type = "button" ng-show = "canRemove" ng-click = "removeTag()"> &times</button>' +
+                '</div>',
     link: function(scope, elm, attrs) {
-    var popOverTemplate =  '<div class = "custom-popover">' +
+    var template =  '<div class = "custom-popover">' +
                               '<div class = "arrow-up"></div>' +
                               '<div class = "popover-inner">' +
                                 '<div class = "popover-header">' +
@@ -650,10 +655,11 @@ angular.module('CareKids.directives', []).
     scope.isFollowed = false;
     scope.canRemove = false;
     
+    var animator = $animator(scope, attrs);
     var currentUserInit = false;
     var currentTagInit = false;
     var initPerformed = false;
-    var clickRegistered;
+    var popupConfirmed;
     var html;
     
     // reset all tag initiation values on page change.
@@ -661,7 +667,6 @@ angular.module('CareKids.directives', []).
       currentUserInit = false;
       currentTagInit = false;
       initPerformed = false;
-      clickRegistered = false;
       
       if (angular.isDefined(html)) html.remove();
     });
@@ -694,10 +699,33 @@ angular.module('CareKids.directives', []).
         scope.canRemove = true;
       }  
     })
+   
+    scope.showPopover = function(event) {
+      console.log('confirmed');
+      popupConfirmed = true;
+      $timeout(function() {
+        if(angular.isUndefined(html) && popupConfirmed) { 
+          html = $compile(template)(scope);
+          animator.enter(html, elm);
+        } else if (popupConfirmed) {
+          animator.show(html);
+        }
+      }, 800)
+    }
+
+   scope.removePopover = function() {
+      console.log('showing');
+      popupConfirmed = false;
+      if (angular.isDefined(html)) {
+        animator.hide(html);
+      }
+      }
+   
+   
     
-    scope.showPopover = function() {
+    /*scope.showPopover = function() {
       if (clickRegistered) {
-        $location.path('/topics/' + scope.tag.title);
+        $location.path(');
       } else {
       console.log('showing');
       html = $compile(popOverTemplate)(scope);
@@ -715,7 +743,7 @@ angular.module('CareKids.directives', []).
           html.remove();
           clickRegistered = false;
         }
-   });
+   });*/
     
     scope.removeTag = function() {
       //console.log('remove');
@@ -769,23 +797,24 @@ angular.module('CareKids.directives', []).
       child: '='
     },
     replace: true,
-    template: '<div class = "child" ng-mouseover = "showPopover($event)" ng-mouseleave = "removePopover()">'+ 
+    template: '<div class = "child" ng-mouseover = "showPopover($event)" mouseaway = "removePopover()">'+ 
                  '<span>' +
                    '<img ng-src = "{{ child | userIconPic }}">' +
-                   '<a ng-href = "/children/{{ child.pageTitle }}"> {{ child.name }} </a>' +
+                   '<a ng-href = "/children/{{ child.url }}"> {{ child.name }} </a>' +
                  '</span>'+
                 '</div>' ,
     link: function(scope, elm, attrs) {
   
     var template = '<div class = "childPopover">' +
+                  'My {{ child.creator.relationship }}: {{ child._creator.name }}' +
                 '<span ng-show = "isFollowed && !isValidated" >Following request sent.</span>' +
-                  '<button class= "btn" type="button" ng-click = "follow()" ng-show = "!isFollowed"> Follow</button>' +
-                  '<button class= "btn" type="button" ng-click = "unfollow()" ng-show = "isFollowed && isValidated "> Unfollow me</button>' +
+                  '<a href = "" ng-click = "follow()" ng-show = "!isFollowed"> Follow</a>' +
+                  '<a href="" ng-click = "unfollow()" ng-show = "isFollowed && isValidated "> Unfollow me</a>' +
                   '<br />' +
                   '<span ng-show = "child.superpowers.length == 0"> No superpower registerd</span>' +
                  '<ul class = "unstyled">' +
                     '<li ng-repeat = "superp in child.superpowers">' +
-                       '<tag tag= "superp"></tag>' +
+                       '<tag tag = "superp"></tag>' +
                      '</li>' +
                   '</ul>' +
                    '<span class = "badge badge-info">{{ child.permissions.length }}</span> Followers ' +
@@ -795,9 +824,10 @@ angular.module('CareKids.directives', []).
     var currentChildInit = false;
     var initPerformed = false;
     var animator = $animator(scope, attrs);
+    var popupConfirmed;
+    
     // reset all tag initiation values on page change.
     scope.$on('$routeChangeSuccess', function(scope, next, current) {
-      
       currentUserInit = false;
       currentChildInit = false;
       initPerformed = false;
@@ -898,27 +928,24 @@ angular.module('CareKids.directives', []).
     })             
     
     scope.showPopover = function(event) {
-      console.log(event);
-        html = $compile(template)(scope);
-        elm.append(html)
-      }
+      popupConfirmed = true;
+      $timeout(function() {
+        if(angular.isUndefined(html) && popupConfirmed) { 
+          html = $compile(template)(scope);
+          animator.enter(html, elm);
+        } else if (popupConfirmed) {
+          animator.show(html);
+        }
+      }, 1000)
+    }
 
    scope.removePopover = function() {
       console.log('showing');
+      popupConfirmed = false;
       if (angular.isDefined(html)) {
-        html.remove();
+        animator.hide(html);
       }
       }
-      
-      
-     $('html').bind('mousedown', function(event) {
-       console.log('event recorded');
-      //if(!$(event.target).is('#foo')) && !$(event.target).parents("#foo").is("#foo")
-        if (!$(event.target).parents(elm).is(elm) && angular.isDefined(html)) { 
-          //scope.$apply(scope.newTag = '');
-          scope.$apply(html.remove());
-        }
-   });
       
       
     }
@@ -1232,7 +1259,7 @@ angular.module('CareKids.directives', []).
     scope: true,
     replace: true,
     transclude: true,
-    template: '<div class= "popup"><a ng-href = "" ng-click = "showPopover()" ng-transclude></a></div>',
+    template: '<div class= "popup" ng-click = "showPopover()"  ng-transclude> </div>',
     link: function(scope, elm, attrs) {
     
     var template;
@@ -1307,6 +1334,67 @@ angular.module('CareKids.directives', []).
       elm.text(version);
     };
   }])
+  .directive('mouseaway', function ($parse)
+  {
+  return {
+		restrict: 'A',
+		link: function (scope, element, attrs)
+		{
+			var callbackFn = $parse(attrs.mouseaway);
+			element.bind
+			(
+				'mouseout',
+				function (event)
+				{
+					var elem = event.toElement || event.relatedTarget;
+					while (elem)
+					{
+						if (elem === element[0]) // still inside bound eElem
+							return;
+						elem = elem.parentNode;
+					}
+					scope.$apply(function ()
+					{
+						callbackFn(scope, {$event: event});
+					});
+				}
+			);
+		}
+	};
+})
+.directive('masonry', function($timeout) {
+    return { 
+      restrict: 'A',
+      scope: true,
+      link: function(scope, elm, attrs) {
+      
+      scope.$on('event:loadMachinery', function() {
+        $timeout(function() {
+        console.log('calling masonry');
+        elm.ready(function() {
+          $('#home').imagesLoaded(function() {
+          $('#home').masonry({
+    // options
+          itemSelector : '.update',
+          columnWidth: function(containerWidth) { 
+            console.log(containerWidth);
+            return containerWidth/3; }
+        });
+      });
+     });
+     
+    }, 30);
+    });
+    
+    scope.$on('event:reloadMachinery', function() {
+        console.log('reloading');
+        $('#home').masonry( 'reload' ) ;
+      })
+    
+    }
+    
+   }
+  })
  .directive('favicon', function($rootScope) {
     return function(scope, elm, attrs) {
     

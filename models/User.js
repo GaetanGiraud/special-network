@@ -18,7 +18,6 @@ var userSchema = mongoose.Schema({
         locality: String,
         loc: { type: [Number], index: '2dsphere' }
       },
-		  children: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Child'}],
       settings: {
         createChildOptOut: {type: Boolean, default: false}
         }

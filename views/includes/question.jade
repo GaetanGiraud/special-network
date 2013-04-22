@@ -1,9 +1,17 @@
-h5 {{ }}
-
+div
+  i.icon-question-sign.icon-4x.icon-border.pull-left
+  
+small
+  img(ng-src = "{{ item.document._creator | userIconPic }}")
   | {{ item.document._creator.name }}
   | {{ item.document.updatedAt | fromNow }}
   
-  div(ng-repeat = "tag in item.document.tags")
-    tag(tag = "tag")
-    
-  | {{ item.content }}
+h5 {{ item.document.content }}
+
+div(ng-repeat = "tag in item.document.tags")
+  tag(tag = "tag", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}"))
+
+
+button.btn(type='button')
+  i.icon-caret-down
+  | See comments

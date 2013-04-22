@@ -70,7 +70,8 @@ exports.currentUser = function (req, res) {
 
   
 exports.add = function (req, res) {
-  console.log(('creating user: ' + req.body.stringify));
+  console.log('creating user: ')
+  console.log(req.body );
   var newUserAttrs = req.body;
   var password = newUserAttrs.password;
   
@@ -78,6 +79,7 @@ exports.add = function (req, res) {
   var salt = bcrypt.genSaltSync(10);
   newUserAttrs.hash = bcrypt.hashSync(password, salt);
   
+  newUserAttrs.location = { loc: [ 0 , 0]};
   var newUser = new User(newUserAttrs);
   
       
@@ -91,7 +93,8 @@ exports.add = function (req, res) {
     //  });
       
     //  homeLocation.save(function(err, location) {
-        if (err) return (400, err);  
+      console.log(err);
+        if (err) return res.send(400, err);  
       //  User.findByIdAndUpdate(user._id, {'_location': location._id }, function(err, user) {
         // if (err) throw err;
         return res.json({
@@ -99,8 +102,7 @@ exports.add = function (req, res) {
         "name": user.name,
         "email": user.email,
         "picture": user.picture,
-        "children" : user.children,
-        '_location': user._location,
+        'location': user.location,
         'settings': user.settings
         });
        // });
@@ -266,7 +268,9 @@ exports.search = function (req, res) {
       var cleanedTerm = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
 
     }
-   //console.log( querySuperpowers )
+    
+    console.log(cleanedTerm);
+  //  console.log( querySuperpowers )
     
     if (typeof querySuperpowers != 'undefined') {
       //querySuperpowers = req.query.superpowers.replace(/[\[\]{}|&;$%@"<>()+]/g, "").split(',');

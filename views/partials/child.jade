@@ -1,70 +1,88 @@
-div.row
-  div.span10
-    button.btn(type = "button", ng-click = "authorize.edit = true", ng-show = "authorize.show", ng-disabled = "authorize.edit") Edit
-    button.btn(type = "button", ng-click = "authorize.edit = false", ng-show = "authorize.edit") End Editing
-    button.btn(type = "button", ng-click = "setOverviewType('discussions')", ng-show = "overviewType == 'albums'") Back to discussions
-
-div.row
-  div.span9
-    p(ng-show = "authorize.edit")
-      | You can now edit {{ child.name }}'s page. Click on "End editing" when you are done editing.
-    h4(ng-show = '!authorize.edit') {{ child.name }}'s page: {{ child.pageTitle | inflector }}
-    h4(ng-show = 'authorize.edit')
-      | Customize the page title 
-      input(type='text', ng-model = 'child.pageTitle', name='pageTitle', ng-pattern = "/^[a-zA-Z0-9_-]+$/") 
-      button.btn.btn-success(type = 'text', ng-click = 'updateChild()') Ok
-    span.error(ng-show="childForm.pageTitle.$error.pattern") 
-      | Should contain only letters and numbers!
-    legend {{child.name}}
-
-div.row
-  div.span3
-    img#picture.img-rounded.well(width="150", id = "profile-picture", ng-src="{{ child | userPic }}")
-    div(ng-show = 'authorize.edit' )
-      small
-        | <strong>Drag & Drop</strong> the file onto the existing picture or
-        br
-        | Use the <strong>button</strong> to change your profile picture.
-      br
-      span.btn.btn-success.fileinput-button
-        i.icon-plus.icon-white
-        span 
-          | New picture
-          input(type="file", uploader, opts = "childProfileUpload" , done='setProfilePicture(file)', data-url="/upload")
-  
-  div.span2
-    h5 My Superpowers
-    form(name='childForm')
-    ul.unstyled
-      li(ng-repeat = 'superpower in child.superpowers', ng-show = '!authorize.edit')
-         | {{ superpower.name }}
-         //button(ng-click = 'removeSuperpower($index)', ng-show = 'authorize.edit') &times
-      li(ng-show = 'authorize.edit') 
-        ul
-          li(ng-repeat = "tag in child.superpowers")
-            tag(tag = "tag", action = "true", remove = "removeSuperpower(tag)")
-        | Search
-        tags(url = '/api/tags', add = 'addSuperpower(tag)')
-        
-        //button.btn(ng-click = 'addSuperpower()') Add
-        //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
-      
-  div.span4
-    h5 Photos and Videos
-    ul.thumbnails(ng-click = "overviewType = 'albums'")
-      li(ng-repeat = 'album in child.albums | limitTo:9')
-        a.thumbnail(href = "", ng-click = "overviewType = 'albums'")
-          img(ng-src = "{{ albumThumbnail(album) | thumbPicture }}")
+div.page#child        
+  form(name='childForm')
+    div.row
+      div.span5
+        h3(ng-show = '!authorize.edit', ng-mouseover = "showEditButton = true", mouseaway = "showEditButton = false")
+          | {{ child.pageTitle }}
+          button.transparent.btn(type = "button",title = "Edit {{ child.name }}'s profile ", ng-click = "authorize.edit = true", ng-show = "authorize.show && showEditButton")
+            i.icon-edit.icon-2x
+        div(ng-show = 'authorize.edit')
+          h3
+            | Customize the page title 
+            button.transparent.btn(type = "button", title = "End editing", ng-click = "authorize.edit = false", ng-show = "authorize.edit")
+              i.icon-ok-circle.icon-2x
+            br
+          div.form-inline
+            input(type='text', ng-model = 'child.pageTitle', name='pageTitle') 
+            //ng-pattern = "/^[a-zA-Z0-9\w_-]+$/"
+            button.btn.btn-success(type = 'text', ng-click = 'updateChild()') Ok
+          span.error(ng-show="childForm.pageTitle.$error.pattern") 
+            | Should contain only letters and numbers!
             
-
         
-      //button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
-      //button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
-
-  div.span9(ng-switch on = "overviewType")
-    div(ng-switch-when="discussions")
-      include ../includes/discussions
-    div.row-fluid(ng-switch-when="albums")
-      include ../includes/albums
+        p(ng-show = "authorize.edit")
+          | You can now edit {{ child.name }}'s page. Click on "End editing" when you are done editing.
+  
+    
+    div.row
+      div.span5
+        img#picture.img-profile(width= "250", ng-src="{{ child | userPic }}")
+        div(ng-show = 'authorize.edit' )
+          small
+            | <strong>Drag & Drop</strong> the file onto the existing picture or
+            br
+            | Use the <strong>button</strong> to change your profile picture.
+          br
+          span.btn.btn-success.fileinput-button
+            i.icon-plus.icon-white
+            span 
+              | New picture
+              input(type="file", uploader, opts = "childProfileUpload" , done='setProfilePicture(file)', data-url="/upload")
+            br
+                  
+        h4 My Bio
+        h5 
+          | I am {{ child.name }} and I have the following superpowers:
+        p(ng-show = "child.superpowers.length == 0")
+          | I don't have any superpowers yet. 
+          | Add existing one or create new ones using the edit button!
+        ul.unstyled
+          li(ng-repeat = 'superpower in child.superpowers', ng-show = '!authorize.edit')
+             tag(tag = "superpower")
+             //button(ng-click = 'removeSuperpower($index)', ng-show = 'authorize.edit') &times
+          li(ng-show = 'authorize.edit') 
+            ul
+              li(ng-repeat = "tag in child.superpowers")
+                tag(tag = "tag", action = "true", remove = "removeSuperpower(tag)")
+            | Search
+            tags(url = '/api/tags', add = 'addSuperpower(tag)')
+            
+            //button.btn(ng-click = 'addSuperpower()') Add
+            //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
+            
+        h5 People always say that I am:
+        p(ng-show = '!authorize.edit') 
+          | {{ child.description }}
+        textarea( ng-show = 'authorize.edit', ng-model = "child.description" )
+          
+          
+        h4 My Photos and Videos
+        ul.thumbnails(ng-click = "overviewType = 'albums'")
+          li(ng-repeat = 'album in child.albums | limitTo:9')
+            img(ng-src = "{{ albumThumbnail(album) | thumbPicture }}")
+        p(ng-show = "child.albums.length == 0")
+          | I don't have any photo or video albums. 
+          | Create one the next time you share a photo!
+    
+            
+          //button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
+          //button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
+      div.span5
+        button.btn(type = "button", ng-click = "setOverviewType('discussions')", ng-show = "overviewType == 'albums'") Back to discussions
+        div(ng-switch on = "overviewType")
+          div(ng-switch-when="discussions")
+            include ../includes/discussions
+          div.row-fluid(ng-switch-when="albums")
+            include ../includes/albums
     
 

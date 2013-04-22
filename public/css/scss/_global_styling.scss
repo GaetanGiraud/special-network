@@ -1,11 +1,15 @@
 // for kids
 @import url(http://fonts.googleapis.com/css?family=Bubblegum+Sans);
+@import url(http://fonts.googleapis.com/css?family=Boogaloo);
+@import url(http://fonts.googleapis.com/css?family=Roboto+Condensed:700&subset=latin-ext);
 
 $green: #569162;
 $yellow: #D9AE30;
 $mainColor:  #D9CBA0;
 $ligthGreen: #ACAA40;
 $red: #D92929;
+
+$separator: #eeeeee;
 
 @mixin rounded-sides($horz, $radius: 6px ) {
     border-bottom-#{$horz}-radius: $radius;
@@ -16,10 +20,10 @@ $red: #D92929;
     -webkit-border-bottom-#{$horz}-radius: $radius;
 }
 
-@mixin box-shadow($a, $b, $c, $color) {
-    -webkit-box-shadow: $a $b $c $color;
-    -moz-box-shadow: $a $b $c $color;
-    box-shadow: $a $b $c $color;
+@mixin box-shadow($left, $top, $blur, $spread, $color, $inset:"" ) {
+    -webkit-box-shadow:#{$inset} $left $top $blur $spread $color;
+    -moz-box-shadow: #{$inset} $left $top  $blur $spread $color;
+    box-shadow: #{$inset} $left $top  $blur $spread $color;
   
 }
 
@@ -55,9 +59,9 @@ $red: #D92929;
 	border-bottom: $size solid $color;
 }
 
-@mixin transition($element) {
-       -webkit-transition: $element linear 0.2s, box-shadow linear 0.5s;
-     -moz-transition: $element linear 0.2s, box-shadow linear 0.5s;
-       -o-transition: $element linear 0.2s, box-shadow linear 0.5s;
-          transition: $element linear 0.2s, box-shadow linear 0.5s;
+@mixin transition($element, $speed: 0.5s) {
+       -webkit-transition: $element linear $speed;
+     -moz-transition: $element linear $speed;
+       -o-transition: $element linear $speed;
+          transition: $element linear $speed;
 }

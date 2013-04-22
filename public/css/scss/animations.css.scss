@@ -47,11 +47,11 @@
 .leave-animation-setup {  opacity: 1; }
 .leave-animation-setup.leave-animation-start { opacity: 0; }
 
-.move-animation-setup { }
-.move-animation-setup.move-animation-start { }
+.move-animation-setup { opacity: 0; }
+.move-animation-setup.move-animation-start { opacity: 1; }
 
-.show-animation-setup { }
-.show-animation-setup.show-animation-start { }
+.show-animation-setup {opacity: 0; }
+.show-animation-setup.show-animation-start { opacity: 1;}
 
-.hide-animation-setup { }
-.hide-animation-setup.hide-animation-start { }
+.hide-animation-setup { opacity: 1; }
+.hide-animation-setup.hide-animation-start { opacity: 0; }

@@ -23,9 +23,11 @@ var albumSchema = mongoose.Schema({
 var childSchema = mongoose.Schema({
   name: {type: String, required: true},
   pageTitle: {type: String, unique: true, sparse: true, trim: true},
+  url: {type: String, unique: true, sparse: true, trim: true},
   dob: Date,
   gender: { type: String, match: /(boy|girl)/ },
   picture: String,
+  description: {type: String, default: 'Describe a few thing about me.' },
   creator: { _user: {type: mongoose.Schema.Types.ObjectId, ref: 'User' }, relationship: String },
   superpowers: [ {type: mongoose.Schema.Types.ObjectId, ref: 'Tag'} ],
   albums: [albumSchema],

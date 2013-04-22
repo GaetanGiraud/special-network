@@ -1,15 +1,17 @@
 'use strict';
 
-function FindCtrl($scope, User, Alert, $http, Message) {
+function FindCtrl($scope, User, Alert, $http, Message, GeoCoder) {
   
   //$scope.search = {} ;
   $scope.superpowers = [];
-    
+  $scope.search.distance = 10000;
+  
   $scope.distances = [
     {'label': '10 km', 'value': 10},
     {'label': '25 km', 'value': 25},
     {'label': '50 km', 'value': 50},
     {'label': '100 km', 'value': 100},
+    {'label': '500 km', 'value': 500},
     {'label': 'All', 'value': 10000},
   ];
   
@@ -18,17 +20,18 @@ function FindCtrl($scope, User, Alert, $http, Message) {
   // declaring the search object and reseting some defaults.
   $scope.$watch('currentUser', function(user) {
     if (user != null && angular.isDefined(user.location)) {
-      $scope.search.lng = user.location.loc[0];
-      $scope.search.lat = user.location.loc[1];
+      $scope.location = angular.copy(user.location);
     }
   });
+    
+  $scope.$watch('location', function(location){
+     if (angular.isDefined(location)) { 
+      $scope.search.lng = location.loc[0];
+      $scope.search.lat = location.loc[1];
+      $scope.getResults();
+     }
+   },true)
   
-  $scope.search.distance = 10000;
-  
-
-   
-  //$scope.homeLocation = $scope.currentUser.location;
-   
    
   $scope.$watch('search.term', function(superpowers) {
     if (angular.isDefined($scope.search.lng) && angular.isDefined($scope.search.lat)){
@@ -68,20 +71,18 @@ function FindCtrl($scope, User, Alert, $http, Message) {
      //params = angular.extend(params, { 'superpowers': $scope.superpowers });  
    }
   
-   $http({method: 'GET', url: url, params: params }).
-   success(function(data) {
+   $scope.$safeApply($scope, function() {
+      $http({method: 'GET', url: url, params: params }).
+      success(function(data) {
      console.log('search results');
      console.log(data);
      $scope.searchResults = data;
     });
+    });
   }
   
   //
-  
-  $scope.followMe = function(child) {
-    
-  }
-  
+
   // Present results from search request
   $scope.myChildren = function(result) {
      var myChildren = [];
@@ -94,6 +95,31 @@ function FindCtrl($scope, User, Alert, $http, Message) {
      return myChildren;
   }
   
+  $scope.getLocation = function () { 
+    $scope.editInProgress = true;
+    if (($scope.location.formattedAddress.length < 5) && $scope.newLocation != null) {
+     $scope.newLocation = null;
+    }
+    if ($scope.location.formattedAddress.length > 5 ) {
+      GeoCoder.getLocation($scope.location, function(results) {
+        console.log(results)
+        GeoCoder.parseAddress(results[0], function(parsedResult) {
+           $scope.newLocation = parsedResult;
+        });
+      
+      });
+    } 
+  }
+
+  // Validate the address, parse usefull information and update user in the database.
+ 
+  $scope.validate = function() {
+       $scope.location = $scope.newLocation;
+       $scope.newLocation = null;
+       $scope.showEdit = false;
+       $scope.editInProgress = false;
+  }
+  
   
   // UI stuff
   
@@ -104,7 +130,7 @@ function FindCtrl($scope, User, Alert, $http, Message) {
   }
    
 }
-FindCtrl.$inject = ['$scope', 'User', 'Alert', '$http', 'Message'];
+FindCtrl.$inject = ['$scope', 'User', 'Alert', '$http', 'Message', 'GeoCoder'];
 
 function SearchCtrl($scope, $http, $location ) {
 

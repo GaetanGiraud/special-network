@@ -37,3 +37,21 @@
 
 .leave-animation-setup.leave-animation-start {
   opacity: 0; }
+
+.move-animation-setup {
+  opacity: 0; }
+
+.move-animation-setup.move-animation-start {
+  opacity: 1; }
+
+.show-animation-setup {
+  opacity: 0; }
+
+.show-animation-setup.show-animation-start {
+  opacity: 1; }
+
+.hide-animation-setup {
+  opacity: 1; }
+
+.hide-animation-setup.hide-animation-start {
+  opacity: 0; }

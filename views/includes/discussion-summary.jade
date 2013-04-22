@@ -1,0 +1,56 @@
+div.content
+  div.sideinfo
+    i.icon-camera-retro.icon-4x.icon-border.pull-left(ng-show = 'item.document.pictures.length > 0')
+    i.icon-quote-left.icon-4x.icon-border.pull-left(ng-show = ' !item.document.video && item.document.pictures.length == 0')
+    i.icon-film.icon-4x.icon-border.pull-left(ng-show = 'item.document.video')
+
+  span(ng-repeat = "child in item.document.children")
+    kid(child = "child", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+  p
+    | {{ item.document.content }}
+
+  
+div.separator.clearfix(ng-show = "item.document.pictures.length > 0")
+  ul.thumbnails
+    li(ng-repeat = "pic in item.document.pictures")
+      img.img-profile(ng-src = "{{ pic | thumbPicture }}")
+      h6 {{ pic.title }}
+        
+div.separator.clearfix(ng-show = "item.document.video")
+  div(video = "{{ item.document.video.name }}") 
+    h6 {{ item.document.title }}
+  
+div.separator.meta
+  small
+    img(ng-src = "{{ item.document._creator | userIconPic }}")
+    {{ item.document._creator.name }}
+    span
+      | {{ item.document.updatedAt | fromNow }}
+
+  div.about.clearfix
+    h6 Topics
+    div(ng-repeat = "tag in item.document.tags")
+      tag(tag = "tag", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+
+
+
+div.replies.separator
+  p 
+    {{ item.document.comments.length }} Replies
+  p(ng-show = "item.document.comments.length == 0")
+    | No coments yet, be the first one to respond!
+  
+   
+  div.comment(ng-repeat =  'comment in item.document.comments')
+    h5 {{comment._creator.name}}
+    p(ng-bind-html = 'comment.content')
+  
+  div(ng-controller = 'newCommentCtrl')
+    a(ng-show = "!reply", ng-click="reply = true") Reply
+    div#newComment(ng-show = "reply", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+      h6 Add a new comment
+      div(contenteditable = "true", ng-model = "newComment.content") 
+      br
+      button.btn.btn-primary(ng-click="createComment(item.document)") Post 
+      button.btn(ng-click="reply = false") Cancel
+  

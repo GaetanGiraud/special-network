@@ -2,9 +2,12 @@ div#menubar(ng-cloak, class="ng-cloak")
   div.container
     ul.pull-left
       li
-        a(href="/home")
-          i.icon-home.icon
-          | Home
+        div(popup-menu = 'children', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+          | Kids
+          
+      li
+        div(popup-menu = 'topics', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+         | Topics
       li
         div.search(question-search search = 'search(term)', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
       
@@ -12,12 +15,12 @@ div#menubar(ng-cloak, class="ng-cloak")
       //include includes/sidebar/questions
     ul.pull-right
       li
-        div(popup-menu = 'children', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
-          | The Children
-          
+        a(href="/home")
+          i.icon-home.icon
+          | home
       li
-        div(popup-menu = 'topics', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
-         | My Topics
+        a(href = '/find', title = 'find people and kids to follow')
+          | Find
 
       li
         a(href="/user")

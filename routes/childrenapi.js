@@ -23,7 +23,7 @@ exports.add = function (req, res) {
     
     // create a default page title based on the name and _id
     child.pageTitle = child.name + '_' + child._id;
-    
+    child.url = _.slugify(child.pageTitle);
     // add the creator to the permissions list with 'write' rights.
     child.permissions.push({'_user': child.creator._user, 'rights': 'write', 'validated': true, 'relationship': child.creator.relationship});
     
@@ -46,7 +46,7 @@ exports.findById = function (req, res) {
     
   }  else {
     // otherwise use page title as unique identifier.
-     var opts = {'pageTitle': id};
+     var opts = {'url': id};
   }
   
   Child.findOne(opts)
@@ -79,10 +79,10 @@ exports.findAll = function (req, res) {
              'permissions.rights': 'write',
              'permissions.validated': { $ne: false }};
   } else {
-    opts = {'creator._user': req.session.user,
-            'permissions.validated': { $ne: false } };
+    opts = {'creator._user': req.session.user };
   }
-  
+  console.log(req.query.following)
+  console.log(opts)
   Child.find(opts)
        .populate('lastUpdate')
        .populate({
@@ -108,6 +108,8 @@ exports.update = function (req, res) {
     return mongoose.Types.ObjectId(tag._id);
      }); // storing only the _id of the tags
   
+  childData.url = _.slugify(childData.pageTitle);
+  
   Child.findByIdAndUpdate(id, childData, function(err, child) {
      if (err) return res.send(400, err);
      
@@ -130,7 +132,7 @@ exports.isAuthorized = function(id, userId, callback) {
     
   }  else {
     // otherwise use page title as unique identifier.
-     var opts = {'pageTitle': id,  'permissions._user': userId};
+     var opts = {'url': id,  'permissions._user': userId};
   }
   
   Child.find(opts, function(err, data) {

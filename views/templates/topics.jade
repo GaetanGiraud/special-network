@@ -1,5 +1,18 @@
-article(ng-controller = "MyTagsCtrl")
+article#my-tags(ng-controller = "MyTagsCtrl")
+  h6
+    a(href="/questions", title = "Ask questions and find answers", ng-show='myTags.length > 0')) 
+      | Following: {{ myTags.length }} 
+    span(ng-show='myTags.length == 0') 
+      | You are not following any topics yet. 
+  
+  p(ng-show='myTags.length == 0')
+    | Browse through 
+    a(href='/questions', title = 'ask questions, find answer') questions 
+    | and 
+    a(href = '/home', title = 'look for topics to follow in posts') posts 
+    | to find topics to follow
+  
   ul.unstyled
     li(ng-repeat = 'tag in myTags' )
-      tag(tag = 'tag')
+      tag(tag = 'tag', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}"))
 

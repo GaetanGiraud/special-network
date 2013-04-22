@@ -1,9 +1,15 @@
 @import "global_styling";
 
-body {
+// 
+// 
+// common element styling
+//
+//
 
-  background-color: $mainColor;
+body#main {
 
+ background-color: #EDEDED;
+ margin-top: 40px;
 }
 
 header.menu {
@@ -13,8 +19,138 @@ header.menu {
 
 }
 
-#main {
-  margin-top: 40px;
+#main h3, h4, h5, h6 {
+font-family: 'Roboto Condensed', sans-serif;
+//font-family: 'Boogaloo', cursive;
+  
+}
+
+#main h4 {
+//font-family: 'Bubblegum Sans', cursive;
+}
+
+#main i.hover-effect {
+
+  &:hover {
+    @include transition(background, $speed: 0.5s);
+    @include transition(border, $speed: 0.5s);
+  }
+
+
+
+}
+
+#main legend {
+    font-family: 'Roboto Condensed', sans-serif;
+  }
+  
+#main input[type="text"],
+      input[type="password"],
+      input[type="datetime"],
+      input[type="datetime-local"],
+      input[type="date"],
+      input[type="month"],
+      input[type="time"],
+      input[type="week"],
+      input[type="number"],
+      input[type="email"],
+      input[type="url"],
+      input[type="search"],
+      input[type="tel"],
+      input[type="color"] {
+    
+        border-color: $mainColor;
+
+          &:hover, &:focus {
+          border-color: rgba($mainColor, 0.8);
+          //background-color: $mainColor;
+          @include box-shadow(0, 1px, 1px, 0, rgba(0, 0, 0, 0.075), inset);
+          @include box-shadow(0, 0, 8px, 0, rgba($mainColor, 0.6));
+          }
+    
+  }
+  
+#main { 
+   select {
+    width: 220px;
+    background-color: #ffffff;
+    border: 1px solid $mainColor;
+    }
+    
+    select[multiple],
+    select[size] {
+      height: auto;
+    }
+    
+    select:focus,
+    input[type="file"]:focus,
+    input[type="radio"]:focus,
+    input[type="checkbox"]:focus {
+      outline: thin dotted $mainColor;
+      outline: 5px auto -webkit-focus-ring-color;
+      outline-offset: -2px;
+    }
+}
+#main span.add-on {
+    background-color: $mainColor;
+  
+  }
+
+#main span.icon-rounded {
+  //displau
+  padding: 5px;
+  background-color: $mainColor;
+  @include rounded-corners(15px);
+
+}
+
+.edit-buttons {
+  
+  position: fixed;
+  top: 100px;
+  left: 8%;
+
+}
+
+.page {
+  background-color: #fff;
+  @include rounded-corners(4px);
+  margin-top: - 10px;
+  padding: 20px 30px 80px 30px;
+  
+  @include box-shadow(-5px, 5px, 5px, 0, rgba(0, 0, 0, 0.2));
+  
+ 
+ h3 {
+   overflow: hidden;
+   padding-bottom: 10px;
+   position: relative;
+ 
+ }
+
+}
+
+#main button.btn.transparent {
+  background: none;
+  border: none;
+  //float: right;
+  
+  &:hover {
+    background: none;
+    border: none;
+    color: $yellow;
+    @include transition(color, 0.2s);
+    
+    //@include box-shadow(0, 0, 4px, 4px, rgba(0, 0, 0, 0.3), inset);
+  }
+  
+  
+
+}
+
+.highlight {
+  color: $red;
+
 }
 
 // Header
@@ -24,8 +160,8 @@ header.menu {
 
 header {
   
-  padding-top: 10px;
-  padding-bottom: 10px;
+  //padding-top: 10px;
+  //padding-bottom: 10px;
   width: 100%;
   /* height: 200px;*/
   background-color: $yellow;
@@ -34,6 +170,7 @@ header {
 
 #banner {
   margin: auto;
+  margin-top: -40px;
   width:  806px;
   height: 200px;
   background-image: url('../images/banner-h200.png');
@@ -45,11 +182,6 @@ header {
   }
 }
 
-#sidebar {
-  position: relative;
-  //background-image: url('../images/horizonataldivider.png');
- // background-repeat: no-repeat;
-}
 
 #menubar {
   position: fixed;
@@ -105,9 +237,101 @@ header {
         -webkit-box-shadow: none;
 	      -moz-box-shadow: none;
 	       box-shadow: none;
+         
+        }
       }
       
+        
+  
+  ul {
+    display: block;
+    padding: 0;
+    margin-top: 5px;
+    font-size: 18px;
+    font-weight: 700;
+    
+    &.pull-right {
+      margin-top: 10px;
+    }
+       
+  }
+    li {
+     display: inline-block;
+     color: #fff;
+     padding: 0 10px;
+     margin: 0;
+     width: inherit;
+     cursor: pointer;
+     
+     img {
+         margin-right: 9px;
+     
+        }
+     
+     div {
+       margin: 0;
+       padding: 0;
      }
+     
+     a, a:visited, a:link, a:active, a:hover {
+       padding: 0;
+       margin: 0;
+       color: #fff;
+       text-decoration:none;
+        &:hover {
+          text-decoration:none;
+          color: blue;
+        }
+        
+      }
+      
+      .popup {
+        text-align: left;
+        
+        article {
+          font-size: 12px;
+          max-width: 250px;
+          
+                  h6 {
+        text-align: center;
+        color: black;
+        
+        }
+          
+          p {
+            margin: 0;
+            padding: 3px;
+            font-size: 11px;
+          
+          }
+          
+         a, a:visited, a:link, a:active {
+          color: grey;
+        
+          font-size: 12px;
+          color: #08c;
+          
+          }
+        }
+       }
+      
+    &.mail {
+      position: relative;
+      
+      .count {
+      font-weight: 700;
+      top: -5px;
+      left: 20px;
+      position: absolute;
+      
+      font-size: 12px;
+      display: block;
+      color: #fff;
+      }
+    
+    }
+    
+  }
      
   // styling of the search results
   .search {
@@ -155,88 +379,16 @@ header {
          cursor: pointer;
       }
     }
-  }
-  }
-  
-  
-  
-  
-  
-  ul {
-    display: block;
-    padding: 0;
-    margin-top: 5px;
-    font-size: 18px;
-    font-weight: 700;
-    
-    &.pull-right {
-      margin-top: 10px;
-    }
-       
-  }
-  li {
-     display: inline-block;
-     color: #fff;
-     padding: 0 10px;
-     margin: 0;
-     width: inherit;
-     cursor: pointer;
-     
-     img {
-         margin-right: 9px;
-     
-        }
-     
-     div {
-       margin: 0;
-       padding: 0;
-     }
-     
-     &:hover {
-     
-     
-     }
-     
-     a, a:visited, a:link, a:active, a:hover {
-       padding: 0;
-       margin: 0;
-       color: #fff;
-       text-decoration:none;
-        &:hover {
-          text-decoration:none;
-          color: blue;
-        }
-      }
-      
-    &.mail {
-      position: relative;
-      
-      .count {
-      font-weight: 700;
-      top: -5px;
-      left: 20px;
-      position: absolute;
-      
-      font-size: 12px;
-      display: block;
-      color: #fff;
-      
-      
-      
-      
-      }
-    
-      }
-     }
+   }
+ }
 
+}   
+
+span.ui-match {
+   color: black;
+   font-weight: 800;
+   background-color: none;
 }
-
-      
-      span.ui-match {
-        color: black;
-        font-weight: 800;
-        background-color: none;
-      }
       
 
 
@@ -248,6 +400,10 @@ header {
   padding: 10px;
 
 }
+
+
+
+
 
 
 //  
@@ -276,32 +432,6 @@ div#horizontalbanner {
     //z-index: 1000;
   
  }
-
-#sidebar {
-  background-color: none; 
-  text-align: center;
-  //position: relative;
-  
-  //@include rounded-corners(6px);
-}
-
-#sidebar article {
-  background-color: #fff;
-  border: 1px solid #999;
-  border: 1px solid rgba(0,0,0,0.3);
-  margin-bottom: 5%;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
-  outline: 0;
-  -webkit-box-shadow: 0 3px 7px rgba(0,0,0,0.3);
-  -moz-box-shadow: 0 3px 7px rgba(0,0,0,0.3);
-  box-shadow: 0 3px 7px rgba(0,0,0,0.3);
-  -webkit-background-clip: padding-box;
-  -moz-background-clip: padding-box;
-  background-clip: padding-box;
-}
-
 
 // Common DOM Elements
 
@@ -354,7 +484,17 @@ div#horizontalbanner {
       box-sizing: border-box;
       -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
 	    -moz-box-sizing: border-box; 
-       
+      
+      
+       // ensure the popover inside the menu are rendered correctly
+      .custom-popover, .childPopover {
+      
+       position: fixed;
+       z-index: 12000;
+
+
+      }
+      
        
       &.selected {
         //color: lighten(black, 10%);
@@ -404,13 +544,17 @@ div#horizontalbanner {
 }
 
 div.child {
-  position: relative;
   
+  //background: #fff;
+  margin: 10px;
+
+
   .childPopover {
   position: absolute;
-  z-index: 800;
+  z-index: 700;
   background: #fff;
-  width: inherit;
+  width: 200px;
+  min-height: 40px;
 
 }
   
@@ -484,14 +628,6 @@ div.editable {
   margin-left: 10%;
 
 }
-   
-  .content { 
-   
-
-   
-
-   
-  }
   
   .footer {
   
@@ -545,60 +681,188 @@ a.question {
 
 #home {
   
-  article {
-   float: left;    
-   padding: 10px;
-   
-   width: 20%;
-   margin:  1% 1% 20px 1%; 
-   height: 200px;
-  
-   @include white-box-shadow();
-   @include rounded-corners();
-   
-      
-   
-   &:hover {
-     cursor: pointer;
-     background-color: $green;
-     border-color: $green;
+  #newComment {
+    position: absolute;
+    //top: 0;
+    z-index: 500;
+    padding: 5px;
+    background: #fff;
+    width: 100%;
+    //border: inherit;
+    @include box-shadow(0, 0, 3px, 3px, $yellow);
+    box-sizing: border-box;
+    .editable {
+      width: 90%;
+
     
+    }
+    
+  }
+  
+  
+  .update {
+    width: 290px;
+    margin: 5px;.
+    float: left;
+    min-width: 30%;
+    min-height: 40px;
+    
+  
+    
+
    
-   }
-      &.discussion {
-    border: 2px solid $yellow;
+    .discussion {
+    
+    background-color: #fff;
+    @include box-shadow(0px, 0px, 5px, 3px, $yellow, inset);
+    //border: 2px solid $yellow;
+    padding: 10px;
+    box-sizing: border-box;
+    @include rounded-corners();
+    overflow: auto;
+    
+    i.icon-quote-left {
+      color: $green;
+    }
+    
+    i.icon-film {
+      color: $ligthGreen;
+    }
+    i.icon-camera-retro {
+      color: $yellow;
+    }
     
     &:hover {
     background: rgba($green, 0.1);
     @include transition(background);
     //@include gradient($green, $ligthGreen, $yellow)
-    
+  
+
     }
     
   }
   
-  &.question {
+  .question {
+    position: relative;
     border: 2px solid $ligthGreen;
-    
+     padding: 10px;
         &:hover {
     background: rgba($yellow, 0.1);
     @include transition(background);
    // @include gradient($red, $green, $yellow)
+    box-sizing: border-box;
+    @include rounded-corners();
+
+    }
+   }
+   
+    .sideinfo {
+     width: 35%;
+     //float: left;
     
     }
+    
+    .content {
+      float: left;
+    // position: absolute;
+   //  top: 10px;
+   //  right: 10px;
+     width: 100%;
+     height: 100%;
+     
+    
+    }
+    
+    .about {
+    border-bottom: 2px solid $separator;
+    padding-bottom: 2px;
+    }
+    div.footer {
+    height: auto;
+    //float: right;
+    }
+  
+  
+  
   }
+  
+  
+  
+  
+}  
+div.separator {
+    
+      border-bottom: 2px solid darken($separator, 15%);
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+    
+}
+    
+#new-question {
+  
+  div.custom-popover {
+    padding: 5px;
+    background-color: #fff;
+    border: 2px solid $red;
+    @include rounded-corners();
+    @include box-shadow(0, 0, 4px, 4px, rgba($red, 0.6), inset);
+    //@include transition(border, 0.2s);
+    width: 100%;
+    border-size: border-box;
+    
+    input, input#autocomplete, textarea {
+      width: 100%;
+      
+    
+    }
+    
+    
   }
+ }
+ 
+//
+//  Child page
+//
+//
   
-  
-  
+.img-profile {
 
+  //width: 90%;
+  @include rounded-corners();
+  border: solid 1px $mainColor;
+  
+  &:hover {
+    @include box-shadow(0, 0, 3px, 5px, $mainColor);
+    @include transition(box-shadow, 0.2s);
+  }
+
+  }
+  
+#child btn.transparent {
+    position: absolute;
+  top: 5px;
+  }
+
+//
+// User Page
+//
+
+#user {
+
+  
+  input[type="text"] {
+     border-color: none;
+  
+  }
 
 }
 
-
-
 // Pictures and Videos
 
+video {
+  @include rounded-corners(6px);
+
+}
 #input-picture {
   width: 100 px;
   height: 100px;
@@ -647,6 +911,31 @@ div#albumViewer {
 
 //
 //
+//Find
+//
+
+#main #find select {
+  width: 159px;
+
+}
+#find {
+  input {
+    width: 250px;
+  
+    }
+    
+  tile {
+    width: 33%;
+    float: left;
+  
+  
+  }
+ }
+
+
+
+//
+//
 // Messages
 //
 //
@@ -678,9 +967,7 @@ div#albumViewer {
     
   }
 
-  
 
-}
     
    article.message.read {
       background-color: green;
@@ -691,17 +978,16 @@ div#albumViewer {
       background-color: black;
       color: white;
     }
-    
+  }   
 // 
 //
 //Tag - Topic popover elemenet
 //
 //
 
-
 span.tag {
   position: relative;
-  z-index: 0;
+  //z-index: 0;
   cursor: pointer;
   border: 1px solid;
   padding: 5px;
@@ -712,7 +998,7 @@ span.tag {
   background: black;
   color: white;
   //z-index: 0;
-  z-index: 0;
+  //z-index: 0;
   }
 }
 
@@ -720,12 +1006,12 @@ span.tag {
 div.custom-popover {
   min-height: 50px;
   min-width: 15%;
-  position: absolute;
+   position: absolute;
   
   display: block;
 
 
-  z-index: 10998;
+  z-index: 700;
  
   padding: 0;
   margin: 0;
@@ -749,4 +1035,31 @@ div.custom-popover {
 
 }
 
+// For closing buttons
 
+.closed {
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 20px;
+  color: #000000;
+  text-shadow: 0 1px 0 #ffffff;
+  opacity: 0.2;
+  filter: alpha(opacity=20);
+}
+
+.closed:hover,
+.closed:focus {
+  color: #000000;
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0.4;
+  filter: alpha(opacity=40);
+}
+
+button.closed {
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  -webkit-appearance: none;
+}

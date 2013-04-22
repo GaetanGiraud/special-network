@@ -173,8 +173,8 @@ module.exports = function(options) {
     var self = this;
  //var imageTypes = /\.(gif|jpe?g|png)$/i,
      imageVersions = { thumbnail: {
-                  width: 100,
-                  height: 100
+                  width: 150,
+                  height: 150
                   },
              icon: {
                   width: 24,

@@ -178,7 +178,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
      Child.update({childId: $scope.child._id}, $scope.child, 
       function(child){
         //$scope.child = child;
-        $location.url('/children/' + $scope.child.pageTitle);
+        $location.url('/children/' + child.url);
         
       }, 
       function(err){ 
@@ -188,8 +188,10 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
   }
     
   $scope.setProfilePicture = function(file) {
-    $scope.child.picture = file.name ;
-    $scope.updateChild();
+    $scope.$safeApply($scope, function() {
+      $scope.child.picture = file.name ;
+      $scope.updateChild();
+    })
   };
   
 /*   $scope.addSuperpower = function(superpower, newSuperpower) {

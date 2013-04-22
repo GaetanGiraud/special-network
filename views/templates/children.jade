@@ -1,22 +1,28 @@
 article#my-children(ng-controller = "ChildrenCtrl")
-  p(ng-show='children.length > 0 && followedChildren.length == 0 && famillyChildren.length > 0')
-    | You are not following any children yet. 
+  h6
+    a(href="/children", title = "Manage children's page and followers'", ng-show='children.length > 0 || followedChildren.length > 0 || famillyChildren.length > 0')
+      | Following: {{ children.length + followedChildren.length + famillyChildren.length }} 
+    span(ng-show='children.length == 0 && followedChildren.length == 0 && famillyChildren.length == 0') 
+      | You are not following any children yet. 
+    
+    
+  p(ng-show='children.length == 0 && followedChildren.length == 0 && famillyChildren.length == 0')
     | Create a new 
     a(href = '/home') child's page 
     | or  
     a(href = "/find") find 
     | children to follow.
     
-  a(href="/children", title = "Manage children's page and followers'")
+  
   ul#yourchildren(ng-show = "children.length > 0")
     li(ng-repeat="child in children")
-      kid(child = 'child')
+      kid(child = 'child', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
 
   ul#famillychildren(ng-show = "famillyChildren.length > 0")
     li(ng-repeat="child in famillyChildren")
-      kid(child = 'child')
+      kid(child = 'child', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
   
   ul(ng-show = "followedChildren.length > 0")
     li(ng-repeat="child in famillyChildren")
-      kid(child = 'child')
+      kid(child = 'child', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
   

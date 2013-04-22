@@ -22,7 +22,7 @@ angular.module('CareKids.filters', []).
       if (angular.isUndefined(object.name)) { 
            return 'images/defaults/user-thumbnail-default.png';  
         } else {
-          return 'uploads/images/thumbnail/' + object.picture;
+          return 'uploads/images/thumbnail/' + object.name;
         }
       } else {
          return 'images/defaults/user-thumbnail-default.png';   
@@ -35,7 +35,7 @@ angular.module('CareKids.filters', []).
       if (angular.isUndefined(object.picture)) { 
            return 'images/defaults/user-default-icon.png';  
         } else {
-          return 'uploads/images/icon/' + object.picture;
+          return 'uploads/images/icon/' + object.picture.name;
         }
       } else { 
         return 'images/defaults/user-default-icon.png';  
@@ -45,8 +45,8 @@ angular.module('CareKids.filters', []).
   filter('picture', function() {
     return function(object) {
       if (angular.isDefined(object)) {
-        if (angular.isDefined(object.picture)) {
-          return 'uploads/images/' + object.picture;
+        if (angular.isDefined(object.name)) {
+          return 'uploads/images/' + object.name;
        }   else {
          return 'images/defaults/user-default.png';   
        }
@@ -79,11 +79,12 @@ angular.module('CareKids.filters', []).
     return function(user) {
       if (angular.isDefined(user) && user != null) { 
         if (angular.isUndefined(user.picture)) {
-          return 'images/defaults/user-icon-default.png'; 
+          return 'images/defaults/user-default-icon.png'; 
         } else {
           return 'uploads/images/icon/' + user.picture;
         }
      } 
+     return 'images/defaults/user-default-icon.png';  
     }
   }).
   filter('paginate', function() {

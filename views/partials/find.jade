@@ -1,67 +1,91 @@
-div.row
-  div.span5
-   h2 Find People
-   div.input-prepend
-      span.add-on
-        i.icon-search
-      input.search.span4(type='text', ng-change = 'getResults()',ng-model = 'search.term')
-    //button(ng-click = 'getResults()') Search
+div.page#find
+  div.row
+    div.span5
+     h3 Find People
+     h5 That you know
+     div.input-prepend
+        span.add-on
+          i.icon-search
+        input(type='text', ng-change = 'getResults()', placeholder = "Look up someone by name" ,ng-model = 'search.term')
+      //button(ng-click = 'getResults()') Search
       
-      
-  div.span4
-    h4 Refine your search
-    
-    h5 How far from 
-      | {{ currentUser.location.formattedAddress }}
-      | ?
-    div.input-prepend
-      span.add-on
-        i.icon-globe
-      select(ng-options = "distance.value as distance.label for distance in distances", ng-change = 'getResults()', ng-model = "search.distance")
-    
-    h5 Related to specific superpowers?
-    ul.unstyle
-      li(ng-repeat = 'tag in superpowers')
-        tag(tag = 'tag', action = "true", remove = "removeSuperpower(tag)")
-      tags(url = '/api/tags', add = 'addSuperpower(tag)')
-    //superpowers(results = 'superpower', url = '/api/discussions/search?type=tags', create = 'add(string, newObject)')
-
-div.row(ng-show = "!searchResults")
-  div.span9
-    p
-      | No results yet.
-
-div.row(ng-show = "searchResults.length > 0")
-  div.span9
-    table.table
-      tr
-        th
-        th Where I live
-        th My Children
-        th The children I am following
-        th
-      tr(ng-repeat = 'result in searchResults' )
-        td
-          h6 
-            | {{ result._id.name }}
-          img(ng-src="{{ result._id | userThumbPic }}")
-        td
-          | {{ result._id.location.formattedAddress }}
-        td
-          ul.unstyled(ng-show = 'myChildren(result).length > 0')
-            li(ng-repeat = "child in myChildren(result)")
-              kid(child = "child._id")
-        td
-          | I am following:
-          br
-          | {{ result.childrenCount }}
-          | Children 
-          br 
-          |and following:
-          ul
-            li(ng-repeat = "superb in myTags")
-              tag(tag = "superb")
+     h5 Close by 
+       span.highlight
+         | {{ location.formattedAddress }} 
+       | ?
+       button.transparent.btn(type = "button",title = "Edit the location", ng-click = "showEdit = true", ng-hide = "showEdit")
+         i.icon-edit.icon-2x
+       button.transparent.btn(type = "button",title = "End Location Editing", ng-click = "showEdit = false", ng-show = "showEdit", ng-disabled = 'editInProgress')
+         i.icon-ok.icon-2x
+       
+       div(ng-show = "showEdit", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")      
+          div.input-prepend
+            span.add-on
+              i.icon-globe.hover-effect
+            input(type='text', ng-model = "location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span3')
           
-        td
-          | Contact me
-          contact( user = "{{ result._id._id }}")
+          div(ng-show = "location.formattedAddress.length > 0 && location.formattedAddress.length <= 6", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}") 
+            i.icon-spinner.icon-spin.pull-left.icon-border
+            | Looking up results
+         
+         div.well.well-transparent(ng-show='newLocation', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}") 
+           span.location
+             | {{ newLocation.formattedAddress }}
+           button.pull-right(ng-click="validate()", class="btn btn-success") Ok
+    
+     div.input-prepend
+       span.add-on
+         i.icon-globe
+       select(ng-options = "distance.value as distance.label for distance in distances", ng-change = 'getResults()', ng-model = "search.distance")
+      
+     h5 Interested in specific 
+       span.highlight
+         | superpowers?
+     ul.unstyled
+       li(ng-repeat = 'tag in superpowers')
+         tag(tag = 'tag', action = "true", remove = "removeSuperpower(tag)")
+       tags(url = '/api/tags', add = 'addSuperpower(tag)')
+      //superpowers(results = 'superpower', url = '/api/discussions/search?type=tags', create = 'add(string, newObject)')
+  
+  div.row(ng-show = "!searchResults")
+    div.span9
+      p
+        | No results yet.
+  
+  div.span6(ng-show = "searchResults.length > 0")
+    div.tile(ng-repeat = 'result in searchResults' )
+      img(ng-href="{{ result._id.name | userThumbPic }}")
+     
+      table.table
+        tr
+          th
+          th Where I live
+          th My Children
+          th The children I am following
+          th
+        tr(
+          td
+            h6 
+              | {{ result._id.name }}
+            img(ng-src="{{ result._id | userThumbPic }}")
+          td
+            | {{ result._id.location.formattedAddress }}
+          td
+            ul.unstyled(ng-show = 'myChildren(result).length > 0')
+              li(ng-repeat = "child in myChildren(result)")
+                kid(child = "child._id")
+          td
+            | I am following:
+            br
+            | {{ result.childrenCount }}
+            | Children 
+            br 
+            |and following:
+            ul
+              li(ng-repeat = "superb in myTags")
+                tag(tag = "superb")
+            
+          td
+            | Contact me
+            contact( user = "{{ result._id._id }}")
+  

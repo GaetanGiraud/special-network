@@ -91,7 +91,7 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder, $routePar
   $scope.pictureUploadOptions = {
     dropZone: "#picture"
   };
-  $scope.undoLocUpdate = "false";
+  $scope.undoLocUpdate = false;
   var previousLocation = [];
   
   // If the current user does not have a location defined, 
@@ -109,7 +109,9 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder, $routePar
       function(user){
         $rootScope.currentUser = user;
         $scope.undoLocUpdate= isUndo;
-        Alert.success('Your settings have been successfully updated.');
+        if(!isUndo) {
+          Alert.success('Your settings have been successfully updated.');
+        }
       }, 
       function(err){
         Alert.error('Error updating user: ' + err);
@@ -119,9 +121,10 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder, $routePar
   
   // Event triggered by the uploader directive. Actions to be performed after successfull upload of profile photo.
   $scope.setProfilePicture = function(file) {
-    $scope.currentUser.picture = file.name;  
-    
-    $scope.updateUser(false);
+    $scope.$safeApply($scope, function() { 
+      $scope.currentUser.picture = file.name;  
+      $scope.updateUser(false);
+    })
   };
   
   // reset the user value to the one stored on the database.
@@ -158,7 +161,7 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder, $routePar
     
     if (($scope.currentUser.location.formattedAddress.length < 5) && angular.isArray($scope.locations)) {
      $scope.locations = null;
-     $scope.undoLocUpdate = "false";
+     $scope.undoLocUpdate = false;
     }
     if ($scope.currentUser.location.formattedAddress.length > 5 ) {
       GeoCoder.getLocation($scope.currentUser.location, function(results) {
@@ -175,13 +178,14 @@ function UserCtrl($scope, User, $rootScope, Alert, Location, GeoCoder, $routePar
        $scope.currentUser.location = angular.extend($scope.currentUser.location, result);
        previousLocation[1] = angular.copy($scope.currentUser.location);
        $scope.locations = null;
-       $scope.updateUser("true");  
+       $scope.updateUser(false);  
     });
   }
  
   $scope.undoLocation = function() {
     $scope.currentUser.location = previousLocation[0];
-    $scope.updateUser("false");
+    $scope.locations = [];
+    $scope.updateUser(true);
   }
   
   

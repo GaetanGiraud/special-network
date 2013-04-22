@@ -121,11 +121,48 @@ function HomeCtrl($scope, $http, $location) {
         $scope.resultUrl = '/api/questions/search?' + request ;
         $http.get($scope.resultUrl)
         .success(function(data) {
-          $scope.data = data;  
+          $scope.results = data.results; 
+          $scope.$broadcast('event:loadMachinery');
           console.log(data);
        });
        }
       }, true);  
+      
+      
+   var sortResults = function(){
+       var sortedResults = _.sortBy($scope.results, function() { return document.updatedAt }).reverse();    
+       $scope.$safeApply($scope, function() { 
+         $scope.results = sortedResults; 
+         //$scope.$broadcast('event:reloadMachinery');
+         });
+   }
+      
+  
+  $scope.$on('event:commentAdded', function(event, comment, id) {
+   
+    console.log('adding ' + id);
+    for(var i = 0; i < $scope.results.length; i ++) {
+        if ( $scope.results[i].document._id == id) {
+          console.log('adding ' + id);
+           $scope.results[i].document.comments.push(comment);
+           $scope.results[i].document.updatedAt = moment.utc().format();
+          // sortResults();
+           
+          break;     
+        }
+    }
+  });
+  
+  $scope.$on('QuestionCreated', function(question) {
+      $scope.showNewQuestion = false;
+      $scope.newQuestion.content = '';
+      $scope.newQuestion.details = '';
+      $scope.newQuestion.tags = [];
+      Alert.success('Question created');
+    });
+  
+      
+      
   
 }
 HomeCtrl.$inject = ['$scope', '$http', '$location'];

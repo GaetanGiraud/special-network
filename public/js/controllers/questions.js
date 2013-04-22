@@ -21,7 +21,7 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket, $loca
    // for building the filter array: foo[]=val1&foo[]=val2&foo[]=val3
 
    
-   $scope.$watch('searchTags', function() {
+  /* $scope.$watch('searchTags', function() {
      // to do - do a search in elastic search with the tags and the terms
       if (angular.isUndefined( $location.search().term )) {
         var request;
@@ -39,7 +39,7 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket, $loca
         
        });
      }
-      }, true); 
+      }, true); */
  
         
              
@@ -108,6 +108,7 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket, $loca
             $scope.newQuestion.tags = [];
             $scope.newQuestion.content = '';
             $scope.newQuestion.details = '';
+            $scope.$emit('QuestionCreated', question);
         }, 
         function(err) {
            console.log(err);

@@ -236,12 +236,19 @@ exports.delete = function (req, res) {
 
 exports.search = function(req,res) {
   var query;
+  console.log('the query'.green)
   console.log(req.query)
+  console.log('the tags'.green)
   if(typeof req.query.tags != "undefined") {
     tags = req.query.tags;
+    console.log(tags)
+    tags = _.map(tags, function(tag) { return mongoose.Types.ObjectId(tag) })
+    
   } else {
+    
     tags = [];  
   }
+  console.log(tags);
   
   if (req.query.page) {
      var skipIndex = req.query.page -1;
@@ -249,10 +256,24 @@ exports.search = function(req,res) {
     var skipIndex = 0;
   }
   
+ //Question.textSearch(cleanQuery, function (err, output) {
+
+// First recover the list of all the children the use if following.
+Child.find({ 'permissions._user': mongoose.Types.ObjectId(req.session.user)}).select('_id').exec(function(err, children) {
+ 
+  if (err) return res.send(400, err);
+  console.log('the children'.green)
+  children = _.map(children, function(child) { return child._id })
+  
+  
+  // if user is not following any children and any tags, don't execute the request and send back an empty response.
+  
+  if ( tags.length == 0) return  res.json([]);
+    console.log(children)
+    
   if(typeof req.query.term != "undefined") {
     var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
     //var splitQuery = cleanQuery.split(' ').split(',');
-    console.log('searching ' +  cleanQuery)
     query = { 
       "sort" : [
         { "updatedAt" : {"order" : "desc"} }
@@ -262,37 +283,55 @@ exports.search = function(req,res) {
            query: cleanQuery,
            fields: ['content']
         }
+          
       },
       from: skipIndex*10,
       size: 10
     }
   } else {
-  //Question.textSearch(cleanQuery, function (err, output) {
 
-  query = {
-     "sort" : [
-        { "updatedAt" : {"order" : "desc"} }
-        ],
-    "query": {
-     "bool": {
-       "should": [
-                 {
-                   terms: { "tags._id": tags}
-                  },
-                  {
-                   term: { "_creator" : req.session.user }
-                  },
-                  {
-                   term: { "permissions._user" : req.session.user }
-                  }
-              ],
-              "minimum_number_should_match" : 1
-          }
-       },
-       from: skipIndex*10,
-       size: 10
-     }
-  }
+    query = {
+       "sort" : [
+          { "updatedAt" : {"order" : "desc"} }
+          ],
+      "query": {
+        "bool": {
+         "should": [
+                   {
+                    "bool": {
+                        "must": [
+                           {
+                            term: {'_type': 'question' }
+                           },
+                           { 
+                            terms: { 
+                              "tags": tags,
+                              "minimum_match" : 1
+                            }
+                          }
+                          ]
+                      }
+                    },
+                    {
+                      "bool": {
+                         "must": [
+                            { 
+                              term: { '_type': 'discussion' }
+                            },
+                            {
+                            terms: { "children" : children }
+                            }
+                            ]
+                         }
+                      }
+                  ],
+                  "minimum_number_should_match" : 1
+              }
+          },
+         from: skipIndex*10,
+         size: 10
+       }
+    }
   
     var options = { uri: 'http://localhost:9200/_search',
      method: 'POST',
@@ -304,6 +343,7 @@ exports.search = function(req,res) {
     request(options, function(err, response, body) {
       //console.log(err);
       if (err) return res.send(400, err);
+        console.log('the response'.green)
       console.log(body);
       if (body.hits.hits.length == 0) return res.json([]);
       
@@ -311,21 +351,24 @@ exports.search = function(req,res) {
         return { type: hit._type, document: hit._source };
       });
       var counter = results.length;
-      results.forEach(function(element, index, array) {
+      //console.log(results.d);
+     /* results.forEach(function(element, index, array) {
         results[index].document._creator = mongoose.Types.ObjectId(results[index].document._creator); 
         results[index].document.tags = _.map(results[index].document.tags, function(tag) {return mongoose.Types.ObjectId(tag) }) 
         
-        User.findOne({'_id': results[index].document._creator}, function(err, user) {
+        User.findOne({'_id': results[index].document._creator}).exec(function(err, user) {
           results[index].document._creator = user;
           
-          Tag.find({'_id': { $in: results[index].document.tags } }, function(err, tags) {
+          Tag.find({'_id': { $in: results[index].document.tags } }).populate('followers').exec(function(err, tags) {
             results[index].document.tags =tags;
             
             if (typeof results[index].document.children != "undefined") {
-              Child.find({'_id': { $in: results[index].document.children } }, function(err, children) {
+              Child.find({'_id': { $in: results[index].document.children } }).populate('superpowers creator').exec(function(err, children) {
                 results[index].document.children = children;
                  counter--;
-                          
+                 
+                 //Discussion.populate(results
+                 
                   if (counter == 0) {
                     console.log(results);
                     return res.json({ hits: body.hits.total , results: results} );
@@ -346,23 +389,27 @@ exports.search = function(req,res) {
           })
         })
   
-      }) 
+      }) */
       
      // console.log(results[0].document._creator instanceof 'ObjectId');
-   //   var populateOpts = [
-   //     {path: 'document._creator', select: '_id name picture'},
-        // {path: 'document.comments._creator', select: '_id name picture'},
-    //     {path: 'document.tags'}
-    //    ]
+      var populateOpts = [
+        {path: 'document._creator', select: '_id name picture', model: 'User'},
+        {path: 'document.comments._creator', select: '_id name picture', model: 'User'},
+        {path: 'document.children', model: 'Child'},
+         {path: 'document.tags', model: 'Tag'}
+        ]
      // console.log(results);
-     //Question.populate(results, 'document._creator', function(err, results) {
-     // if(err) return res.send(400, err);
+     Question.populate(results, populateOpts, function(err, results) {
+      if(err) return res.send(400, err);
       //
       //  console.log('this is the output: ')
       ///console.log(err);
         //   console.log(results);
+        return res.json({ hits: body.hits.total , results: results} );
         
-    // });
+     });
+     
+    });
   });
 }
 

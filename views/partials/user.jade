@@ -1,67 +1,70 @@
-
-h3 Welcome {{currentUser.name}} 
-
-div.row 
-  div.span4
-    legend Yourself
-    label
-      | Your Name
-    div.input-prepend
-      span.add-on
-        i.icon-user
-      input(type='text', ng-model = "currentUser.name", class = 'span3' )
-    br
-    label
-      | Your email
-    div.input-prepend
-      span.add-on
-        i.icon-envelope
-      input(type='text', ng-model = "currentUser.email", class = 'span3')
-    br
-
-      
-    Legend(help, open = "showLocationWidget", templatename = 'locationPopup', action="getBrowserLocation()") Where are you?
-    div(ng-show = "undoLocUpdate", class = "alert alert-success")
-      |  Location updated
-      button(class = "close", ng-click="undoLocUpdate = 'false'")&times;
+div#user.page
+  h3 Welcome {{currentUser.name}} 
   
-    div.form-inline
+  div.row 
+    div.span5
+      legend Yourself
+      label
+        | Your Name
       div.input-prepend
         span.add-on
-          i.icon-globe
-        input(type='text', ng-model = "currentUser.location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span3')
-      button(type = 'button', ng-click="undoLocation()", class="btn btn-danger", ng-show = "undoLocUpdate") undo
-     
-    div(ng-show = "currentUser.location.formattedAddress.length > 0 && currentUser.location.formattedAddress.length <= 6").well.well-transparent 
-      i.icon-spinner.icon-spin.pull-left.icon-border
-      | Looking up results
-    div(ng-show='locations').well.well-transparent 
-      span.location
-        | {{ locations[0].formatted_address }}
-      button(ng-click="validateAdress(0)", class="btn btn-success") Ok
+          i.icon-user.hover-effect
+        input(type='text', ng-model = "currentUser.name", class = 'span3' )
+      br
+      label
+        | Your email
+      div.input-prepend
+        span.add-on
+          i.icon-envelope.hover-effect
+        input(type='text', ng-model = "currentUser.email", class = 'span3')
+      br
   
-
-  div.span5
-    legend Your profile picture
-    div.row
-      div.span3
-        img#picture.well(width="200", ng-src="{{ currentUser | userPic }}")
-      div.span2
-        small
-          | <strong>Drag & Drop</strong> the file onto the existing picture or
-          br
-          | Use the <strong>button</strong> to change your profile picture.
-        br
-        span.btn.btn-success.fileinput-button
-          i.icon-plus.icon-white
-          span 
-            | New picture
-            input(type="file", uploader,  opts = "pictureUploadOptions", done='setProfilePicture(file)', data-url="/upload")
+        
+      Legend(help, open = "showLocationWidget", templatename = 'locationPopup', action="getBrowserLocation()") Where are you?
+      div(ng-show = "undoLocUpdate", class = "alert alert-success")
+        |  Location updated
+        button(class = "close", ng-click="undoLocUpdate = 'false'")&times;
     
-
-div.row
-  div.span7
-    legend Settings
+      div.form-inline(ng-mouseover = "showMessage = true", ng-mouseleave = "showMessage = false")
+        div.input-prepend
+          span.add-on
+            i.icon-globe.hover-effect
+          input(type='text', ng-model = "currentUser.location.formattedAddress", ng-change = "getLocation()", placeholder="Your location", class = 'span3')
+        button(type = 'button', ng-click="undoLocation()", class="btn btn-danger", ng-show = "undoLocUpdate") undo
+      
+      div(ng-show = "currentUser.location.formattedAddress.length > 0 && currentUser.location.formattedAddress.length <= 6").well.well-transparent 
+        i.icon-spinner.icon-spin.pull-left.icon-border
+        | Looking up results
+      div(ng-show='locations').well.well-transparent 
+        span.location
+          | {{ locations[0].formatted_address }}
+        button(ng-click="validateAdress(0)", class="btn btn-success") Ok
+        button(type = 'button', ng-click="undoLocation()", class="btn btn-danger") Cancel
+      small(ng-show = 'showMessage')
+        | Filling in your location will help you localize people next to you. 
+    
+  
+    div.span6
+      legend Your profile picture
+      div.row
+        div.span3
+          img#picture.well(width="200", ng-src="{{ currentUser | userPic }}")
+        div.span2
+          small
+            | <strong>Drag & Drop</strong> the file onto the existing picture or
+            br
+            | Use the <strong>button</strong> to change your profile picture.
+          br
+          span.btn.btn-success.fileinput-button
+            i.icon-plus.icon-white
+            span 
+              | New picture
+              input(type="file", uploader,  opts = "pictureUploadOptions", done='setProfilePicture(file)', data-url="/upload")
+      
+  
+  div.row
+    div.span7
+      legend Settings
       div
        label.checkbox
          input(type="checkbox", ng-model="researchAgreement")
@@ -69,9 +72,9 @@ div.row
        label.checkbox
          input(type="checkbox", ng-model="currentUser.settings.createChildOptOut")
          | Until further notice, I do not want to create pages.
-         
-    button(type='button', ng-click="updateUser(false)", class='btn btn-primary') Update
-    button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
+           
+      button(type='button', ng-click="updateUser(false)", class='btn btn-primary') Update
+      button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
 
 
         

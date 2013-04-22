@@ -112,9 +112,14 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
     });
     
     // Process event emited by new Comment controller
-    $scope.$on('event:commentAdded', function(event, index, comment, id) {
-      $scope.discussions[index].comments.push(comment);
-      Socket.socket().emit('commentAdded', { 'comment': comment, 'discussionId': id});
+    $scope.$on('event:commentAdded', function(event, comment, id) {
+      for(var i = 0; i < $scope.discussions.length; i ++) {
+        if ( $scope.discussions[i]._id == id) {
+           $scope.discussions[i].comments.push(comment);
+          break;     
+        }
+      }
+      
     });
     
     // albums choice dialog
@@ -172,7 +177,7 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
 }
 DiscussionCtrl.$inject = ['$scope', '$location', 'Socket', '$http', '$dialog'];
 
-function newCommentCtrl($scope) {
+function newCommentCtrl($scope, Socket) {
   $scope.newComment = {};
   
   $scope.$watch('currentUser', function(currentUser) {
@@ -181,14 +186,14 @@ function newCommentCtrl($scope) {
       });
   });
     
-  $scope.createComment = function(index) {
-      var discussionId = $scope.$parent.discussions[index]._id;
-      $scope.$emit('event:commentAdded', index, $scope.newComment, discussionId );
+  $scope.createComment = function(discussion) {
+      Socket.socket().emit('commentAdded', { 'comment': $scope.newComment, 'discussionId': discussion._id});
+      $scope.$emit('event:commentAdded', $scope.newComment, discussion._id );
       $scope.newComment = '';
   }
-  
+
 }
-newCommentCtrl.$inject = ['$scope'];
+newCommentCtrl.$inject = ['$scope', 'Socket'];
    
 function PictureCtrl($scope, $dialog) {
     $scope.pictureUploadOptions = { 
@@ -198,16 +203,16 @@ function PictureCtrl($scope, $dialog) {
    
    
    $scope.addPicture = function(file) {
+     console.log(file);
       // if pictures array inside the newDiscussion object has not been instantiated, do it.
       if (angular.isUndefined($scope.newDiscussion.pictures)) $scope.newDiscussion.pictures = [];
-
+     $scope.$safeApply($scope, function() {
       $scope.newDiscussion.pictures.push({ 
-                                      type: 'picture',
                                       _creatorId:  $scope.currentUser._id,
                                       title: file.title,
                                       name: file.name });
-      $scope.$apply($scope.newDiscussion.pictures);
-   }
+   })
+ }
    
    $scope.removePictureFromDiscussion = function($index) {
       $scope.newDiscussion.pictures.splice($index, 1);
