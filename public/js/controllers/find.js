@@ -1,6 +1,6 @@
 'use strict';
 
-function FindCtrl($scope, User, Alert, $http, Message, GeoCoder) {
+function FindCtrl($scope, User, Alert, $http, Message, GeoCoder, $rootScope, $timeout) {
   
   //$scope.search = {} ;
   $scope.superpowers = [];
@@ -38,6 +38,10 @@ function FindCtrl($scope, User, Alert, $http, Message, GeoCoder) {
       $scope.getResults();  
     }
   })
+  $scope.$watch('result.children.permissions', function(permission) {
+    
+    
+  }, true )
   
   $scope.addSuperpower = function(superpower) {
     $scope.superpowers.push(superpower);
@@ -76,23 +80,102 @@ function FindCtrl($scope, User, Alert, $http, Message, GeoCoder) {
       success(function(data) {
      console.log('search results');
      console.log(data);
+     
      $scope.searchResults = data;
-    });
+     
+       angular.forEach($scope.searchResults, function(element, index, data) {
+         console.log(element)
+         angular.forEach(element.children, function(element2,index2, data2) {
+           console.log(element.children);
+           $scope.searchResults[index].children[index2].isFollowed = false;
+           for(var i =0; i < element2.permissions.length; i++) {
+                  console.log('testing permission')
+                 console.log(element2.permissions[i]._user)
+                 console.log($scope.currentUser._id)
+                 
+             
+               if ( element2.permissions[i]._user == $scope.currentUser._id)  {
+            
+                 
+                 $scope.searchResults[index].children[index2].isFollowed = true;
+                 
+      
+                break;
+                } 
+             } 
+           })
+          })
+        console.log($scope.searchResults);
+        
+        })
+          ;
     });
   }
+  
+  
+  
+  //
+  
+  $scope.unfollow = function(child) {
+    $http.put('/api/children/' + child._id + '/follow', { action: 'unfollow' }).success(function(data) {
+       $rootScope.$broadcast('unFollowingChild', data);
+       child.isFollowed = false;
+      });
+   }
+      
+   $scope.follow = function(child) {
+        child.isFollowed = true;
+        
+
+        $http.put('/api/children/' + child._id + '/follow', { action: 'follow' }).success(function(data) {
+            $rootScope.$broadcast('followingChild', data);
+            $scope.sendMessage(data);
+        });
+        
+      
+        
+      }
+
+$scope.sendMessage = function(data) {
+      
+          Message.send({
+            content: $scope.currentUser.name + " wants to follow " + data.name,
+            action: { 
+              actionType: "following",
+              target: data._id
+              },
+            _creator: $scope.currentUser,
+            receivers: [ { '_user': data.creator._user } ]
+          });
+          
+  
+  
+  
+  }
+
+      
+  //  $scope.$on('followingChild', function(event, child) {
+  ///      if (child._id == $scope.child._id) scope.isFollowed = true;
+  //  })       
+  
+ //   scope.$on('unFollowingChild', function(event, child) {
+ //     if (child._id == $scope.child._id) scope.isFollowed = false;
+ //   })     
+  
+  
   
   //
 
   // Present results from search request
   $scope.myChildren = function(result) {
-     var myChildren = [];
+     var children = [];
      
      angular.forEach(result.children, function(child) {
-       if (child._id.creator._user ==  result._id._id) {
+       if (child.creator._user ==  result.user._id) {
         this.push(child);
       }
-     }, myChildren);
-     return myChildren;
+     }, children);
+     return children;
   }
   
   $scope.getLocation = function () { 
@@ -130,31 +213,26 @@ function FindCtrl($scope, User, Alert, $http, Message, GeoCoder) {
   }
    
 }
-FindCtrl.$inject = ['$scope', 'User', 'Alert', '$http', 'Message', 'GeoCoder'];
+FindCtrl.$inject = ['$scope', 'User', 'Alert', '$http', 'Message', 'GeoCoder', '$rootScope', '$timeout'];
 
 function SearchCtrl($scope, $http, $location ) {
 
-   var getQuestions = function() {
-   
-   $http.get('/api/questions/search/', {params: {term: $scope.term }} )
-   .success(function(data) {
-      //$scope.questions = _.map(data.hits.hits, function(hit) { return hit._source });
+  $scope.term = $location.search().term;
+
+  $scope.$watch('term', function(term) {
+   if (angular.isDefined(  term )){
+     console.log(term);
       
-      console.log(data); 
-      $scope.data = data;  
+      $scope.resultUrl = '/api/questions/search?term=' + term  ;
+       $http.get( $scope.resultUrl )
+       .success(function(data) {
+
+   //   $scope.$safeApply($scope, function() {
+      $scope.results = data; 
+  // });
     })
-   //$scope.questions = data;  
-   
-  }     
-  
-  if (angular.isDefined( $location.search().term )){
-     $scope.term = $location.search().term;
-     
-     getQuestions()
-     
-     console.log('term is defined');
-     console.log()
-    } 
+   }
+  });
 
 }
 

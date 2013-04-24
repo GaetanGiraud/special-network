@@ -40,9 +40,46 @@ font-family: 'Roboto Condensed', sans-serif;
 
 }
 
-#main legend {
+#main a:hover {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#main legend, label {
     font-family: 'Roboto Condensed', sans-serif;
   }
+  
+[contenteditable="true"] {
+  background: #fff;
+  padding: 5px 10px;
+  text-align: left;
+  min-height: 50px;
+  border: 1px solid $mainColor;
+  @include rounded-corners();
+}
+  
+[contenteditable="true"]:active,
+[contenteditable="true"]:hover,
+[contenteditable="true"]:focus{
+  outline:none;
+  
+  @include box-shadow(0, 1px, 1px, 0, rgba(0, 0, 0, 0.075), inset);
+  @include box-shadow(0, 0, 8px, 0, rgba($mainColor, 0.6));
+  
+  }
+#main textarea {
+          border-color: $mainColor;
+
+          &:hover, &:focus {
+          border-color: rgba($mainColor, 0.8);
+          //background-color: $mainColor;
+          @include box-shadow(0, 1px, 1px, 0, rgba(0, 0, 0, 0.075), inset);
+          @include box-shadow(0, 0, 8px, 0, rgba($mainColor, 0.6));
+          }
+
+
+
+}
   
 #main input[type="text"],
       input[type="password"],
@@ -57,7 +94,8 @@ font-family: 'Roboto Condensed', sans-serif;
       input[type="url"],
       input[type="search"],
       input[type="tel"],
-      input[type="color"] {
+      input[type="color"],
+      {
     
         border-color: $mainColor;
 
@@ -96,11 +134,12 @@ font-family: 'Roboto Condensed', sans-serif;
   
   }
 
-#main span.icon-rounded {
+#main .rounded {
   //displau
-  padding: 5px;
-  background-color: $mainColor;
-  @include rounded-corners(15px);
+  //padding: 5px;
+  //background-color: $mainColor;
+  @include rounded-corners(6px);
+  border: 1px solid $mainColor;
 
 }
 
@@ -150,6 +189,31 @@ font-family: 'Roboto Condensed', sans-serif;
 
 .highlight {
   color: $red;
+
+}
+
+.voting {
+  position: relative;
+  
+  a, a:hover, a:active, a:link, a:visited {
+  display: block;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  left: - 30px;
+  height: 15px;
+ 
+  //top: -10px;
+ 
+  
+  icon-sort-down {
+   height: -5px;
+  }
+  
+ // 
+  
+  
+  }
 
 }
 
@@ -280,40 +344,11 @@ header {
        text-decoration:none;
         &:hover {
           text-decoration:none;
-          color: blue;
+          color: $red;
         }
         
       }
       
-      .popup {
-        text-align: left;
-        
-        article {
-          font-size: 12px;
-          max-width: 250px;
-          
-                  h6 {
-        text-align: center;
-        color: black;
-        
-        }
-          
-          p {
-            margin: 0;
-            padding: 3px;
-            font-size: 11px;
-          
-          }
-          
-         a, a:visited, a:link, a:active {
-          color: grey;
-        
-          font-size: 12px;
-          color: #08c;
-          
-          }
-        }
-       }
       
     &.mail {
       position: relative;
@@ -399,6 +434,7 @@ span.ui-match {
   color: white;
   padding: 10px;
 
+
 }
 
 
@@ -437,8 +473,21 @@ div#horizontalbanner {
 
 #menubar .popup {
   position: relative;
+
   
-   div.arrow-up {
+  h6 {
+    text-align: center;
+      a, a:hover, a:visited, a:active{
+          color: #0088cc;
+       //font-size: 12px;
+          
+       &:focus, &:hover {
+            color: #005580;
+          }
+       }   
+  
+    }
+  div.arrow-up {
      @include arrow-up(15px, $green);
       
      //left: 5px;
@@ -453,7 +502,7 @@ div#horizontalbanner {
     top: 40px;
     overflow: auto;
     max-height: 200px;
-    width: 300px;
+    width: 200px;
     z-index: 999;
    // background-color: $green;
     border: 3px solid $green;
@@ -478,16 +527,20 @@ div#horizontalbanner {
       width: inherit;
       padding: 5px;
       margin: 0;
-      color: grey;
-      text-align: left;
+
       font-size: 14px;
       box-sizing: border-box;
       -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
 	    -moz-box-sizing: border-box; 
+          text-align: center;
       
-      
+      &:hover, &:focus {
+        background-color: $yellow;
+        @include transition(background-color, 0.2s)
+        
+      }
        // ensure the popover inside the menu are rendered correctly
-      .custom-popover, .childPopover {
+      .tagPopover, .childPopover {
       
        position: fixed;
        z-index: 12000;
@@ -502,7 +555,14 @@ div#horizontalbanner {
       }
       
       a, a:hover, a:visited, a:active{
-        color: grey;
+          color: #0088cc;
+       //font-size: 12px;
+          
+       &:focus, &:hover {
+            color: #005580;
+          }
+       }   
+      }
       
       }
       
@@ -516,17 +576,15 @@ div#horizontalbanner {
     }
     
     
-    
-    
-    
   }
   
   
-  }
-
-}
+  
 
 
+
+  
+  
 .dialog-box {
  position: absolute;
  padding: 10px;
@@ -543,24 +601,7 @@ div#horizontalbanner {
   
 }
 
-div.child {
   
-  //background: #fff;
-  margin: 10px;
-
-
-  .childPopover {
-  position: absolute;
-  z-index: 700;
-  background: #fff;
-  width: 200px;
-  min-height: 40px;
-
-}
-  
-  
-
-  }
   
 #infoWindow {
  overflow: auto;
@@ -610,18 +651,15 @@ div.child {
 
 }
 
-div.editable {
-  border: 1px solid grey;
-  min-height: 50px;
+img.circled {
+  border: 2px solid $mainColor;
+  @include rounded-corners();
+  padding: 2px;
 }
 
 #new-discussion {
    width: 30%;
   
-  .editable {
-     min-height: 80px;
-   }
-   
 }
 
 .comment {
@@ -656,12 +694,26 @@ div.menu {
 }
 
 
-/* a.selected {
-
+div.thumbnail  {
+  border: solid 1px $yellow;
+  
+  &:hover, &:focus {
+    @include box-shadow(0, 0, 2px, 2px, $yellow, inset);
+    @include transition(box-shadow);
+  }
+  
+  &.selected {
+   border: solid 2px $green;
+   
+   
+    @include box-shadow(0, 0, 3px, 3px, $green, inset);
+    @include transition(box-shadow);
+    //@include transition(border);
+  }
 
 }
 
-a.share {
+/* a.share {
   font-weight: 700;
   background-color: black;
 
@@ -679,25 +731,85 @@ a.question {
 
 // Pages
 
-#home {
-  
-  #newComment {
-    position: absolute;
-    //top: 0;
-    z-index: 500;
-    padding: 5px;
-    background: #fff;
-    width: 100%;
-    //border: inherit;
-    @include box-shadow(0, 0, 3px, 3px, $yellow);
-    box-sizing: border-box;
-    .editable {
-      width: 90%;
+#input-bar {
+     text-align: center;
 
+    
+    .input-form {
+    display: block;
+    margin: auto;
+    width: 33% ;
+    
+    text-align: center;
+       @include box-shadow(0px, 0px, 3px, 3px, $mainColor, inset);
+    //border: 2px solid $yellow;
+    padding: 10px;
+    box-sizing: border-box;
+    @include rounded-corners();
+    overflow: auto;
+    //background: #fff;
+    @include gradient(darken(#fff, 8%), darken(#fff, 4%), #fff);
+    
+    
+    
+    
+    .full-width {
+    //  width: 90%;
+    
     
     }
     
-  }
+    
+    }
+    
+    .btn-group {
+      margin: 10px 0;
+      
+      
+      button:first-child {
+      @include rounded-sides(left);
+      }
+      
+      button.rounded-right {
+      @include rounded-sides(right);
+      }
+    }
+    
+    #new-question {
+    
+      input {
+        width: 90%;
+        
+      
+      }
+      
+      [contenteditable] {
+        height: 30px;
+        width: 90%;
+        margin: auto;
+      }
+    
+      textarea {
+        width: 90%;
+      
+      
+      }
+    
+    }
+}
+
+i.icon-quote-left {
+      color: $green;
+}
+    
+i.icon-film {
+      color: $ligthGreen;
+}
+i.icon-camera-retro {
+      color: $yellow;
+}
+
+#home {
   
   
   .update {
@@ -706,20 +818,23 @@ a.question {
     float: left;
     min-width: 30%;
     min-height: 40px;
-    
-  
-    
-
+    //background: rgba(, 0.1);
+   // opacity: 0.5;
+    background-color: #fff;
+    //z-index:1; 
+    //postition: relative;
    
     .discussion {
     
-    background-color: #fff;
-    @include box-shadow(0px, 0px, 5px, 3px, $yellow, inset);
+   // background-color: #fff;
+    @include box-shadow(0px, 0px, 3px, 3px, $mainColor, inset);
     //border: 2px solid $yellow;
     padding: 10px;
     box-sizing: border-box;
     @include rounded-corners();
     overflow: auto;
+    //z-index:1; 
+    //position: relative;
     
     i.icon-quote-left {
       color: $green;
@@ -733,25 +848,42 @@ a.question {
     }
     
     &:hover {
-    background: rgba($green, 0.1);
-    @include transition(background);
-    //@include gradient($green, $ligthGreen, $yellow)
-  
+
+    @include transition(box-shadow, 0.2s);
+    @include box-shadow(0px, 0px, 3px, 3px, $green, inset);
+
+    &.video {
+      @include box-shadow(0px, 0px, 3px, 3px, $ligthGreen, inset);
+    
+    }
+    
+    &.pictures {
+      @include box-shadow(0px, 0px, 3px, 3px, $yellow, inset);
+    
+    }
+    
 
     }
     
   }
   
   .question {
-    position: relative;
-    border: 2px solid $ligthGreen;
-     padding: 10px;
-        &:hover {
-    background: rgba($yellow, 0.1);
-    @include transition(background);
-   // @include gradient($red, $green, $yellow)
+    @include box-shadow(0px, 0px, 3px, 3px, $mainColor, inset);
+    //border: 2px solid $yellow;
+    padding: 10px;
     box-sizing: border-box;
     @include rounded-corners();
+    overflow: auto;
+    //z-index:1; 
+    //position: relative;
+    
+    i.icon-question-sign {
+      color: lighten($red, 10%);
+    }
+   
+    &:hover {
+      @include transition(box-shadow, 0.2s);
+      @include box-shadow(0px, 0px, 3px, 3px, lighten($red, 10%), inset);
 
     }
    }
@@ -864,9 +996,67 @@ video {
 
 }
 #input-picture {
-  width: 100 px;
-  height: 100px;
+  //width: 100 px;
+  //height: 100px;
 }
+
+.discussion {
+  margin: 10px 0;
+  
+ 
+
+}
+
+.discussion {
+  padding: 20px;
+  //background-color: $green;
+  @include rounded-corners();
+  
+  .header {
+ // margin: 5px;
+  padding: 0;
+  border-bottom: 2px solid $mainColor;
+  }
+  
+  .column-left {
+    border-right: 2px solid $mainColor;
+  //  margin: 5px;
+  
+  }
+  
+  .column-right: {
+  //margin: 5px;
+  
+  }
+}
+
+.contoureven {
+
+  border-top: 4px solid $green;
+  border-bottom: 4px solid $green;
+}
+
+
+
+.kidslist { 
+  li {
+   //display: inline-block;
+   margin-left: 8px;
+   
+   img {
+     @include rounded-corners();
+     border: 1px solid $mainColor;
+     
+     a {
+     
+       font-weight: 700;
+     }
+   }
+   
+   }
+
+}
+
 .bar {
     height: 18px;
     background: green;
@@ -923,16 +1113,53 @@ div#albumViewer {
     width: 250px;
   
     }
-    
-  tile {
-    width: 33%;
-    float: left;
   
   
-  }
  }
 
+  .tile {
+    
+    img.img-profile {
+      float: left;
+      padding: 2px;
+      margin-right: 5px;
+    }
 
+    width: 30%;
+    float: left;
+    //width: 290px;
+    margin: 5px;
+
+    @include box-shadow(0px, 0px, 3px, 3px, $mainColor, inset);
+    padding: 10px;
+    box-sizing: border-box;
+    @include rounded-corners();
+    overflow: auto;
+
+    &:hover {
+
+    @include transition(box-shadow, 0.2s);
+    @include box-shadow(0px, 0px, 3px, 3px, $red, inset);
+    
+
+    }
+    div.separator {
+      margin-bottom: 2px;
+      padding-top: 2px;
+    
+    }
+    
+  }
+
+.rightcolumn {
+  float : right;
+  width: 50%
+}
+
+.leftcolumn {
+  width: 50%;
+
+}
 
 //
 //
@@ -985,45 +1212,71 @@ div#albumViewer {
 //
 //
 
-span.tag {
-  position: relative;
-  //z-index: 0;
+.taglist {
+  list-style: none;
+  
+  margin: 0;
+  padding: 0;
+  li {
+     display: inline-block;
+     padding: 2px;
+     //margin-left: -10px;
+  
+  }
+}
+
+.tag {
+  display: inline;
+  font-size: 12px;
   cursor: pointer;
-  border: 1px solid;
   padding: 5px;
+  background-color: lighten($green, 35%);
+  width: auto;
   
   @include rounded-corners(6px);
   
-  &:hover {
-  background: black;
-  color: white;
-  //z-index: 0;
-  //z-index: 0;
+  img {
+    padding: 2px;
+    height: 15px;
+    
+  }
+  &:hover, &:focus {
+   a, a:visited, a:hover, a:link {
+     color: #fff;
+    }
+   //@include transition(background, 0.1s);
+   background: $green;
+  }
+  
+  a, a:visited, a:hover, a:link {
+    font-weight: 700;
+    color: $green;
   }
 }
 
 
-div.custom-popover {
-  min-height: 50px;
-  min-width: 15%;
-   position: absolute;
-  
+.tagPopover {
+  height: 40px;
+  width: 100px;
+  position: absolute;
+  //top: 0;
   display: block;
+  
+  border: 3px solid $green;
 
-
-  z-index: 700;
+  z-index: 1200;
  
-  padding: 0;
+  padding: 5px;
   margin: 0;
 
   
-  div.popover-inner {
-   background-color: #fff;
+  .popover-inner {
+     background-color: #fff;
    border: solid 2px red;
    box-sizing: border-box;
   }
   
-  div.popover-header {
+  .popover-header {
       padding: 5px;
   }
   
@@ -1062,4 +1315,95 @@ button.closed {
   background: transparent;
   border: 0;
   -webkit-appearance: none;
+}
+
+
+.child {
+  position: relative;
+  
+}
+
+
+.childPopover, #home .childPopover {
+  position: absolute;
+  //top: 10px;
+  z-index: 1200;
+
+  width: 300px;
+  padding: 5px;
+  
+
+  
+  div.arrow-up {
+      @include arrow-up(15px, $green);
+      position: absolute;
+      left: 10px;
+      top:  0;
+  }
+  
+  div.inner {
+    @include rounded-corners();
+    background: #fff;
+  border: 3px solid $green;
+  min-height: 150px;
+  padding: 10px;
+  margin: 10px;
+  }
+  
+  div.header {
+
+    img {
+     float: left;  
+     padding: 1px;
+     margin: 5px;   
+     border: 2px solid $yellow;
+     @include rounded-corners();
+    }
+  
+  }
+  
+  inner{}
+  
+  footer {}
+  
+  
+}
+
+//.user {
+  //display: inline;
+  //vertical-align: middle;
+  //width: 50%;
+  //background-color: $ligthGreen;
+  //heigth: 30px;
+  //position: relative;
+  //margin: 0;
+  //padding: 0;
+  
+  
+//  span {
+//    display: inline;
+  
+  
+//  a, a:visited, a:link, a:active {
+ //   height: 25px;
+    //display: inline-block;
+   // padding-top: 10px;
+  //  img { 
+ //      float: left;
+       
+ //     }
+ //   }
+ // }
+  
+//}
+
+.userPopover, #home .userPopover {
+  position: absolute;
+  z-index: 1200;
+  //top: 3%;
+  background: #fff;
+  width: 300px;
+  min-height: 40px;
+  border: 3px solid $green;
+
 }

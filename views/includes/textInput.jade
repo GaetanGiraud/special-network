@@ -1,9 +1,15 @@
-h5 Publish an update
-
-div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
-ul
-  li(ng-repeat = "tag in newDiscussion.tags")
-    tag(tag = "tag", action = "true", remove =  "removeTag(tag)" )
-tags(url = '/api/tags', add = 'addTag(tag)')
-br
+div
+  div.clearfix
+    i.icon-quote-left.icon-4x.icon-border.pull-left
+    h4 Post a text update
+  br
+  div.well
+    div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
+    | {{ newDiscussion.content }}
+    ul
+      li(ng-repeat = "tag in newDiscussion.tags")
+        tag(tag = "tag", action = "true", remove =  "removeTag(tag)" )
+      
+    h5 Add topics
+    tags(url = '/api/tags', add = 'addTag(tag)')
 

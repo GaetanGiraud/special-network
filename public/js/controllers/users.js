@@ -18,7 +18,7 @@ function LoginCtrl($scope, User, $rootScope, $location, AuthService, Alert) {
     AuthService.login({'email': $scope.user.email, 'password': $scope.user.password}, function(loggedin) {
       if (loggedin) {
         $location.path('/home');
-        Alert.success('Welcome ' + $scope.currentUser.name + ', you have successfullt logged in!');
+       // Alert.success('Welcome ' + $scope.currentUser.name + ', you have successfullt logged in!');
       } else {
         Alert.error('Error logging in, please try again');
       }

@@ -4,6 +4,7 @@ var mongoose = require('mongoose');
 var userSchema = mongoose.Schema({
     	name: String,
 			email: String,
+      createdAt: { type: Date, default: Date.now},
       hash: String,
       picture: String,
       gender: String,

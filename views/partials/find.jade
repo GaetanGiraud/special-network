@@ -1,6 +1,6 @@
 div.page#find
   div.row
-    div.span5
+    div.span4
      h3 Find People
      h5 That you know
      div.input-prepend
@@ -47,45 +47,50 @@ div.page#find
        tags(url = '/api/tags', add = 'addSuperpower(tag)')
       //superpowers(results = 'superpower', url = '/api/discussions/search?type=tags', create = 'add(string, newObject)')
   
-  div.row(ng-show = "!searchResults")
-    div.span9
+    div.span6(ng-show = "!searchResults")
       p
         | No results yet.
+    
+    div.span7(ng-show = "searchResults.length > 0")
+      div.tile(ng-repeat = 'result in searchResults' )
+        div
+          img.circled(ng-src="{{ result | userThumbPic }}")
+        
+        div.clearfix
+          h5 
+            | {{ result.name }}
   
-  div.span6(ng-show = "searchResults.length > 0")
-    div.tile(ng-repeat = 'result in searchResults' )
-      img(ng-href="{{ result._id.name | userThumbPic }}")
-     
-      table.table
-        tr
-          th
-          th Where I live
-          th My Children
-          th The children I am following
-          th
-        tr(
-          td
-            h6 
-              | {{ result._id.name }}
-            img(ng-src="{{ result._id | userThumbPic }}")
-          td
-            | {{ result._id.location.formattedAddress }}
-          td
-            ul.unstyled(ng-show = 'myChildren(result).length > 0')
-              li(ng-repeat = "child in myChildren(result)")
-                kid(child = "child._id")
-          td
-            | I am following:
-            br
-            | {{ result.childrenCount }}
-            | Children 
-            br 
-            |and following:
-            ul
-              li(ng-repeat = "superb in myTags")
-                tag(tag = "superb")
+          small
+            ul.unstyled
+              li
+                | Living in: 
+                strong 
+                  | {{ result.location.formattedAddress }}
+              li
+                | Member since: 
+                strong{{ result.createdAt | date:'MMMM-yyyy' }}
+          contact( user = "{{ result.user._id }}")
+        div.clearfix.separator
+        zippy(title = 'My kids and topics')
+          div
+            h6 My kids
+            ul.unstyled(ng-show = 'getData(result).length > 0')
+              li(ng-repeat = "child in getData(result)")
+                kid(child = "child")
+                | - 
+                a.follow(ng-click = "follow(child)", ng-show = '!child.isFollowed')
+                  | Follow Him!
+                i.icon-exclamation-sign(title = "Send a message to {{ child.name }}'s {{ child.creator.relationship }}'")
+                a.unfollow(title = "unfollow child", ng-click = "unfollow(child)", ng-show = 'child.isFollowed') ( Unfollow )
+                
+            h6(ng-pluralize, count = "result.children.length", when="{'0': 'Not following any kid yet', '1': 'Following 1 kid', 'other': 'Folowing {} children' }")
             
-          td
-            | Contact me
-            contact( user = "{{ result._id._id }}")
+                
+          div
+            h6(ng-pluralize, count = "result.tags.length", when="{'0': 'Not following any topic yet', '1': 'Following 1 topic', 'other': 'Folowing {} topics' }")
+            ul.unstyled.taglist
+              li(ng-repeat = "superb in result.tags")
+                tag(tag = "superb")
+        
+    
   

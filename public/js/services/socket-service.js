@@ -65,6 +65,12 @@ angular.module('SocketServices', []).
         console.log('deconnected from: ' + room)
         return;
       }
+      
+      
+      
+      
+      
+      
     };
   }])
   

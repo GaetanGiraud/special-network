@@ -1,0 +1,17 @@
+div
+  i.icon-question-sign.icon-4x.icon-border.pull-left
+  
+small
+  user(data-user = "item.document._creator")
+  | {{ item.document.updatedAt | fromNow }}
+  
+h5
+  a(ng-her = "{{ item.document.title }}"
+    | {{ item.document.content }}
+
+ul.tag-list
+  li(ng-repeat = "tag in item.document.tags")
+    tag(tag = "tag", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+
+
+zippy(title = "Show comments")

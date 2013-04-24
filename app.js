@@ -252,7 +252,7 @@ sessionSockets.on('connection', function(err, socket, session){
     socket.on('commentAdded', function(data) {
       // storing only the comment creator id into the database.
       data.comment._creator = data.comment._creator._id;
-      
+
       api.discussions.addComment(data.discussionId, data.comment, function(err, discussion, comment) {
         if (err) socket.emit('error', err);
         if (discussion.type == 'update') {

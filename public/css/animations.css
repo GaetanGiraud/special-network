@@ -55,3 +55,22 @@
 
 .hide-animation-setup.hide-animation-start {
   opacity: 0; }
+
+.show-animation-input-setup,
+.hide-animation-input-setup {
+  -webkit-transition: all linear 0.4s;
+  -moz-transition: all linear 0.4s;
+  -o-transition: all linear 0.4s;
+  transition: all linear 0.4s; }
+
+.show-animation-input-setup {
+  opacity: 0; }
+
+.show-animation-input-setup.show-animation-input-start {
+  opacity: 1; }
+
+.hide-animation-input-setup {
+  opacity: 1; }
+
+.hide-animation-input-setup.hide-animation-input-start {
+  opacity: 0; }

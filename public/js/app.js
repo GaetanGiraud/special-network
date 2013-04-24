@@ -2,7 +2,7 @@
 
 
 // Declare app level module which depends on filters, and services
-var app = angular.module('CareKids', ['ngSanitize', 'angular-underscore', 'CareKids.filters', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service', 'geoService', 'SocketServices']).
+var app = angular.module('CareKids', ['ngSanitize', 'angular-underscore', 'CareKids.filters', 'followService', 'CareKids.services', 'CareKids.directives', 'ui', 'ui.bootstrap', 'auth-service', 'geoService', 'SocketServices']).
   config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.when('/', {templateUrl: 'partials/index', controller: AppCtrl});
     $routeProvider.when('/logout', {templateUrl: 'partials/home', controller: LogoutCtrl});
@@ -57,6 +57,8 @@ app.run(['$rootScope', '$location', 'AuthService', 'requests401',  function ($ro
         });
       }
     });
+    
+  
     
     $rootScope.$safeApply = function($scope, fn) {
       fn = fn || function() {};

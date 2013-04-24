@@ -1,0 +1,23 @@
+div(ng-controller = 'NewDiscussionCtrl')
+  ul.unstyled
+    li(ng-repeat = "child in postChildren", style = "display: inline-block; padding: 5px;")
+      label
+        input(type = 'checkbox', ng-model = "child.send")
+        kid(child = 'child')
+
+  div(ng-switch on = "inputType")
+    div(ng-switch-when="text")
+      include ../includes/textInput
+    div(ng-switch-when="picture")
+      include ../includes/pictureInput
+    div(ng-switch-when="video")
+      include ../includes/videoInput
+    
+  div.btn-group.fileupload-buttonbar.footer
+    button.btn(type = "button", style = "height: 39px", ng-click = "createDiscussion()") Post
+    button.btn(type = "button", ng-click = "setInputType('text')", ng-disabled="inputType == 'text'", title = 'Publish a text update.' )
+      i.icon-quote-left.icon-white.icon-2x
+    button.btn(type = "button", ng-click = "setInputType('picture')", ng-disabled="inputType == 'picture'", title = "Publish a picture." )   
+      i.icon-camera-retro.icon-white.icon-2x
+    button.btn(type = "button", ng-click = "setInputType('video')", ng-disabled="inputType == 'video'", title = "Publish a video."  ) 
+      i.icon-film.icon-white.icon-2x

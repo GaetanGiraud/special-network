@@ -1,26 +1,36 @@
-div.row
+div.row.page
   div.span9
-    h3 Search Results
-    p 
-      |  {{ data.hits }} results found corresponding to  {{ term }}
-    ul.unstyled
-      li(ng-repeat = "result in data.results")
-        ul
-          li(ng-repeat = "tag in result.document.tags")
+    h3 Search Results for 
+      strong 
+       | {{ term }}
+
+    ul.unstyled/searchresults
+      li(ng-repeat = "item in results")
+        div
+        i.icon-4x.icon-border.pull-left(ng-class = "{ 'icon-camera-retro': 'item.pictures.length > 0', 'icon-quote-left': ' !item.video && item.pictures.length == 0 && !item.title', 'icon-film': 'item.video', 'icon-question-sign': 'item.title'}")
+
+        
+        div(ng-hide = "item.title")
+          h4
+            a(ng-href = "item.url") {{ item.content }}
+          h5 About
+            ul.kidslist
+              li(ng-repeat = "child in item.children")
+                kid(child = 'child')
+        
+        div(ng-show = "item.title")
+          a(ng-href = "/questions/{{item.url}}", ng-show = "item.title")  {{ item.title | inflector }}
+        
+        ul.taglist
+          li(ng-repeat = "tag in item.tags")
             tag(tag = "tag")
-        img(ng-src = "{{ result.document._creator | userIconPic }}")
-        | {{ result.document._creator.name }}
-        | {{ result.document.createdAt | fromNow }}
-        div(ng-switch on= "result.type")
-          div(ng-switch-when="discussion")
-            //a(ng-href="/childrens/{{ result.documentpageTitle }}")
-            | {{ result.document.content }}
-          h4 THis is a discussion
-          div(ng-switch-when="question")
-            a(ng-href="/questions/{{ result.document.title }}")
-              | {{ result.document.content }}
-            p
-              | {{ result.document.details }}
-            h4 THis is a question
+            
+        div.clearfix.footer
+          | Posted by: 
+          user(data-user = "item._creator")
+          small
+            | Last updated on
+            strong
+              | {{ item.createdAt | date:'MMM-yyyy' }}
           
-  //div(paginate, new-page-target = "questions", url = "", ng-show = "questions.length > 9")  
+  div(paginate, new-page-target = "results", url = "{{ resultUrl }}")  

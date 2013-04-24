@@ -111,22 +111,32 @@ exports.add = function (req, res) {
 };
 
 exports.findById = function (req, res) {
-   
-  User.findById(req.params.id, function (err, user) {
-    if (!err) {
-      return res.json({
-        "_id": user._id,
-        "name": user.name,
-        "email": user.email,
-        "picture": user.picture,
-        "children" : user.children,
-        '_location': user._location,
-        'settings': user.settings
-        });
-    } else {
-      console.log(err.red);
-      return res.send(400, err);
-    }
+  var id = req.params.id;
+  User.findById(id)
+  .select('_id name email picture location settings')
+  .exec(function (err, user) {
+    if (err) return res.send(400, err);
+    
+    if (!req.query.metadata)  return res.json(user);
+  
+    Tag.find({'followers': id} , function(err, tags) {
+      if (err) return res.send(400, err); 
+      
+      Child.find({'permissions._user': id, 'permissions.validated': { $ne: false }} )
+      .count(function(err,count) {
+         if (err) return res.send(400, err); 
+         
+         Child.find({ 'permissions._user': req.session.user, 
+                      'permissions.relationship': { $ne: 'Friend' },
+                      'permissions.validated': { $ne: false } }, function(err, children) {
+            
+            if (err) return res.json(err);
+            return res.json({user: user, tags: tags, count: count, children: children});
+         })
+      })
+      
+    }) 
+
   });
 };
 
@@ -258,7 +268,14 @@ exports.search = function (req, res) {
    var distance = req.query.distance;
    var querySuperpowers = req.query.superpowers;
    var centerlocation = [req.query.lng, req.query.lat] ;
-   
+   var users;
+   var endResults;
+    
+   if (req.query.page) {
+     var skipIndex = req.query.page -1;
+   } else { 
+    var skipIndex = 0;
+   }
   // console.log(req.query.superpowers);
    
    if (typeof req.query.term == "undefined" || req.query.term == "") {
@@ -268,39 +285,143 @@ exports.search = function (req, res) {
       var cleanedTerm = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
 
     }
-    
-    console.log(cleanedTerm);
-  //  console.log( querySuperpowers )
+
     
     if (typeof querySuperpowers != 'undefined') {
       //querySuperpowers = req.query.superpowers.replace(/[\[\]{}|&;$%@"<>()+]/g, "").split(',');
-      var opts = {'superpowers': {$in: querySuperpowers }};
-      
+      //console.log(querySuperpowers ); 
+      querySuperpowers = _.map(querySuperpowers, function(_id) { return mongoose.Types.ObjectId(_id) })
+      var opts = {'_id': { $in: querySuperpowers }};
+    //  console.log(opts);
       //console.log(querySuperpowers)
       } else { 
          var opts = {};
       };
+        
     
-   //console.log(querySuperpowers.length);
-    //re = new RegExp(cleanQuery)
-   /* if ( querySuperpowers == null) {
-      console.log('not super po wnter');
-     ;
-    } else { 
+    // first find user by location and name to restrict the number of users for the ta. Mongo gives the first 100, enough for further processing     
+    
       
-    }*/
+      // from this first sub-list check for the tags.
+      Tag.aggregate(
+          { $match: opts },
+        //  { $match: {'followers': { $in: userIds } } }, 
+          { $unwind: "$followers"}, 
+          { $limit: 100 },
+          
+       //   { $group: { _id: '$followers' } },
+          function(err, results) {
+          console.log(results);
+           // Checking the result. If no user matches the tag request, no need to proceed
+           if (results.length > 0) { 
+             userIds = _.map(results, function(result) { return (result.followers)} )
+             } else if (results.length == 0 && typeof querySuperpowers != 'undefined') {
+         
+                 return res.json([]);
+               }
+         
+           // we now look for users who have passed both conditions
+           User.find({'name': {$regex: cleanedTerm, $options: 'i'}, // search term
+             'location.loc': {$nearSphere: centerlocation, $maxDistance: distance/6371}, // distance criteria
+             '_id': {$in: userIds } })
+         //    '_id': { $ne: req.session.user }})
+             .skip(skipIndex *10)
+             .limit(10)
+             .exec(function(err, users) {
+                if (err) return res.json(err);
+               // if (users.length == 0) return res.json([]);
+                //users = users;
+                return res.json(users);
+               
+              })
+      
+      });
+      
+    }
     
-    User.find({'name': {$regex: cleanedTerm, $options: 'i'}, // search term
+  /*           console.log(users.length);
+                var counter = users.length;
+                users.forEach(function(element, index, array){ //for (var i = 0; i < users.length; i++) {
+                  // finding relevant information about this user
+                 
+                
+             
+                
+         Tag.find({'followers': users[index]._id} , function(err, tags) {
+                    console.log(tags)
+                      if (err) return res.send(400, err); 
+                //      console.log(tags);
+                      users[index] = {user: users[index], tags: tags};
+                         // find the children he/she is following
+                        console.log(counter);
+                        counter = counter - 1
+                         if (counter == 0) {
+                           console.log('starting the children'.green);
+                         var newCounter = users.length;
+                         users.forEach(function(element, index, array){
+                           Child.find({ 'permissions._user': element.user._id,
+                                        'permissions.relationship': { $ne: 'Friend' }})
+                                    //    'permissions.validated': { $ne: false } })
+                            .populate('superpowers')
+                            .exec(function(err, children) {
+                        //      console.log('showing');
+                              console.log(children);
+                              if (err) return res.json(err);
+                              users[index] = { user: users[index].user, tags: users[index].tags, children: children };
+       
+                              if (counter--) return res.json(users);
+                           
+                           })
+                         })
+                       }
+                      
+                    }) 
+                });
+                
+    /* var getUsers = function(tags, callback)
+     
+     User.find({'name': {$regex: cleanedTerm, $options: 'i'}, // search term
              'location.loc': {$nearSphere: centerlocation, $maxDistance: distance/6371}}, // distance criteria
              {'_id': { $ne: req.session.user }}) // exlude the current user from the search results
-     .limit(50) // limit to a reasonable number of requests for performance purposes.
-     .select('_id')
+        // limit to a reasonable number of requests for performance purposes.
      .exec(function(err, users) { 
+      var userIds = _.map(users, function(user) {return user._id });
+    
+    
+    
+    
+    
+    
+    
+    });
+    
+       
         if (err) return res.send(400, err);
         // Extract the user ids into an array
         var userIds =  _.map(users, function(user) { return user._id } );
       
-        Child.aggregate( 
+       counter = users.length;
+       
+       for(var i; i < results.length; i++) {
+         
+                                  
+              Child.find({'permissions._user': users[i]._id}, function(err, children) {
+                if (err) return res.send(400, err);
+                         
+                if (children.length > 0) users[i] = _.extend(users[i], {children: children});
+                        
+                if (counter-- == 0) { 
+                   return res.json(users);
+                }
+              });
+          });
+        }
+      });
+      
+  }
+      
+      
+      /*  Child.aggregate( 
           { $match: {'permissions._user': { $in: userIds }}},
           { $match: opts },
           { $project : 
@@ -315,30 +436,39 @@ exports.search = function (req, res) {
           
           function (err, results) {
               if (err) return res.send(400, err);
-
-              User.populate(results, { 
-                path: '_id', 
-               // match: {'name': {$regex: cleanedTerm, $options: 'i'}},
-                match: { 'name': {$regex: cleanedTerm, $options: 'i'}, 'location.loc': {$nearSphere: centerlocation, $maxDistance: distance/6371},
-                '_id': { $ne: req.session.user }},
-              //  match: {'_id': { $ne: req.session.user }},
-                select: '_id name picture location'
-                },
-                function(err, results) {
-                 // console.log(results);
-                 
-                  var filteredResult = _.filter(results, function(result) { 
-                    return result._id != null;
-                     });
-                  Child.populate(filteredResult , {path: 'children._id'}, function(err, results) {
-                   console.log('results after search')
-                   console.log(filteredResult);
-                   Tag.populate(results,{path: 'children._id.superpowers'}, function(err, data) {
-                      if (err) return res.send(400, err);
-                      res.json(filteredResult);
-                    });
-                  });
-              });
+              
+                User.populate(results, { 
+                  path: '_id', 
+                 // match: {'name': {$regex: cleanedTerm, $options: 'i'}},
+                  match: { 'name': {$regex: cleanedTerm, $options: 'i'}, 'location.loc': {$nearSphere: centerlocation, $maxDistance: distance/6371},
+                  '_id': { $ne: req.session.user }},
+                //  match: {'_id': { $ne: req.session.user }},
+                  select: '_id name picture location createdAt'
+                  },
+                  function(err, results) {
+                   // console.log(results);
+                   
+                    var filteredResult = _.filter(results, function(result) { 
+                      return result._id != null;
+                       });
+                    Child.populate(filteredResult , {path: 'children._id'}, function(err, results) {
+                     
+                     counter = results.length;
+                     for(var i, i < results.length, i++) {
+                     
+                     Tag.find({'followers': results[i]._id._id}, function(tags) {
+                       
+                      results[i] = _.extend(results[i], tags);
+                       if (counter-- == 0) {                     
+                       Tag.populate(results,{path: 'children._id.superpowers'}, function(err, data) {
+                         if (err) return res.send(400, err);
+                         res.json(filteredResult);
+                       });
+                     }
+                   });
+                  }
+                });
+             });
           });
     });
     
@@ -395,7 +525,7 @@ exports.search = function (req, res) {
    
    //Child.populate
 
-};
+
    
    /*
    Location.findById(req.query.homeLocation, function(err,location) {

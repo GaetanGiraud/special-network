@@ -1,25 +1,33 @@
 div(ng-controller = 'PictureCtrl')
-  h5 Publish a picture
-  include ../includes/albumChoice
+  div.clearfix
+    i.icon-camera-retro.icon-4x.icon-border.pull-left(ng-show = "inputType == 'picture'")
+    h4 Post pictures
+    
+    include ../includes/albumChoice
   
   ul.thumbnails
     li.span2(ng-repeat = "pic in newDiscussion.pictures ")
+      h5(ng-show = "$first") Pictures selected
       div.thumbnail
+        button.btn.transparent(type = "button", ng-click= 'removePictureFromDiscussion($index)') &times
         img(ng-src = "{{ pic | thumbPicture}}", alt = 'picture {{ picture.file }}')
-        input.span2(type = "text", ng-model = "pic.title", placeholder = "Tell more about this picture")
-        button.btn(type = "button", ng-click= 'removePictureFromDiscussion($index)') &times
-      
+        h6 Change the picture title
+        input.span(type = "text", ng-model = "pic.title", placeholder = "Tell more about this picture")
+
     
-  div.well(id = 'input-picture')
-    | Drop files here
+  div.well
+    div(id = 'input-picture')
+    strong
+      | or drag & drop files here
   
-  div
     span.btn.btn-success.fileinput-button
       i.icon-picture.icon-white
       span 
         | Add picture(s) 
         input(type="file", uploader, opts = "pictureUploadOptions" , done='addPicture(file)', data-url="/upload", multiple)
-  br
-  br
-  div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
+    br
+    br
+    h5 Describe these pictures
+    div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
+    
   

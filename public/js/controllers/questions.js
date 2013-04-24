@@ -3,7 +3,7 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket, $loca
     // setting default values for new discussions.
     
     
-    
+    $scope.showDetails = false;
     $scope.newQuestion = {};
     $scope.showNewQuestion = false;
     $scope.newQuestion.tags = [];
@@ -15,6 +15,8 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket, $loca
         $scope.newQuestion._creator = { '_id': user._id, 'name': user.name, 'picture': user.picture } ;
       }  
     });
+    
+
     
    //$scope.questions = Question.query();
    
@@ -103,19 +105,27 @@ function QuestionsCtrl($scope, $rootScope, Question, $http, Alert, Socket, $loca
    $scope.createQuestion = function() {
        Question.save($scope.newQuestion, 
          function(question) {
-           $scope.questions.unshift(question);
+           //$scope.questions.unshift(question);
             $scope.showNewQuestion = false;
             $scope.newQuestion.tags = [];
             $scope.newQuestion.content = '';
             $scope.newQuestion.details = '';
-            $scope.$emit('QuestionCreated', question);
+             $location.path('/questions/' + question.title );
+
         }, 
         function(err) {
            console.log(err);
-           Alert.error(err.data.err);  
+           Alert.error(err.data.err); 
+           $rootScope.$broadcaste('event:masonryReload'); 
         });
      
      }
+     
+    $scope.$on('event:resetInputs', function() {
+       $scope.newQuestion.tags = [];
+       $scope.newQuestion.content = '';
+       $scope.newQuestion.details = '';
+    });
 }
 QuestionsCtrl.$inject = ['$scope', '$rootScope', 'Question', '$http', 'Alert', 'Socket', '$location'];
 
@@ -128,8 +138,9 @@ function QuestionCtrl($scope, $routeParams, Question, $http, Alert, Socket) {
   $scope.question = Question.get({questionId:  $routeParams.questionId }, 
     function(data) {
       $scope.question = data;
-      $scope.question.answers = _.sortBy(data.answers, function(answer) { return -answer.totalVotes });
     
+      $scope.question.answers = _.sortBy(data.answers, function(answer) { return -answer.totalVotes });
+     
     });
   
   $scope.$watch('currentUser', function(currentUser) {
@@ -139,14 +150,16 @@ function QuestionCtrl($scope, $routeParams, Question, $http, Alert, Socket) {
     }
   })
   
- /* $scope.totalVotes = function(answer) {
+   $scope.totalVotes = function(answer) {
     return _.reduce(answer.votes, function(memo, vote){ return memo + vote.vote; }, 0);  
-  }*/
+  }
   
   $scope.createAnswer = function() {
     $http.post('/api/questions/' + $scope.question._id + '/answers', $scope.newAnswer)
       .success(function(data) {
         $scope.question.answers.push(data);
+        $scope.showNewAnswer = false;
+        $scope.newAnswer.content = '';
       })
    }
    
@@ -175,6 +188,8 @@ function QuestionCtrl($scope, $routeParams, Question, $http, Alert, Socket) {
 function newQuestionCommentCtrl($scope, $http) {
   
   $scope.newComment = {}; 
+  $scope.showDetails = false;
+  $scope.showComments = false;
   
   $scope.$watch('currentUser', function(currentUser) {
      if (angular.isDefined(currentUser) && currentUser != null) {

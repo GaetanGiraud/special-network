@@ -104,12 +104,36 @@ function MyTagsCtrl($scope, $http) {
 }
 MyTagsCtrl.$inject = ['$scope', '$http'];
 
-function HomeCtrl($scope, $http, $location) {
+function HomeCtrl($scope, $http, $location, Socket, $rootScope, Alert) {
+  
+  $scope.showNewKid = false;
+  $scope.showNewQuestion = false; 
+  $scope.showNewPost = false;
+  $scope.roundedCorners = true;
+  $scope.term = $location.search().term;
+
+  $scope.$watch('term', function(term) {
+   if (angular.isDefined(  term )){
+     console.log(term);
+      
+      $scope.resultUrl = '/api/questions/search?term=' + term  ;
+       $http.get( $scope.resultUrl )
+       .success(function(data) {
+
+      console.log(data); 
+      $scope.results = data; 
+      $rootScope.$broadcast('event:loadMachinery');
+    })
+   }
+  });
+
   
    $scope.$watch('searchTags', function(searchTags) {
      // to do - do a search in elastic search with the tags and the terms
+     if (angular.isUndefined( $location.search().term )) {
       if (angular.isDefined( searchTags )) {
         var request;
+        if (searchTags.length >0) {
         angular.forEach($scope.searchTags, function(tag) {
           if(!request) {
             request = 'tags[]=' + tag._id;
@@ -117,55 +141,124 @@ function HomeCtrl($scope, $http, $location) {
             request = request + '&tags[]=' + tag._id;
           }
         });
+      } else { var request = ''}
         //console.log(request);
         $scope.resultUrl = '/api/questions/search?' + request ;
         $http.get($scope.resultUrl)
         .success(function(data) {
-          $scope.results = data.results; 
+          $scope.results = data; 
           $scope.$broadcast('event:loadMachinery');
           console.log(data);
        });
        }
-      }, true);  
+      }
+    }, true);  
       
+  $scope.toggleInput = function(input) {
+   // $scope.$broadcast('event:resetInputs');
+    
+    if (input == 'showNewKid') {
+      $scope.showNewKid = true;
+      $scope.showNewQuestion = false; 
+      $scope.showNewPost = false;
+    } else if (input == 'showNewQuestion') {
+      $scope.showNewKid = false;
+      $scope.showNewQuestion = true; 
+      $scope.showNewPost = false;  
+    } else if (input == 'showNewPost') {
+      $scope.showNewKid = false;
+      $scope.showNewQuestion = false; 
+      $scope.showNewPost = true;  
+    } else {
+      // else reset everything
+      $scope.showNewKid = false;
+      $scope.showNewQuestion = false; 
+      $scope.showNewPost = false;  
       
-   var sortResults = function(){
-       var sortedResults = _.sortBy($scope.results, function() { return document.updatedAt }).reverse();    
-       $scope.$safeApply($scope, function() { 
-         $scope.results = sortedResults; 
-         //$scope.$broadcast('event:reloadMachinery');
-         });
-   }
+      $scope.roundedCorners = true;
       
+    }
+    
+  }
+  
+
   
   $scope.$on('event:commentAdded', function(event, comment, id) {
    
-    console.log('adding ' + id);
     for(var i = 0; i < $scope.results.length; i ++) {
         if ( $scope.results[i].document._id == id) {
-          console.log('adding ' + id);
-           $scope.results[i].document.comments.push(comment);
-           $scope.results[i].document.updatedAt = moment.utc().format();
-          // sortResults();
-           
+           $scope.results[i].comments.push(comment);
           break;     
         }
     }
   });
   
-  $scope.$on('QuestionCreated', function(question) {
-      $scope.showNewQuestion = false;
-      $scope.newQuestion.content = '';
-      $scope.newQuestion.details = '';
-      $scope.newQuestion.tags = [];
-      Alert.success('Question created');
+  /* To be checkd */
+    Socket.socket().on('newComment', function(comment) {
+      console.log(comment);  
+      for(var i = 0; i < $scope.results.length; i ++) {
+        if ( $scope.results[i]._id == comment.discussionId) {
+           $scope.$apply($scope.results[i].comments.push(comment.comment));
+          break;     
+        }
+      }
+    });
+    
+    // Add new discussion received on the opened socket / room.
+    
+    Socket.socket().on('newDiscussion', function(discussion) {
+     // $scope.$safeApply($scope.results.unshift(discussion));
+     // $scope.$broadcast('event:masonryReload');
+    });
+
+    
+  /*  End  */
+    
+    $scope.$on('newDiscussion', function(event, discussion) {
+       console.log('new discusison recieved locally')
+       console.log(discussion)
+       
+      // $scope.$safeApply($scope, function() { 
+         $scope.showNewPost = false;
+         // $scope.results.unshift(discussion);
+         console.log($scope.results);
+         //$rootScope.$broadcast('event:masonryReload');
+      //  });
+         
+    });
+    
+    // After creating discussion, update discussion with info sent back from the server.
+     Socket.socket().on('discussionSavedSuccess', function(discussion) {
+      // for(var i = 0; i < $scope.results.length; i ++) {
+        //if ( $scope.results[i]._id == id) {
+          //console.log('adding ' + id);
+             console.log('new discusison recieved from the server')
+             console.log(discussion)
+           $scope.$safeApply($scope, function(){ 
+             $scope.results.unshift(discussion);
+             Alert.success('Discussion created');
+             $scope.$broadcast('event:masonryReload');
+          });
+          //break;     
+       // }
+    //  }
+    });
+
+  
+  
+  $scope.$on('QuestionCreated', function(event, question) {
+      $scope.showNewQuestion = false; 
+      //$scope.results.unshift(question);
+      $location.path('/questions/' + question.title );
+      //Alert.success('Question created');
+      //$rootScope.$broadcast('event:masonryReload');
     });
   
       
       
   
 }
-HomeCtrl.$inject = ['$scope', '$http', '$location'];
+HomeCtrl.$inject = ['$scope', '$http', '$location', 'Socket', '$rootScope', 'Alert'];
 
 function Home2Ctrl($scope, $rootScope, Discussion, $http, Alert, Child, Socket) {
     Socket.subscribe('discussions');

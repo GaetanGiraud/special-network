@@ -1,0 +1,56 @@
+div.content
+  div.sideinfo
+    i.icon-camera-retro.icon-4x.icon-border.pull-left(ng-show = 'item.pictures.length > 0')
+    i.icon-quote-left.icon-4x.icon-border.pull-left(ng-show = ' !item.video && item.pictures.length == 0')
+    i.icon-film.icon-4x.icon-border.pull-left(ng-show = 'item.video')
+    i.icon-question-sign.icon-4x.icon-border.pull-left(ng-show = 'item.title')
+  
+  span(ng-repeat = "child in item.children")
+    kid(child = "child", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+  p(ng-hide = "item.title")
+    | {{ item.content }}
+  p(ng-show = "item.title")
+    strong
+      a(ng-href = "/questions/{{ item.title }}")
+       | {{ item.content }}
+
+  
+div.separator.clearfix(ng-show = "item.pictures.length > 0")
+  ul.thumbnails
+    li(ng-repeat = "pic in item.pictures")
+      img.img-profile(ng-src = "{{ pic | thumbPicture }}")
+      h6 {{ pic.title }}
+        
+div.separator.clearfix(ng-show = "item.video")
+  div(video = "{{ item.video.name }}") 
+    h6 {{ item.title }}
+  
+div.clearfix.separator.meta
+  user(data-user = "item._creator", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+  small.pull-right
+      | {{ item.updatedAt | fromNow }}
+
+  div.about.clearfix
+    h5 Topics
+    ul
+      li.tag-list(ng-repeat = "tag in item.tags")
+        tag(tag = "tag", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+
+
+
+
+    zippy(title = "{{ item.comments.length }} Replies", reload-masonry = 'true', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+      p(ng-show = "item.comments.length == 0")
+        | No comments yet, be the first one to respond!
+        
+      div.comment(ng-repeat =  'comment in item.comments')
+        user(data-user = "comment._creator")
+        p(ng-bind-html = 'comment.content')
+      
+      div(ng-controller = 'newCommentCtrl')
+        div(ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+          h6 Add a new comment
+          div.editable(contenteditable = "true", ng-model = "newComment.content") 
+          br
+          button.btn.btn-primary(ng-click="createComment(item.document)") Post 
+  

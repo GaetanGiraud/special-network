@@ -60,6 +60,8 @@ exports.findById = function (req, res) {
 
 exports.findAll = function (req, res) {
   var opts;
+  var pages = 100;
+  var skipIndex = 0;
 
   if(req.query.following == "familly") {  
     opts = { 
@@ -68,13 +70,21 @@ exports.findAll = function (req, res) {
         'permissions.relationship': { $ne: 'Friend' },
         'permissions.validated': { $ne: false }
         };
+    
   } else if (req.query.following == "others") {
     opts = {
          'permissions._user': req.session.user, 
          'creator._user': {$ne: req.session.user }, 
          'permissions.relationship': 'Friend',
          'permissions.validated': { $ne: false } };
-  } else if(req.query.post) {
+         
+    pagination = 1;
+    
+    if (!_.isUndefined(req.query.page)) { 
+      skipIndex =  params.query.page -1;
+      }
+         
+  } else if(req.query.following == 'post') {
      opts = {'permissions._user': req.session.user, 
              'permissions.rights': 'write',
              'permissions.validated': { $ne: false }};
@@ -84,6 +94,8 @@ exports.findAll = function (req, res) {
   console.log(req.query.following)
   console.log(opts)
   Child.find(opts)
+       .skip(skipIndex *10 )
+       .limit(10 * pagination)
        .populate('lastUpdate')
        .populate({
          path: 'superpowers'

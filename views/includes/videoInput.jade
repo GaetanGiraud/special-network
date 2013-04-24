@@ -1,25 +1,33 @@
 div(ng-controller = 'VideoCtrl')
-  h5 Publish a video
-  include ../includes/albumChoice
-      
+  div#input-video.clearfix
+    i.icon-film.icon-4x.icon-border.pull-left
+    h4 Post a video update
+    
+    include ../includes/albumChoice
+  
+  
   div#video_upload(ng-show = "newDiscussion.video")
-    div(video = "{{ newDiscussion.video.name }}") 
-    input.span2(type = "text", ng-model = "newDiscussion.video.title", placeholder = "Tell more about this picture")
-    button.btn(type = "button", ng-click= 'removeVideoFromDiscussion($index)') &times
+     h5 Uploaded video
+     div(video = "{{ newDiscussion.video.name }}") 
+     input.span2(type = "text", ng-model = "newDiscussion.video.title", placeholder = "Tell more about this picture")
+     h6 Change the video title
+     button.btn(type = "button", ng-click= 'removeVideoFromDiscussion($index)') &times
        
   div#progress
     div.bar(style="width: 0%;")
       
-  div.well(id = 'input-video')
-    | Drop video here
-  
-  div
-    span.btn.btn-success.fileinput-button
-      i.icon-picture.icon-white
-      span 
-        | Add a video 
-        input(type="file", uploader, opts = "videoUploadOptions" , done='addVideo(file)', data-url="/upload")
-  br
-  br
-  div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
+  div.well
+    div(id = 'input-video', ng-hide = "newDiscussion.video" )
+      strong
+        | or drag & drop video here
+        
+      span.btn.btn-success.fileinput-button
+        i.icon-picture.icon-white
+        span 
+          | Add a video 
+          input(type="file", uploader, opts = "videoUploadOptions" , done='addVideo(file)', data-url="/upload")
+    br
+    br
+    h5 Describe this video
+    div.editable(contenteditable = 'true', ng-model = "newDiscussion.content")
   

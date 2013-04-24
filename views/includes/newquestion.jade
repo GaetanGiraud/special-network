@@ -1,0 +1,22 @@
+div#new-question(ng-controller = "QuestionsCtrl")      
+  label Topics related to this question
+  small(ng-show = "newQuestion.tags.length == 0")
+    | Please specify at least one topic for this question. If you can't find the right one, just create it!
+  ul.unstyled.tagslist
+    li(ng-repeat = "tag in newQuestion.tags")
+      tag(tag = "tag", action = "true", remove =  "removeQuestionTag(tag)" )
+  tags(url = '/api/tags', add = 'addQuestionTag(tag)')
+  
+  label Type your question
+  div(contenteditable = 'true', ng-model = "newQuestion.content")
+  
+  label(ng-click = "showDetails = !showDetails")
+    | Add some details?
+    i.icon-caret-down(ng-show = "!showDetails")
+    i.icon-caret-up(ng-show = "showDetails")
+    
+  textarea(ng-model = "newQuestion.details", ng-show = "showDetails", rows = '3')
+  
+  div
+    button.btn.btn-success(type="button", ng-disabled = 'newQuestion.tags.length == 0', ng-click = "createQuestion()") Ask Question
+  

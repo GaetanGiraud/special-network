@@ -2,9 +2,9 @@ div.page#child
   form(name='childForm')
     div.row
       div.span5
-        h3(ng-show = '!authorize.edit', ng-mouseover = "showEditButton = true", mouseaway = "showEditButton = false")
+        h3(ng-show = '!authorize.edit')
           | {{ child.pageTitle }}
-          button.transparent.btn(type = "button",title = "Edit {{ child.name }}'s profile ", ng-click = "authorize.edit = true", ng-show = "authorize.show && showEditButton")
+          button.transparent.btn(type = "button",title = "Edit {{ child.name }}'s profile ", ng-click = "authorize.edit = true", ng-show = "authorize.show")
             i.icon-edit.icon-2x
         div(ng-show = 'authorize.edit')
           h3
@@ -57,9 +57,6 @@ div.page#child
             | Search
             tags(url = '/api/tags', add = 'addSuperpower(tag)')
             
-            //button.btn(ng-click = 'addSuperpower()') Add
-            //button.btn(ng-click = 'child.newSuperpower = ""') Cancel
-            
         h5 People always say that I am:
         p(ng-show = '!authorize.edit') 
           | {{ child.description }}
@@ -67,17 +64,14 @@ div.page#child
           
           
         h4 My Photos and Videos
-        ul.thumbnails(ng-click = "overviewType = 'albums'")
+        ul.thumbnails(ng-click = "overviewType = 'albums'", style = "cursor: pointer")
           li(ng-repeat = 'album in child.albums | limitTo:9')
-            img(ng-src = "{{ albumThumbnail(album) | thumbPicture }}")
+            img(ng-src = "{{ albumThumbnail(album) | thumbAlbumPicture }}")
         p(ng-show = "child.albums.length == 0")
           | I don't have any photo or video albums. 
           | Create one the next time you share a photo!
     
-            
-          //button(type='button', ng-click="updateUser()", class='btn btn-primary') Update
-          //button(type='button', ng-click="cancelUpdate()", class='btn', title = 'All changes will be lost!') Cancel
-      div.span5
+      div.span6
         button.btn(type = "button", ng-click = "setOverviewType('discussions')", ng-show = "overviewType == 'albums'") Back to discussions
         div(ng-switch on = "overviewType")
           div(ng-switch-when="discussions")

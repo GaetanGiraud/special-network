@@ -1,48 +1,49 @@
-   
-div.row
-  div.span9
-    h6 Add a question
-    button.btn(type="button", ng-click = "showNewQuestion = true", ng-show = "!showNewQuestion") Add a question
-    div(ng-show = "showNewQuestion")
-      p(ng-show = "newQuestion.tags.length == 0")
-        | Please specify at least one topic for this question
-      ul
-        li(ng-repeat = "tag in newQuestion.tags")
-          tag(tag = "tag", action = "true", remove =  "removeQuestionTag(tag)" )
-      tags(url = '/api/tags', add = 'addQuestionTag(tag)')
-      br
-      input(type='text', ng-model = "newQuestion.content")
-      br
-      textarea(ng-model = "newQuestion.details")
-      br
-      div.btn-group
-        button.btn.btn-primary(type="button", ng-disabled = 'newQuestion.tags.length == 0', ng-click = "createQuestion()") Add Question
-        button.btn(type="button", ng-click = "showNewQuestion = false", ng-show = "showNewQuestion") cancel
-      
-div.row
-  div.span9
-    h5 Showing discussions related to:
-    ul
-      li(ng-repeat = "tag in searchTags")
-        tag(tag = "tag", action = "true", remove =  "removeTag(tag)" )
-    tags(url = '/api/tags', add = 'addTag(tag)')
-
-div.row
-  div.span9
-    ul.unstyled
-      li(ng-repeat = "question in questions")
+div.page
+  div.row
+    div.span9
+      h6 Add a question
+      button.btn(type="button", ng-click = "showNewQuestion = true", ng-show = "!showNewQuestion") Add a question
+      div(ng-show = "showNewQuestion")
+        p(ng-show = "newQuestion.tags.length == 0")
+          | Please specify at least one topic for this question
         ul
-          li(ng-repeat = "tag in question.tags")
-            tag(tag = "tag")
-        img(ng-src = "{{ question._creator | userIconPic }}")
-        | {{ question._creator.name }}
-        | {{ question.createdAt | fromNow }}
-        div
-          a(ng-href="/questions/{{ question.title }}")
-            | {{ question.content }}
-        div
-          | {{ question.details }}
-          
-  div(paginate, new-page-target = "questions", url = "", ng-show = "questions.length > 9")  
-          
+          li(ng-repeat = "tag in newQuestion.tags")
+            tag(tag = "tag", action = "true", remove =  "removeQuestionTag(tag)" )
+        tags(url = '/api/tags', add = 'addQuestionTag(tag)')
+        br
+        input(type='text', ng-model = "newQuestion.content")
+        br
+        textarea(ng-model = "newQuestion.details")
+        br
+        div.btn-group
+          button.btn.btn-primary(type="button", ng-disabled = 'newQuestion.tags.length == 0', ng-click = "createQuestion()") Add Question
+          button.btn(type="button", ng-click = "showNewQuestion = false", ng-show = "showNewQuestion") cancel
+        
+  div.row
+    div.span9
+      h5 Showing discussions related to:
+      ul
+        li(ng-repeat = "tag in searchTags")
+          tag(tag = "tag", action = "true", remove =  "removeTag(tag)" )
+      tags(url = '/api/tags', add = 'addTag(tag)')
+  
+  div.row
+    div.span9
+      ul.unstyled
+        li(ng-repeat = "question in questions")
+          ul
+            li(ng-repeat = "tag in question.tags")
+              tag(tag = "tag")
+          img(ng-src = "{{ question._creator | userIconPic }}")
+          | {{ question._creator.name }}
+          | {{ question.createdAt | fromNow }}
+          div
+            a(ng-href="/questions/{{ question.title }}")
+              | {{ question.content }}
+          div
+            | {{ question.details }}
+            
+    div(paginate, new-page-target = "questions", url = "", ng-show = "questions.length > 9")  
+            
+    
   

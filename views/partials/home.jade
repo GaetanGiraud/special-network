@@ -1,59 +1,40 @@
 div.row
-  div.span12
-  
-    h6 Add a question
-    div#new-question(ng-controller = "QuestionsCtrl")
-      button.btn(type="button", ng-click = "showNewQuestion = true", ng-show = "!showNewQuestion") Add a question
-      button.btn(type="button", ng-click = "showNewQuestion = false", ng-show = "showNewQuestion") Cancel
-      div.custom-popover(ng-show = "showNewQuestion", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
-        div(class = "arrow-up")
-        p(ng-show = "newQuestion.tags.length == 0")
-          | Please specify at least one topic for this question
-        ul
-          li(ng-repeat = "tag in newQuestion.tags")
-            tag(tag = "tag", action = "true", remove =  "removeQuestionTag(tag)" )
-        tags(url = '/api/tags', add = 'addQuestionTag(tag)')
-        br
-        input(type='text', ng-model = "newQuestion.content")
-        br
-        textarea(ng-model = "newQuestion.details")
-        br
-        div.btn-group
-          button.btn.btn-primary(type="button", ng-disabled = 'newQuestion.tags.length == 0', ng-click = "createQuestion()") Add Question
-          button.btn(type="button", ng-click = "showNewQuestion = false", ng-show = "showNewQuestion") cancel
-    
-    div(ng-controller = "ChildrenCtrl")
-      a(ng-click='newKid = !newKid', ng-show = "!newKid") 
-        i.icon-plus.icon
+  div#input-bar
+    div.btn-group
+      button(type = 'button', class = 'btn', ng-click='toggleInput("showNewKid")', ng-disabled = 'showNewKid') 
+        i.icon-pencil.icon-2x
         | Add a page
-      div(ng-show = "newKid")
-        a(ng-click='newKid = !newKid') 
-          i.icon-minus.icon
-          | Cancel
-        div
-          label Enter a name for the child
-          input(type='text', placeholder='name', ng-model = "newChild.name")
-          label What is your relationship to the child?
-          select(placeholder='Who is he/her to you', ng-options = "r.name as r.name for r in relationships", ng-model = "newChild.creator.relationship")
-          p(ng-show = '(newChild.creator.relationship != "Father" && newChild.creator.relationship != "Mother")' )
-            | Have you asked their parents ? 
-            br
-            | Always good to check before posting personal information on the web, especially concerning a child!
-          br
-          div.btn-group
-            button(type='button', ng-click="addChild()", class='btn btn-primary' ) Add
-            button(type='button', ng-click="newKid = false", class='btn btn', title = 'All changes will be lost!') Cancel
+      button(type="button", class = 'btn', ng-click = 'toggleInput("showNewQuestion")', ng-disabled = 'showNewQuestion') 
+        i.icon-question-sign.icon-2x
+        | Add a question
+      button(type="button", class = 'btn', ng-click = 'toggleInput("showNewPost")', ng-disabled = 'showNewPost', 
+             ng-class = "{'rounded-right': roundedCorners }")
+        i.icon-bullhorn.icon-2x
+        | Post an update
+      button.btn.btn-warning(type="button", ng-click = 'toggleInput()', ng-show = 'showNewKid || showNewQuestion || showNewPost')
+        i.icon-undo.icon-2x
+        
+        
+    div.input-form(ng-show = "showNewKid",  ng-animate="{show: 'show-animation-input', hide: 'hide-animation'}")
+      h4 Add a page
+      include ../includes/newkid
+    div.input-form(ng-show = "showNewQuestion",   ng-animate="{show: 'show-animation-input', hide: 'hide-animation'}")
+      h4 Ask a question
+      include ../includes/newquestion
+    div.input-form(ng-show = "showNewPost",  ng-animate="{show: 'show-animation-input', hide: 'hide-animation'}")
+      //h4 Post an update
+      include ../includes/newpost
 
 
 
-div.row#home(masonry = '{{ load }}')
-  div(ng-repeat = "item in results", ng-switch on = "item.type", class='update')
-    div(ng-switch-when="discussion",  ng-class = 'item.type')
-      include ../includes/discussion-summary
-    div(ng-switch-when="question",  ng-class = 'item.type')
-      include ../includes/question
+div.row
+  div.span12#home(masonry)
+    div(ng-repeat = "item in results", class='update', ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")
+      div(class = "question", ng-class = '{question: item.title, video: item.video, pictures: item.pictures.length > 0 }')
+        include ../includes/summary
+
 
 div.row.clearfix
   div.span9
-    div(paginate, new-page-target = "data.results", url = "{{ resultUrl }}")  
+    
       

@@ -139,6 +139,7 @@ angular.module('CareKids.services', ['ngResource']).
       }
     };
   }]).
+  
   factory('GoogleApi', ['$window', function($window) {
     var clientId = '724910639732.apps.googleusercontent.com';
     var apiKey = 'AIzaSyDksAsTFgEvILZgCSUXLTGGfQf2zWdeAx0';

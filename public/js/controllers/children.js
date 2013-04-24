@@ -1,13 +1,13 @@
 'use strict';
 
 
-function ChildrenCtrl($scope, Child, Alert, User) {
+function ChildrenCtrl($scope, Child, Alert, User, FollowService, $location) {
   //setting up some default values
   $scope.notFollowing = true;
 
    
-     $scope.famillyChildren = Child.query({following: 'familly'});
-     $scope.followedChildren = Child.query({following: 'others'});
+  $scope.famillyChildren = Child.query({following: 'familly'});
+  $scope.followedChildren = Child.query({following: 'others'});
     
   $scope.$watch('currentUser', function(currentUser) {
     if (angular.isDefined(currentUser) && currentUser != null ) {
@@ -55,6 +55,7 @@ function ChildrenCtrl($scope, Child, Alert, User) {
   $scope.addChild = function() {
    Child.save($scope.newChild, function(child) {
      $scope.children.push(child);
+     $location.path('/children/' + child.url);
      Alert.success('Successfully created a page for ' +  child.name);
     
      $scope.newChild = {
@@ -76,35 +77,46 @@ function ChildrenCtrl($scope, Child, Alert, User) {
   }
   
   
+    //
+  
+  $scope.unfollow = function($index, type) {
+    var child;
+    if (type == 'familly') child = $scope.famillyChildren[$index];
+    if (type == 'friend') child = $scope.followedChildren[$index];
+    
+    followService.unfollow(child, function(data) {
+      $scope.famillyChildren
+      if (type == 'familly') return $scope.famillyChildren.splice($index, 1);
+      if (type == 'friend') return $scope.followedChildren.splice($index, 1);
+     
+  //     child.isFollowed = false;
+    });
+   }
+
 }
-ChildrenCtrl.$inject = ['$scope', 'Child', 'Alert', 'User'];
+ChildrenCtrl.$inject = ['$scope', 'Child', 'Alert', 'User', 'FollowService', '$location'];
 
 function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $location, Socket, $dialog, Alert) {
   
    // setting up default values for discussions on the page. Logic is in Discussion controller.
     $scope.overviewType = 'discussions';
     
-    $scope.newDiscussion = {};
-    $scope.$watch('currentUser', function(currentUser) {
-      if (currentUser != null) {
-        $scope.newDiscussion._creator = { '_id': currentUser._id, 'name': currentUser.name, 'picture': currentUser.picture } ;
-      }
-    });
     $scope.children = [];
     $scope.discussions = [];
     $scope.authorize = {};
     
    // querying discussions on the server.
     
-
-    $scope.child = Child.get({childId:  $routeParams.childId }, function(child){
+   $scope.$safeApply($scope, function() {
+    
+    Child.get({childId:  $routeParams.childId }, function(child){
       // add the child to the discussion object.
+      $scope.child = child;
       child.send = true;
       $scope.children.push(child);
       
-      console.log(child.superpowers);
+
       // fill in the child superpowers as discussiont tags by default
-      $scope.newDiscussion.tags = angular.copy(child.superpowers);
       
       $scope.discussions = Discussion.query({'children':  child._id, 'page': 1});
       Socket.subscribe('child_' +  child._id );
@@ -132,7 +144,7 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
       //permission = child.permissions.indexOf( );
       
     });
-    
+  });
    /* $scope.$watch('child.superpowers', function(superpowers) {
        if (angular.isDefined(superpowers)) {
          console.log($scope.child);
@@ -193,6 +205,71 @@ function ChildCtrl($scope, $http, $rootScope, $routeParams, Discussion, Child, $
       $scope.updateChild();
     })
   };
+  
+  
+  $scope.$on('event:commentAdded', function(event, comment, id) {
+   
+    for(var i = 0; i < $scope.results.length; i ++) {
+        if ( $scope.discussions[i] == id) {
+           $scope.discussions[i].comments.push(comment);
+          break;     
+        }
+    }
+  });
+  
+  /* To be checkd */
+    Socket.socket().on('newComment', function(comment) {
+      console.log(comment);  
+      for(var i = 0; i < $scope.discussions.length; i ++) {
+        if ( $scope.discussions[i] == comment.discussionId) {
+           $scope.$apply($scope.discussions[i].comments.push(comment.comment));
+          break;     
+        }
+      }
+    });
+    
+    // Add new discussion received on the opened socket / room.
+    
+    Socket.socket().on('newDiscussion', function(discussion) {
+     // $scope.$safeApply($scope.results.unshift(discussion));
+     // $scope.$broadcast('event:masonryReload');
+    });
+
+    
+  /*  End  */
+    
+    $scope.$on('newDiscussion', function(event, discussion) {
+       console.log('new discusison recieved locally')
+       console.log(discussion)
+       
+      // $scope.$safeApply($scope, function() { 
+         $scope.showNewPost = false;
+         //$scope.results.unshift(discussion);
+         console.log($scope.results);
+         //$rootScope.$broadcast('event:masonryReload');
+      //  });
+         
+    });
+    
+    // After creating discussion, update discussion with info sent back from the server.
+     Socket.socket().on('discussionSavedSuccess', function(discussion) {
+      // for(var i = 0; i < $scope.results.length; i ++) {
+        //if ( $scope.results[i]._id == id) {
+          //console.log('adding ' + id);
+             console.log('new discusison recieved from the server')
+             console.log(discussion)
+           $scope.$safeApply($scope, function(){ 
+             $scope.discussions.unshift(discussion);
+             Alert.success('Discussion created');
+          });
+          //break;     
+       // }
+    //  }
+    });
+
+  
+  
+  
   
 /*   $scope.addSuperpower = function(superpower, newSuperpower) {
     if(angular.isDefined(superpower)) {
@@ -294,3 +371,42 @@ function AlbumsCtrl($scope) {
   
 }
 AlbumsCtrl.$inject = ['$scope']
+
+function KidCtrl($scope) {
+  
+  console.log($scope.child);
+  $scope.unfollow = function(child) {
+    $http.put('/api/children/' + child._id + '/follow', { action: 'unfollow' }).success(function(child) {
+       $rootScope.$broadcast('unFollowingChild', child);
+      });
+   }
+      
+   $scope.follow = function(child) {
+        Message.send({
+          content: $scope.currentUser.name + " wants to follow " + child.name,
+          action: { 
+            actionType: "following",
+            target: child._id
+            },
+          _creator: $scope.currentUser,
+          receivers: [ { '_user': child.creator._user } ]
+        });
+        
+        $http.put('/api/children/' + scope.child._id + '/follow', { action: 'follow' }).success(function(child) {
+          $rootScope.$broadcast('followingChild', child);
+        });
+      }
+      
+    $scope.isFollowed = function(child) {
+  
+    }
+      
+    scope.$on('followingChild', function(event, child) {
+        if (child._id == $scope.child._id) scope.isFollowed = true;
+    })       
+  
+ //   scope.$on('unFollowingChild', function(event, child) {
+ //     if (child._id == $scope.child._id) scope.isFollowed = false;
+ //   })     
+}
+  

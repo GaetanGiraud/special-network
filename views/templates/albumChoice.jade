@@ -6,16 +6,23 @@ div(ng-class="modalAlert.type", ng-show="modalAlert.msg.length > 0", ng-cloak, c
   {{modalAlert.msg}}
  
 div.modal-body
-  ul.thumbnails
-    li.span2(ng-repeat = "album in albums", ng-class = "{{ isSelected($index) }}", ng-click = "selectAlbum($index)")
-      div.thumbnail
-        img(ng-src="{{ thumbnail(album) | thumbPicture  }}", alt="{{ thumbnail(album).title }}", ng-show = "thumbnail(album)")
-        h3 {{ album.title }}
-    li.span2(ng-class = "{{ isSelected('createNew') }}", ng-click = "selectAlbum('createNew')")
-      div.thumbnail
-        img(ng-src="{{ }}",alt="{{  }}">
-        h3 Create New Album
-        input(type = 'text', placeholder='Give the album a title', ng-model = "newAlbumTitle", ng-show = "isSelected('createNew')")
+  ul.thumbnails(ng-show = "albums")
+    li.span2(ng-repeat = "album in albums")
+      div.thumbnail( ng-class = "{selected: isSelected($index)}")
+        a(ng-click = "selectAlbum($index)")
+          img(ng-src="{{ thumbnail(album) | thumbAlbumPicture  }}", alt="{{ thumbnail(album).title }}")
+        h5 {{ album.title }}
+    
+        
+  
+  p(ng-hide = "albums")
+    | You have not created any album yet. Click on on the create new button to get started!
+  div(ng-show = 'selectedAlbum  == "createNew"', style = "display: none;")
+    label Enter a name for the new album and press confirm
+    input.span3(type = 'text',  placeholder='Give the album a title', ng-model = "newAlbumTitle", ng-animate="{enter: 'enter-animation', leave: 'leave-animation', move: 'move-animation', show: 'show-animation', hide: 'hide-animation'}")  
+  br
+  button(type='button', ng-click='selectedAlbum  = "createNew"', class='btn btn-primary') Create
+  
           
 
   

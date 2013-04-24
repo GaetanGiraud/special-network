@@ -1,23 +1,42 @@
-div.row 
-  div.span9
-    h3 
-      tag(tag = "tag")
-    button.btn(type = "button", ng-show = "!editTopic", ng-click = "editTopic = true") Edit
-    button.btn(type = "button", ng-show = "editTopic", ng-click = "editTopic = false") End Editing
-    
-div.row
-  div.span5
-    div.row
-      div.span5
-        h4 The topic description
-        p(ng-show = "!editTopic")
-          | {{ tag.description }}
-        div.editable(ng-show = "editTopic", contenteditable = 'true', ng-model = "tag.description")
-        button.btn(ng-show = "editTopic", type = 'button', ng-click = 'updateTag()' ) Save Changes
-    
-    div.row
-      div.span5(ng-show='!editTopic')
-        h5 Usefull link
+div.page
+  div.row
+    div.span6
+      h3 The topic description
+         button.transparent.btn(type = "button", title = "Edit Topic", ""ng-show = "!editTopic", ng-click = "editTopic = true")
+          i.icon-edit.icon-2x
+         button.transparent.btn(type = "button", ng-show = "editTopic", ng-click = "editTopic = false")
+           i.icon-ok-circle.icon-2x
+      
+      p(ng-show = "!editTopic")
+        | {{ tag.description }}
+      p(ng-show = "tag.description.length == 0")
+        | This topic has not description yet. 
+        br
+        br
+        | This being a community site, everyone is able edit the content of a topic. 
+        | So if you feel like you know somehing about this topice, feel free to add as much information as you see fit.
+      
+      
+      div(ng-show = "editTopic")
+        label Describe the topic
+        div.editable(contenteditable = 'true', ng-model = "tag.description")
+        br
+        button.btn(type = 'button', ng-click = 'updateTag()' ) Save Changes
+      
+      div(nng-show='!editTopic')
+        h5 Usefull Resources
+          button.transparent.btn(type = "button", title = "Edit Topic", ""ng-show = "!editTopic", ng-click = "editTopic = true")
+            i.icon-edit.icon-2x
+          button.transparent.btn(type = "button", ng-show = "editTopic", ng-click = "editTopic = false")
+            i.icon-ok-circle.icon-2x
+        p(ng-hide = "tag.links")
+          | To add link to external resources, for sharing information and news with the all community in one click!
+          br
+          | Adding is very simple, press the edit button and start adding links!
+       
+        p(ng-show = "tag.links")
+          | Resources related to {{ tag.name | inflector }}
+
         ul.unstyled
           li(ng-repeat = "link in tag.links")
             //img(ng-href = "{{ link.picture }}")
@@ -30,7 +49,7 @@ div.row
             i.icon-spinner.icon-spin
             | Waiting
 
-      div.span5(ng-show = "editTopic")
+      div(ng-show = "editTopic")
         h5 Add / Edit the links
         ul.unstyled
           li(ng-repeat = "link in tag.links")
@@ -49,26 +68,30 @@ div.row
             | Waiting
           
           form(name = 'linkForm')
-            | link: 
-            input(type = 'url', name = 'newLink', ng-model = 'newLink.url') 
-            | {{ newLink.url }}
-            button.btn.btn-success(type = 'button', ng-click = 'addLink()') Add a new link.
+            label Start with http:// !
+            div.input-prepend
+              input(type = 'url', placeholder = "link to external resource", "name = 'newLink', ng-model = 'newLink.url') 
+              button.btn.btn-success(type = 'button', ng-click = 'addLink()') Add
             span.error(ng-show="linkForm.newLink.$error.url") Please enter a valid link
-        
-  
-  div.span4
-    h4 The topic picture
-    img#topic-picture.img-rounded.well(ng-src = "{{ tag | picture }}" )
-    div(ng-show = 'editTopic' )
-      small
-        | <strong>Drag & Drop</strong> the file onto the existing picture or
+          
+    
+    div.span4
+      h4 The topic picture
+         button.transparent.btn(type = "button", title = "Edit Topic", ""ng-show = "!editTopic", ng-click = "editTopic = true")
+          i.icon-edit.icon-2x
+         button.transparent.btn(type = "button", ng-show = "editTopic", ng-click = "editTopic = false")
+           i.icon-ok-circle.icon-2x
+      img#topic-picture.img-rounded.well(ng-src = "{{ tag | picture }}" )
+      div(ng-show = 'editTopic' )
+        small
+          | <strong>Drag & Drop</strong> the file onto the existing picture or
+          br
+          | Use the <strong>button</strong> to change the topic picture.
         br
-        | Use the <strong>button</strong> to change the topic picture.
-      br
-      span.btn.btn-success.fileinput-button
-        i.icon-plus.icon-white
-        span 
-          | New picture
-          input(type="file", uploader, opts = "topicPitureUpload" , done='setTopicPicture(file)', data-url="/upload")
+        span.btn.btn-success.fileinput-button
+          i.icon-plus.icon-white
+          span 
+            | New picture
+            input(type="file", uploader, opts = "topicPitureUpload" , done='setTopicPicture(file)', data-url="/upload")
 
     

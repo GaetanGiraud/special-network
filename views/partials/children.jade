@@ -2,111 +2,95 @@ div.page
   div.row(ng-show = "!optOut")
     div(class='span9')
       div.row
-        div.span9
+        div.span11
           legend The kids page you are managing
-          // Creating a new kid's page
-          a(ng-click='newKid = !newKid', ng-show = "!newKid") 
-            i.icon-plus.icon
-            | Add a page
-          div(ng-show = "newKid")
-            a(ng-click='newKid = !newKid') 
-              i.icon-minus.icon
-              | Cancel
-            div
-              label Enter a name for the child
-              input(type='text', placeholder='name', ng-model = "newChild.name")
-              label What is your relationship to the child?
-              select(placeholder='Who is he/her to you', ng-options = "r.name as r.name for r in relationships", ng-model = "newChild.creator.relationship")
-              p(ng-show = '(newChild.creator.relationship != "Father" && newChild.creator.relationship != "Mother")' )
-                | Have you asked their parents ? 
-                br
-                | Always good to check before posting personal information on the web, especially concerning a child!
-              br
-              div.btn-group
-                button(type='button', ng-click="addChild()", class='btn btn-primary' ) Add
-                button(type='button', ng-click="newKid = false", class='btn btn', title = 'All changes will be lost!') Cancel
           
-          div(ng-show='children.length < 1')
-            p
-              | You do have created any children page, create a page using the right menu
-              br
-              small 
-                | Alternatively, if you are only planning to follow and post on exisiting page (For example you are following a niece, a nephew or a friend's child)
-                | let us know by checking the check box and we will not ask you again. 
-            button(type='button', ng-click="registerOptOut()", class='btn btn-small') I want to opt out.
+          p(ng-show = "children.length == 0 && famillyChildren.length == 0 && followedChildren.length == 0")
+            | Let's get started! 
+            | To create a page for your kid, use the create button and follow the instruction. Upon completion you'll be brougth to his/her new 
+            | page and you'll be able to start sharing right away!
             br
-            small You can reverse this setting on your profile page.
-      
-          table.table(ng-show = "children.length > 0")
-            tr
-              th
-              th 
-                | You are
-              th 
-                | latest update
-              th
-            tr(ng-repeat="child in children")
-              td
-                a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
-                br
-                img(ng-src="{{ child | userThumbPic }}")
-              td
-                | {{child.creator.relationship | pronomize }} 
-              td
-                | {{ child.lastUpdate.updatedAt | fromNow }}
-              td
-                button(type='button', ng-click="deleteChild($index)", class='btn' ) Remove Page
+            | If you want to keep up with some children you know, or want to exchange with parents / adults
+            | facing the same challenges, use the find function in the menu bar.
+             
+          
+    div.span12(ng-show = "children.length > 0")
+      div.tile(ng-repeat = 'child in children' )
+        div
+          
+          h4
+            button.transparent.pull-right(type='button', ng-click="deleteChild($index)", class='btn' )
+              i.icon-remove-circle.icon-2x
+            a(ng-href = "/children/{{ child.url}}") {{ child.name }}
+            
+           
+          img.img-profile(ng-src="{{ child | userThumbPic }}")
+          small
+            | You are my 
+            strong
+             {{ child.creator.relationship }} 
+          h6 Latest Activity
+          div(ng-show = "child.lastUpdate") 
+            small
+              | Posted on 
+              strong
+                | {{ child.lastUpdate.createdAt | date:'MMMM-yyyy' }} 
+              br
+              | {{ child.lastUpdate.content }}
+           small(ng-hide = "child.lastUpdate") 
+             | No posts yet
+           
+        div.clearfix.separator
+        zippy(title = 'My Superpowers')
+          h6(ng-pluralize, count = "child.superpowers.length",  when="{'0': 'Not any superpower registered yet', '1': '1 Superpower, impressive', 'other': ' Many superpowers, a real figher!' }")
+          ul.unstyled.taglist
+            li(ng-repeat = "superb in child.superpowers")
+              tag(tag = "superb")
                 
-          
+      
+      div.tile(ng-repeat = 'child in famillyChildren' )
+        div
+          img.img-profile(ng-src="{{ child | userThumbPic }}")
+          h5 
+            | {{ child.name }}
+            a.pull-rightunfollow(title = "unfollow child", ng-click = "unfollow($index, familly)")
+          p
+            | You are my 
+            strong
+              | {{ getRelationship(child) }} 
+          div
+            h5 Last update on
+              strong
+                | {{ child.lastUpdate.createdAt | date:'MMM-YYYY'}}
+           small
+             | {{ child.lastUpdate.content }}
+        div.clearfix.separator
+        zippy(title = 'My Superpowers')
+          h6(ng-pluralize, count = "child.superpowers.length", when="{'0': 'Not any superpower registered yet', '1': '1 Superpower, very strong', 'other': ' Many superpowers, a real figher!' }")
+          ul.unstyled.taglist
+            li(ng-repeat = "superb in child.superpowers")
+               tag(tag = "superb")
+               
+      
+      div.tile(ng-repeat = 'child in followedChildren' )
+        table.table
+          tr(ng-repeat =  'child in followedChildren'  )
+            td
+              kid(child = "child")
+            td
+              lasttUpdate: {{ child.lastUpdate.createdAt | date:'MMM-YYYY'}}
+            td
+              small
+                |  {{ child.lastUpdate.content }}
+            td
+              //a.follow(title = "follow", ng-click = "follow(child)", ng-show = '!child.isFollowed')
+              //    | Follow Him!
+              // i.icon-exclamation-sign(title = "Send a message to {{ child.name }}'s {{ child.creator.relationship }}'")
+              a.unfollow(title = "unfollow child", ng-click = "unfollow($index, friend)")
   
-    
-          
-      div.row
-        div.span9
-          legend The kids in your familly
-          p(ng-show='famillyChildren.length == 0')
-            | You are not following any children in you familly yet. 
-            | Go to the 
-            a(href = "/find") Find
-            | page to look out people and follow children
-          table.table(ng-show = "famillyChildren.length > 0")
-            tr
-              th
-              th 
-                | You are
-              th 
-                | latest update
-              th
-            tr(ng-repeat="child in famillyChildren")
-              td
-                a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
-                br
-                img(ng-src="{{ child | userThumbPic }}")
-              td
-                | {{ getRelationship(child) }} 
-              td
-                | {{ child.lastUpdate.updatedAt | fromNow }}
-  
-      div.row
-        div.span9
-          legend The kids you are following
-          p(ng-show='followedChildren.length == 0')
-            | You are not following any children yet. 
-            | Go to the 
-            a(href = "/find") Find 
-            | page to look out people and follow children
-          table.table(ng-show = "followedChildren.length > 0")
-            tr
-              th
-              th
-              th 
-                | latest update
-              th
-            tr(ng-repeat="child in followedChildren")
-              th
-                a(ng-href = "/children/{{child.pageTitle}}") {{child.name}}
-              td 
-                img(ng-src="{{ child | userIconPic }}")
-              td
-                | {{ child.lastUpdate.updatedAt | fromNow }}
 
+div.row.clearfix
+  div.span9
+    div(paginate, new-page-target = "followedChildren", url = "/api/children")  
+  
+  

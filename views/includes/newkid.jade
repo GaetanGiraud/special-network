@@ -1,0 +1,22 @@
+form#new-child(name = "newChildForm", ng-controller = "ChildrenCtrl")
+  
+  label 
+    | Who is this page for?
+  input.full-width(type='text', name = 'childName', placeholder='Enter a name', ng-model = "newChild.name", title = 'Enter a name', required)
+  
+  small.clearfix.error(ng-show="newChildForm.childName.$error.required",  ng-animate = "{show: 'show-animation', hide: 'hide-animation'}")
+    | Please enter a name.
+    
+  label 
+    | What is your relationship to him/her?
+
+  select.full-width(placeholder='Who is he/her to you', ng-options = "r.name as r.name for r in relationships", ng-model = "newChild.creator.relationship", 
+     title = 'What is your relastionship to the him/her?')
+  
+  small.clearfix(ng-show = '(newChild.creator.relationship != "Father" && newChild.creator.relationship != "Mother")', ng-animate = "{show: 'show-animation', hide: 'hide-animation'}" )
+    | Have you asked their parents ? 
+    br
+    | Always good to check before posting personal information on the web, especially concerning a child!
+  
+  div.btn-controls
+    button(type='button', ng-click="addChild()", ng-disabled = 'newChildForm.childName.$error.required', class='btn btn-success' ) Create Page

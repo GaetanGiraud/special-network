@@ -9,6 +9,7 @@ var db = require('../config/database').connection
   , Question = require('../models/Question')(db)
   , Child = require('../models/Child')(db)
   , Tag = require('../models/Tag')(db)
+  , Discussion = require('../models/Discussion')(db)
   , SearchTerm = require('../models/SearchTerm')(db)
   , _ = require('underscore')
   , mongoose = require('mongoose')
@@ -236,9 +237,9 @@ exports.delete = function (req, res) {
 
 exports.search = function(req,res) {
   var query;
-  console.log('the query'.green)
-  console.log(req.query)
-  console.log('the tags'.green)
+ var questions;
+ var children;
+ 
   if(typeof req.query.tags != "undefined") {
     tags = req.query.tags;
     console.log(tags)
@@ -248,7 +249,7 @@ exports.search = function(req,res) {
     
     tags = [];  
   }
-  console.log(tags);
+
   
   if (req.query.page) {
      var skipIndex = req.query.page -1;
@@ -259,22 +260,56 @@ exports.search = function(req,res) {
  //Question.textSearch(cleanQuery, function (err, output) {
 
 // First recover the list of all the children the use if following.
-Child.find({ 'permissions._user': mongoose.Types.ObjectId(req.session.user)}).select('_id').exec(function(err, children) {
+Child.find({ 'permissions._user': mongoose.Types.ObjectId(req.session.user)}).select('_id').exec(function(err, data) {
  
   if (err) return res.send(400, err);
   console.log('the children'.green)
-  children = _.map(children, function(child) { return child._id })
-  
+  children = _.map(data, function(child) { return child._id })
   
   // if user is not following any children and any tags, don't execute the request and send back an empty response.
   
-  if ( tags.length == 0) return  res.json([]);
-    console.log(children)
+  if ( tags.length == 0 && children.length == 0) return  res.json([]);
     
   if(typeof req.query.term != "undefined") {
     var cleanQuery = req.query.term.replace(/[\[\]{}|&;$%@"<>()+,]/g, "");
     //var splitQuery = cleanQuery.split(' ').split(',');
-    query = { 
+   } else {
+     
+    var cleanQuery = '.'; 
+     
+    }
+   
+   console.log(tags)
+      console.log(children)
+   Question.find({content: {$regex: cleanQuery }, tags: {$in: tags }  })
+      .sort('udpatedAt')
+      .limit(50)
+      .populate('_creator comments._creator tags')
+      .exec(function(err, data) {
+         if (err) return res.json(data);
+        var questions = data;
+        
+        Discussion.find({'children': {$in: children}, 'content': { $regex: cleanQuery } })
+            .sort('udpatedAt')
+            .populate('_creator children comments._creator')
+            .limit(50)
+            .exec(function(err, data) {
+              if (err) return res.json(data);
+              var results = data.concat(questions);
+              var sortedResults = _.sortBy(results, function(result) { return result.updatedAt}).reverse();
+              sortedResults = _.first(sortedResults, 10);
+              
+              Child.populate(sortedResults,[
+                                           {path: 'children.superpowers', model: "Tag"},
+                                           {path: 'tags', model: "Tag"}, ], function(err, results) {
+                return res.json(results);
+              })
+            })
+        })
+  })
+}
+  
+  /*  query = { 
       "sort" : [
         { "updatedAt" : {"order" : "desc"} }
         ],
@@ -347,10 +382,7 @@ Child.find({ 'permissions._user': mongoose.Types.ObjectId(req.session.user)}).se
       console.log(body);
       if (body.hits.hits.length == 0) return res.json([]);
       
-      var results = _.map(body.hits.hits, function(hit) { 
-        return { type: hit._type, document: hit._source };
-      });
-      var counter = results.length;
+  
       //console.log(results.d);
      /* results.forEach(function(element, index, array) {
         results[index].document._creator = mongoose.Types.ObjectId(results[index].document._creator); 
@@ -392,9 +424,54 @@ Child.find({ 'permissions._user': mongoose.Types.ObjectId(req.session.user)}).se
       }) */
       
      // console.log(results[0].document._creator instanceof 'ObjectId');
-      var populateOpts = [
+     
+     
+    // _id
+    
+  /*    var results = body.hits.hits;
+    // function(hit) { 
+   //     return { type: hit._type, documentId: mongoose.Types.ObjectId(hit._source._id) };
+   //   });
+    
+    var questionIds = _.map(_.where(results, { _type: 'question' }), function(result) { 
+            return mongoose.Types.ObjectId(result._source._id) ;
+    });
+    
+    var discussionIds = _.map(_.where(results, { _type: 'discussion' }), function(result) { 
+            return mongoose.Types.ObjectId(result._source._id) ;
+    });
+    console.log(questionIds)
+     console.log(discussionIds)
+    
+  
+    Question.find({'_id': { $in: questionIds} })
+     .populate('_creator tags comments._creator')
+     .exec(function(err, questions) {
+       if (err) return res.send(400, err);
+       
+       questions = _.map(questions, function(question) { return {type: 'question', document: question}}) ;
+       
+       Discussion.find({ '_id': { $in: discussionIds } })
+         .populate('_creator tags children comments._creator')
+         .exec(function(err, discussions) {
+          if (err) return res.send(400, err);
+          discussions = _.map(discussions, function(discussion) { return {type: 'discussion', document: discussion}} ) ;
+          console.log(discussions.green);
+          console.log(questions.concat(discussions));
+          var sortedResults = _.sortBy(questions.concat(discussions), function(result) { return result.document.updatedAt });
+          //var sortedResults = _.sortBy(questions.concat(discussions), function(result) { return result.updatedAt });
+        //  sortedResuls
+          console.log(sortedResults);
+          return res.json({ hits: body.hits.total , results: sortedResults.reverse()} );
+         });
+      
+      
+    });
+     
+     
+/*      var populateOpts = [
         {path: 'document._creator', select: '_id name picture', model: 'User'},
-        {path: 'document.comments._creator', select: '_id name picture', model: 'User'},
+      //  {path: 'document.comments._creator', select: '_id name picture', model: 'User'},
         {path: 'document.children', model: 'Child'},
          {path: 'document.tags', model: 'Tag'}
         ]
@@ -407,11 +484,11 @@ Child.find({ 'permissions._user': mongoose.Types.ObjectId(req.session.user)}).se
         //   console.log(results);
         return res.json({ hits: body.hits.total , results: results} );
         
-     });
+  /   }); */
      
-    });
-  });
-}
+//    });
+//  });
+//}
 
 
 

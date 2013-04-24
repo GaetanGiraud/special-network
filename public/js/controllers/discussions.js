@@ -11,14 +11,44 @@
  
 function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
     
+
+   
+  // $scope.albums = {};
+   
+  
+   // Add new comment received on the opened socket / room.
+  
+  
+
+}
+DiscussionCtrl.$inject = ['$scope', '$location', 'Socket', '$http', '$dialog'];
+
+function NewDiscussionCtrl($scope, Socket, $http, $dialog, Child) {
     $scope.inputType = 'text';
+    
+        
+    $scope.postChildren = Child.query({following: 'post'}, function() {
+       $scope.postChildren[0].send = true;
+      
+    });
+    
+    $scope.newDiscussion = {};
+    $scope.newDiscussion.tags = [];
     $scope.album = null;
    
     $scope.setInputType = function(input) {
       $scope.inputType = input;
 
     }
-   
+    
+    $scope.$watch('currentUser', function(current) {
+      if (angular.isDefined(current) && current != null ){
+        $scope.newDiscussion._creator = {'_id': current._id, 'name': current.name, 'picture': current.picture};
+        
+        }  
+      
+      
+    })
    // handling tags
        
    $scope.addTag = function(tag) { 
@@ -50,39 +80,41 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
       $scope.newDiscussion.children = [];
     // linking chosen children to the discussion
          
-      for(var i = 0; i < $scope.children.length; i++) {
-           if ($scope.children[i].send) { 
-             $scope.newDiscussion.children.push($scope.children[i]); 
+      for(var i = 0; i < $scope.postChildren.length; i++) {
+           if ($scope.postChildren[i].send) { 
+             $scope.newDiscussion.children.push($scope.postChildren[i]); 
              
-             if ($scope.children[i].album) {
+             if ($scope.postChildren[i].album) {
                if ($scope.inputType == 'picture') var data = $scope.newDiscussion.pictures ;
                if ($scope.inputType == 'video') var data = [ $scope.newDiscussion.video ];
-              
-               $http.put('/api/children/' + $scope.children[i]._id + '/albums/' + $scope.children[i].album._id, data );
+               
+               $http.put('/api/children/' + $scope.postChildren[i]._id + '/albums/' + $scope.children[i].album._id, data );
               }
             }
        } 
-
+       console.log('logging new discussion')
+    console.log($scope.newDiscussion)
       Socket.socket().emit('discussionCreated', $scope.newDiscussion);
-      
+      $scope.$safeApply($scope, function() { $scope.$emit('newDiscussion', angular.copy($scope.newDiscussion));
      // _.each($scope.discussion.children) {
       
       // add new discussion to the thread
-      $scope.discussions.unshift(angular.copy($scope.newDiscussion));
-      
       // reset newDiscussion variable
+        $scope.newDiscussion.content = '';
+        $scope.newDiscussion.children = []; 
+        $scope.newDiscussion.pictures = [];
+        $scope.newDiscussion.video = '';
+        $scope.newDiscussion.album = '';
+      });
+    }   
+    
+   $scope.$on('event:resetInputs', function() {
       $scope.newDiscussion.content = '';
       $scope.newDiscussion.children = []; 
       $scope.newDiscussion.pictures = [];
       $scope.newDiscussion.video = '';
       $scope.newDiscussion.album = '';
-      
-    }   
-    
-
-   
-  // $scope.albums = {};
-   
+    });
    $scope.removeVideoFromDiscussion = function() {
       $scope.newDiscussion.video = '';
     }
@@ -90,38 +122,8 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
       $scope.createDiscussion(); 
     });
     
-   // Add new comment received on the opened socket / room.
-   Socket.socket().on('newComment', function(comment) {
-      console.log(comment);  
-      for(var i = 0; i < $scope.discussions.length; i ++) {
-        if ( $scope.discussions[i]._id == comment.discussionId) {
-           $scope.$apply($scope.discussions[i].comments.push(comment.comment));
-          break;     
-        }
-      }
-    });
-    
-    // Add new discussion received on the opened socket / room.
-    Socket.socket().on('newDiscussion', function(discussion) {
-      $scope.$apply($scope.discussions.unshift(discussion));
-    });
-    
-    // After creating discussion, update discussion with info sent back from the server.
-    Socket.socket().on('discussionSavedSuccess', function(discussion) {
-      $scope.$apply($scope.discussions[0] = discussion);
-    });
-    
-    // Process event emited by new Comment controller
-    $scope.$on('event:commentAdded', function(event, comment, id) {
-      for(var i = 0; i < $scope.discussions.length; i ++) {
-        if ( $scope.discussions[i]._id == id) {
-           $scope.discussions[i].comments.push(comment);
-          break;     
-        }
-      }
-      
-    });
-    
+  
+  
     // albums choice dialog
     
   $scope.albums = [];
@@ -140,9 +142,12 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
       });
       
       $dialog.dialog(opts).open().then(function(result){
+         console.log('Nothing happens here!');
         if (angular.isDefined(result)) {
           if (result.content == 'createNew') { 
-            $http.post('/api/children/' + $scope.child._id + '/albums', { title: title})
+            
+            
+            $http.post('/api/children/' + $scope.child._id + '/albums', { title: result.title})
               .success(function(data) {
                 child.album = data;
                });
@@ -159,7 +164,7 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
     }
     
     $scope.createAlbum = function(title) {
-
+      concole('Nothing happens here!')
       
     }
     
@@ -173,9 +178,11 @@ function DiscussionCtrl($scope, $location, Socket, $http, $dialog) {
     
  
     
-
+  
+  
 }
-DiscussionCtrl.$inject = ['$scope', '$location', 'Socket', '$http', '$dialog'];
+NewDiscussionCtrl.$injec = ['$scope', 'Socket', '$http', '$dialog', 'Child']
+
 
 function newCommentCtrl($scope, Socket) {
   $scope.newComment = {};
@@ -187,9 +194,13 @@ function newCommentCtrl($scope, Socket) {
   });
     
   $scope.createComment = function(discussion) {
+    console.info(discussion)
+    console.info($scope.newComment)
+    $scope.$safeApply($scope,function() {
       Socket.socket().emit('commentAdded', { 'comment': $scope.newComment, 'discussionId': discussion._id});
       $scope.$emit('event:commentAdded', $scope.newComment, discussion._id );
       $scope.newComment = '';
+    });
   }
 
 }

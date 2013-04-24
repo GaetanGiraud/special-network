@@ -1,8 +1,8 @@
 div(ng-repeat = "child in children")
   button.btn(type='button', ng-show = "child.send", ng-click="openAlbumDialog(child)") Add an album for {{ child.name }}
   div(ng-show = "child.album")
-    button.btn(type="button", ng-click = "child.album = null")  &times
-    img(ng-show = 'albumThumbnail(child.album)', ng-src = "{{ albumThumbnail(child.album) | thumbPicture }}")
-    | You have selected the following album:
+    h6(ng-show = "$first") You have selected the following albums
+    img(ng-src = "{{ albumThumbnail(child.album) | thumbAlbumPicture }}")
     strong
-      {{ child.album.title }}
+      |{{ child.album.title }}
+    button.btn.transparent(title = 'remove from selection', type="button", ng-click = "child.album = null")  &times
